@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   Home,
@@ -13,11 +13,13 @@ import {
   BarChart3,
   FileJson,
   Globe,
+  LogOut,
 } from "lucide-react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { clsx } from "clsx";
 import { BrandLogo } from "../ui/brand-logo";
 import { LanguageSwitcher } from "./language-switcher";
+import { useAuthStore } from "@/app/stores/auth-store";
 
 const NAV_ITEMS = [
   { id: "dashboard", labelKey: "nav.dashboard", icon: Home },
@@ -34,7 +36,14 @@ export function Sidebar() {
   const { t } = useTranslation();
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const currentPath = location.pathname.slice(1) || 'dashboard';
+  const signOut = useAuthStore((s) => s.signOut);
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/login');
+  };
 
   return (
     <TooltipPrimitive.Provider delayDuration={120} skipDelayDuration={0}>
@@ -153,6 +162,33 @@ export function Sidebar() {
               <Globe className="w-4 h-4 text-muted-foreground" />
             </div>
           )}
+        </div>
+
+        {/* ── Logout ── */}
+        <div className="px-2 py-1">
+          <button
+            onClick={handleLogout}
+            className={clsx(
+              "w-full flex items-center rounded-lg p-2.5",
+              "text-muted-foreground hover:bg-sidebar-accent hover:text-destructive",
+              "transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              collapsed ? "justify-center" : "gap-2"
+            )}
+          >
+            <LogOut className="w-4 h-4 flex-shrink-0" />
+            <div
+              className="overflow-hidden"
+              style={{
+                maxWidth: collapsed ? 0 : 80,
+                opacity: collapsed ? 0 : 1,
+                transition: "max-width 200ms ease, opacity 120ms ease",
+              }}
+            >
+              <span className="text-xs font-medium whitespace-nowrap">
+                {t('nav.logout')}
+              </span>
+            </div>
+          </button>
         </div>
 
         {/* ── Collapse toggle ── */}
