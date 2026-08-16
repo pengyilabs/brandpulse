@@ -4,6 +4,7 @@ import {
   Globe, AlignLeft, Users, Image, Palette, Mic2, BookOpen,
   Tag, Folder, Grid3X3, UserPlus, Mail, AlertCircle,
 } from 'lucide-react';
+import { createProject } from '../../../lib/services/projects-service';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -99,10 +100,13 @@ export function ProjectCreationModal({ isOpen, onClose, onComplete }: ProjectCre
   const next = () => { if (step < 8) setStep(s => s + 1); };
   const back = () => { if (step > 1) setStep(s => s - 1); };
 
-  const create = () => {
-    onComplete({ ...data, id: Date.now() });
-    setStep(1);
-    setData(INITIAL);
+  const create = async () => {
+    const project = await createProject(data.projectName, data.projectContext);
+    if (project) {
+      onComplete(project);
+      setStep(1);
+      setData(INITIAL);
+    }
   };
 
   const addTopic = () => {

@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { Sidebar } from './sidebar';
 import { SmartContentCreationModal } from '../content/smart-content-creation-modal';
@@ -8,6 +8,7 @@ import { AuditAssetProvider } from '../../data/audit-asset-store';
 import { useUIStore } from '../../stores/ui-store';
 
 export function AppLayout() {
+  const navigate = useNavigate();
   const {
     isContentModalOpen,
     selectedContentType,
@@ -46,8 +47,9 @@ export function AppLayout() {
           isOpen={isProjectModalOpen}
           onClose={closeProjectModal}
           onComplete={(project: any) => {
-            console.log('Project created:', project);
             closeProjectModal();
+            // Refresh the projects page by navigating to it
+            navigate('/projects', { replace: true });
           }}
         />
       </div>
