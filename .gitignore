@@ -39,3 +39,6 @@ pnpm-debug.log*
 
 # Temporary analysis files (Lovable prototype reference)
 temp-analysis/
+
+# TRAE IDE context (local development only)
+../TRAE_IDE_CONTEXT.md
