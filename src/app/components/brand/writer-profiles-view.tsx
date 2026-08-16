@@ -1,8 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, User, Trash2, Edit2, Check, FileText, Eye, Star, Sparkles } from 'lucide-react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { useAuditAssets } from '../../data/audit-asset-store';
+import {
+  getWriterProfiles, createWriterProfile, updateWriterProfile, deleteWriterProfile,
+  type WriterProfile as ServiceWriterProfile
+} from '../../../lib/services/writer-profiles-service';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -20,8 +24,8 @@ type WritingTone =
 
 type WritingLevel = 'beginner' | 'intermediate' | 'advanced' | 'expert';
 
-interface WriterProfile {
-  id: number;
+interface UIWriterProfile {
+  id: string;
   name: string;
   tone: WritingTone;
   level: WritingLevel;
@@ -117,50 +121,24 @@ const SAMPLE_PREVIEWS: Record<WritingTone, Record<WritingLevel, string>> = {
   }
 };
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
+// ─── Service Mapping ──────────────────────────────────────────────────────────
 
-const MOCK_PROFILES: WriterProfile[] = [
-  {
-    id: 1,
-    name: 'Velocity Athletics Team',
-    tone: 'bold',
-    level: 'intermediate',
-    description: 'Motivational, performance-driven content for athletes. Strong verbs, energetic language.',
-    isDefault: true,
-    createdDate: '2026-05-01',
-    usedByContentCount: 47,
-  },
-  {
-    id: 2,
-    name: 'Friendly Customer Support',
-    tone: 'friendly',
-    level: 'beginner',
-    description: 'Approachable, helpful tone for customer service interactions and FAQ content.',
+function mapServiceToUI(p: ServiceWriterProfile): UIWriterProfile {
+  const validTones: WritingTone[] = ['professional', 'conversational', 'authoritative', 'friendly', 'empathetic', 'bold', 'casual', 'formal', 'inspirational', 'technical'];
+  const validLevels: WritingLevel[] = ['beginner', 'intermediate', 'advanced', 'expert'];
+  const tone = (p.tone && validTones.includes(p.tone as WritingTone)) ? (p.tone as WritingTone) : 'professional';
+  const level = (p.style && validLevels.includes(p.style as WritingLevel)) ? (p.style as WritingLevel) : 'intermediate';
+  return {
+    id: p.id,
+    name: p.name,
+    tone,
+    level,
+    description: p.audience || '',
     isDefault: false,
-    createdDate: '2026-04-15',
-    usedByContentCount: 23,
-  },
-  {
-    id: 3,
-    name: 'Technical Documentation',
-    tone: 'technical',
-    level: 'expert',
-    description: 'Precise, detailed technical writing for developer documentation and API guides.',
-    isDefault: false,
-    createdDate: '2026-04-10',
-    usedByContentCount: 12,
-  },
-  {
-    id: 4,
-    name: 'Executive Communications',
-    tone: 'authoritative',
-    level: 'advanced',
-    description: 'Leadership voice for CEO updates, press releases, and corporate announcements.',
-    isDefault: false,
-    createdDate: '2026-03-20',
-    usedByContentCount: 8,
-  },
-];
+    createdDate: p.created_at,
+    usedByContentCount: 0,
+  };
+}
 
 // ─── Create/Edit Modal ────────────────────────────────────────────────────────
 
@@ -332,78 +310,78 @@ function ProfileFormModal({ isOpen, profile, onClose, onSave }: ProfileFormModal
 export function WriterProfilesView() {
   const { t } = useTranslation();
   const { writerProfiles: auditWriterProfiles } = useAuditAssets();
-  const [profiles, setProfiles] = useState<WriterProfile[]>(MOCK_PROFILES);
+  const [profiles, setProfiles] = useState<UIWriterProfile[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedProfile, setSelectedProfile] = useState<WriterProfile | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<UIWriterProfile | null>(null);
+
+  const loadProfiles = useCallback(async () => {
+    setLoading(true);
+    const data = await getWriterProfiles();
+    setProfiles(data.map(mapServiceToUI));
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
-    if (auditWriterProfiles.length === 0) return;
-    const auditProfiles: WriterProfile[] = auditWriterProfiles.map((p, i) => ({
-      id: -1 - i,
-      name: p.name,
-      tone: p.tone as any,
-      level: p.level as any,
-      description: p.description,
-      isDefault: false,
-      createdDate: new Date(p.createdAt).toISOString().split('T')[0],
-      usedByContentCount: 0,
-    }));
-    setProfiles((prev) => {
-      const existingNames = new Set(prev.map((p) => p.name));
-      const newOnes = auditProfiles.filter((p) => !existingNames.has(p.name));
-      return [...newOnes, ...prev];
-    });
-  }, [auditWriterProfiles]);
+    loadProfiles();
+  }, [loadProfiles]);
 
   const handleCreateNew = () => {
     setSelectedProfile(null);
     setIsModalOpen(true);
   };
 
-  const handleEdit = (profile: WriterProfile) => {
+  const handleEdit = (profile: UIWriterProfile) => {
     setSelectedProfile(profile);
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: string) => {
     const profile = profiles.find(p => p.id === id);
     if (profile?.isDefault) {
       alert(t('brand.cannotDeleteDefault'));
       return;
     }
     if (confirm(t('brand.confirmDeleteProfile'))) {
-      setProfiles(profiles.filter(p => p.id !== id));
+      const success = await deleteWriterProfile(id);
+      if (success) {
+        setProfiles(prev => prev.filter(p => p.id !== id));
+      }
     }
   };
 
-  const handleSetDefault = (id: number) => {
-    setProfiles(profiles.map(p => ({
+  const handleSetDefault = (id: string) => {
+    setProfiles(prev => prev.map(p => ({
       ...p,
       isDefault: p.id === id,
     })));
   };
 
-  const handleSave = (data: Partial<WriterProfile>) => {
+  const handleSave = async (data: Partial<UIWriterProfile>) => {
     if (selectedProfile) {
       // Edit existing
-      setProfiles(profiles.map(p =>
-        p.id === selectedProfile.id
-          ? { ...p, ...data }
-          : p
-      ));
+      const updated = await updateWriterProfile(selectedProfile.id, {
+        name: data.name,
+        tone: data.tone,
+        style: data.level,
+        audience: data.description,
+      });
+      if (updated) {
+        setProfiles(prev => prev.map(p =>
+          p.id === selectedProfile.id ? mapServiceToUI(updated) : p
+        ));
+      }
     } else {
       // Create new
-      const newProfile: WriterProfile = {
-        id: Date.now(),
-        name: data.name || '',
-        tone: data.tone || 'professional',
-        level: data.level || 'intermediate',
-        description: data.description || '',
-        isDefault: false,
-        createdDate: new Date().toISOString().split('T')[0],
-        usedByContentCount: 0,
-      };
-      setProfiles([...profiles, newProfile]);
+      const created = await createWriterProfile(
+        data.name || '',
+        data.tone || 'professional',
+        data.level || 'intermediate',
+        data.description || ''
+      );
+      if (created) {
+        setProfiles(prev => [...prev, mapServiceToUI(created)]);
+      }
     }
     setIsModalOpen(false);
     setSelectedProfile(null);
@@ -471,6 +449,21 @@ export function WriterProfilesView() {
         </div>
 
         {/* Profiles Grid */}
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : profiles.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <User className="w-12 h-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-1">{t('brand.noWriterProfiles')}</h3>
+            <p className="text-sm text-muted-foreground mb-6">{t('brand.noWriterProfilesDesc')}</p>
+            <button onClick={handleCreateNew} className="flex items-center gap-2 px-5 py-3 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors font-medium">
+              <Plus className="w-4 h-4" />
+              {t('brand.createProfile')}
+            </button>
+          </div>
+        ) : (
         <div className="grid grid-cols-3 gap-4">
           {/* Create New Card */}
           <button
@@ -588,6 +581,7 @@ export function WriterProfilesView() {
             </div>
           ))}
         </div>
+      )}
       </div>
 
       {/* Create/Edit Modal */}
