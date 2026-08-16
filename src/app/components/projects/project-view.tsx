@@ -212,7 +212,6 @@ interface Campaign {
   contentTypes: string[];
   funnelStages: string[];
   resources: string[];
-  templates: string[];
   id?: string;
 }
 
@@ -240,7 +239,6 @@ function mapServiceToUICampaign(sc: ServiceCampaign): Campaign {
     contentTypes: [],
     funnelStages: [],
     resources: [],
-    templates: [],
   };
 }
 
@@ -259,7 +257,6 @@ const CAMPAIGNS: Campaign[] = [
     contentTypes: ["Long Form", "Short Clip", "Highlight Reel"],
     funnelStages: ["Awareness", "Consideration", "Decision"],
     resources: ["Summer Campaign Video.mp4", "Brand Guidelines 2026.pdf"],
-    templates: ["Orange Hero", "Athlete Portrait"],
   },
   {
     name: "Brand Awareness Q2",
@@ -273,7 +270,6 @@ const CAMPAIGNS: Campaign[] = [
     contentTypes: ["Long Form", "Quote Card", "Text to AI Video"],
     funnelStages: ["Awareness", "Consideration"],
     resources: ["Brand Guidelines 2026.pdf", "Athlete Testimonials.docx"],
-    templates: ["Motivational Quote", "Dark Minimal"],
   },
   {
     name: "Back to School",
@@ -287,7 +283,6 @@ const CAMPAIGNS: Campaign[] = [
     contentTypes: ["Short Clip", "Quote Card", "Long Form"],
     funnelStages: ["Awareness", "Decision"],
     resources: [],
-    templates: ["Clean Modern", "Athletic Edge"],
   },
   {
     name: "Fall Collection",
@@ -301,18 +296,7 @@ const CAMPAIGNS: Campaign[] = [
     contentTypes: ["Highlight Reel", "Short Clip", "Quote Card"],
     funnelStages: ["Awareness", "Consideration", "Decision"],
     resources: [],
-    templates: ["Bold Gradient", "Minimal Dark"],
   },
-];
-
-// Seed templates — these represent Canva/design templates stored per project
-const SEED_TEMPLATES: ProjectTemplate[] = [
-  { id: "tpl-1", name: "Orange Hero", imageUrl: "/brand-tile-navy.svg?w=400&h=400&fit=crop", link: "https://canva.com", createdAt: new Date("2026-05-10") },
-  { id: "tpl-2", name: "Athlete Portrait", imageUrl: "/brand-tile-violet.svg?w=400&h=400&fit=crop", link: "https://canva.com", createdAt: new Date("2026-05-10") },
-  { id: "tpl-3", name: "Product Shot", imageUrl: "/brand-tile-cyan.svg?w=400&h=400&fit=crop", link: "https://canva.com", createdAt: new Date("2026-05-12") },
-  { id: "tpl-4", name: "Motivational Quote", imageUrl: "/brand-tile-amber.svg?w=400&h=400&fit=crop", createdAt: new Date("2026-05-15") },
-  { id: "tpl-5", name: "Running Lifestyle", imageUrl: "/brand-tile-coral.svg?w=400&h=400&fit=crop", link: "https://canva.com", createdAt: new Date("2026-05-18") },
-  { id: "tpl-6", name: "Dark Minimal", imageUrl: "/brand-tile-navy-cyan.svg?w=400&h=400&fit=crop", createdAt: new Date("2026-06-01") },
 ];
 
 const STATUS_CFG: Record<
@@ -2472,12 +2456,6 @@ const ALL_CONTENT_TYPES: ContentType[] = [
 
 const ALL_FUNNEL_STAGES: FunnelStage[] = ["Awareness", "Consideration", "Decision", "Retention"];
 
-const ALL_TEMPLATES = [
-  "Orange Hero", "Athlete Portrait", "Product Shot", "Motivational Quote",
-  "Running Lifestyle", "Dark Minimal", "Bold Gradient", "Athletic Edge",
-  "Clean Modern", "Branded",
-];
-
 // ─── Bulk Regenerate Modal ────────────────────────────────────────────────────
 
 const REGEN_MOCK_OUTPUTS = [
@@ -2871,7 +2849,6 @@ function EditCampaignModal({
   const [contentTypes, setContentTypes] = useState<string[]>(campaign.contentTypes);
   const [funnelStages, setFunnelStages] = useState<string[]>(campaign.funnelStages);
   const [resources, setResources] = useState<string[]>(campaign.resources);
-  const [templates, setTemplates] = useState<string[]>(campaign.templates);
 
   const toggleArr = <T extends string>(arr: T[], setArr: (v: T[]) => void, val: T) => {
     setArr(arr.includes(val) ? arr.filter(v => v !== val) : [...arr, val]);
@@ -2880,7 +2857,7 @@ function EditCampaignModal({
   const build = (): Campaign => ({
     name, color, description, instructions, duration, topics,
     brandGuidelines, targetAudience,
-    contentTypes, funnelStages, resources, templates,
+    contentTypes, funnelStages, resources,
   });
 
   const inputCls = "w-full px-3 py-2 bg-[#111] border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all placeholder:text-muted-foreground/40 resize-none";
@@ -3026,8 +3003,8 @@ function EditCampaignModal({
             <textarea rows={2} value={targetAudience} onChange={e => setTargetAudience(e.target.value)} className={inputCls} placeholder="Who is this campaign for?" />
           </div>
 
-          {/* ── Resources & Templates ── */}
-          <p className={sectionCls}>Resources & Templates</p>
+          {/* ── Resources ── */}
+          <p className={sectionCls}>Resources</p>
 
           <div>
             <label className={labelCls}>Linked Resources</label>
@@ -3042,27 +3019,6 @@ function EditCampaignModal({
                     <input type="checkbox" checked={active} onChange={() => toggleArr(resources, setResources, r)} className="hidden" />
                     <span className="text-xs font-medium text-foreground">{r}</span>
                   </label>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="pb-2">
-            <label className={labelCls}>Templates</label>
-            <div className="flex flex-wrap gap-2">
-              {ALL_TEMPLATES.map(t => {
-                const active = templates.includes(t);
-                return (
-                  <button
-                    key={t}
-                    onClick={() => toggleArr(templates, setTemplates, t)}
-                    className={clsx(
-                      "px-3 py-1.5 rounded-lg text-xs font-semibold border-2 transition-all",
-                      active ? "border-primary bg-primary/10 text-primary" : "border-border bg-secondary text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    {t}
-                  </button>
                 );
               })}
             </div>
@@ -3443,15 +3399,9 @@ export function ProjectView() {
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Templates
-  const [templates, setTemplates] = useState<ProjectTemplate[]>(SEED_TEMPLATES);
-  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
-  const [tplName, setTplName] = useState("");
-  const [tplLink, setTplLink] = useState("");
-  const [tplImageFile, setTplImageFile] = useState<File | null>(null);
-  const [tplImagePreview, setTplImagePreview] = useState<string>("");
-  const [tplIsDragOver, setTplIsDragOver] = useState(false);
-  const tplFileInputRef = useRef<HTMLInputElement>(null);
+  // Templates feature removed — pass empty lookups
+  const recentlyUsedTemplateIds = useMemo(() => new Set<string>(), []);
+  const templatesMap = useMemo(() => new Map<string, ProjectTemplate>(), []);
 
   useEffect(() => {
     if (!createMenuOpen) return;
@@ -3504,63 +3454,6 @@ export function ProjectView() {
     loadContentItems();
     return () => { cancelled = true; };
   }, [projectId, campaigns]);
-
-  const handleTplImageDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setTplIsDragOver(false);
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith("image/")) {
-      setTplImageFile(file);
-      setTplImagePreview(URL.createObjectURL(file));
-    }
-  }, []);
-
-  const handleTplImageInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setTplImageFile(file);
-      setTplImagePreview(URL.createObjectURL(file));
-    }
-  };
-
-  const confirmAddTemplate = () => {
-    if (!tplImagePreview) return;
-    const newTpl: ProjectTemplate = {
-      id: `tpl-${Date.now()}`,
-      name: tplName.trim() || "Untitled Template",
-      imageUrl: tplImagePreview,
-      imageFile: tplImageFile ?? undefined,
-      link: tplLink.trim() || undefined,
-      createdAt: new Date(),
-    };
-    setTemplates(prev => [newTpl, ...prev]);
-    setTplName(""); setTplLink(""); setTplImageFile(null); setTplImagePreview("");
-    setTemplateDialogOpen(false);
-    toast.success("Template added");
-  };
-
-  const removeTemplate = (id: string) => {
-    setTemplates(prev => prev.filter(t => t.id !== id));
-    toast.success("Template removed");
-  };
-
-  // Compute recently used templates: any templateId used in items within the last 21 days
-  const recentlyUsedTemplateIds = useMemo(() => {
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - 21);
-    const cutoffStr = cutoff.toISOString().split("T")[0];
-    const ids = new Set<string>();
-    for (const item of items) {
-      if (item.templateId && item.date >= cutoffStr) ids.add(item.templateId);
-    }
-    return ids;
-  }, [items]);
-
-  const templatesMap = useMemo(() => {
-    const m = new Map<string, ProjectTemplate>();
-    for (const t of templates) m.set(t.id, t);
-    return m;
-  }, [templates]);
 
   const handleFileDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -4692,94 +4585,6 @@ export function ProjectView() {
         </Dialog.Portal>
       </Dialog.Root>
 
-
-      {/* ── Add Template dialog ── */}
-      <Dialog.Root open={templateDialogOpen} onOpenChange={(open) => { setTemplateDialogOpen(open); if (!open) { setTplName(""); setTplLink(""); setTplImageFile(null); setTplImagePreview(""); } }}>
-        <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60]" />
-          <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[61] w-full max-w-sm bg-card border border-border rounded-2xl shadow-2xl p-6 focus:outline-none">
-            <div className="flex items-center justify-between mb-5">
-              <Dialog.Title className="text-base font-bold text-foreground">Add Template</Dialog.Title>
-              <Dialog.Close className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
-                <X className="w-4 h-4" />
-              </Dialog.Close>
-            </div>
-
-            {/* Image drop zone */}
-            <div
-              onDragEnter={(e) => { e.preventDefault(); setTplIsDragOver(true); }}
-              onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setTplIsDragOver(false); }}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={handleTplImageDrop}
-              onClick={() => !tplImagePreview && tplFileInputRef.current?.click()}
-              className={clsx(
-                "relative rounded-xl border-2 border-dashed transition-all overflow-hidden",
-                tplImagePreview ? "border-primary/30 cursor-default" : "cursor-pointer",
-                tplIsDragOver ? "border-primary bg-primary/5" : !tplImagePreview && "border-border hover:border-primary/50 hover:bg-secondary/30"
-              )}
-              style={{ aspectRatio: "1/1" }}
-            >
-              {tplImagePreview ? (
-                <>
-                  <img src={tplImagePreview} alt="preview" className="w-full h-full object-cover" />
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setTplImagePreview(""); setTplImageFile(null); }}
-                    className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </>
-              ) : (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center p-4">
-                  <ImageIcon className="w-8 h-8 text-muted-foreground" />
-                  <p className="text-xs font-semibold text-foreground">Drop screenshot here</p>
-                  <p className="text-[11px] text-muted-foreground">or click to browse</p>
-                </div>
-              )}
-              <input ref={tplFileInputRef} type="file" accept="image/*" className="hidden" onChange={handleTplImageInput} />
-            </div>
-
-            <div className="mt-4 space-y-3">
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground block mb-1">Template name</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Orange Hero"
-                  value={tplName}
-                  onChange={e => setTplName(e.target.value)}
-                  className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/30"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground block mb-1">Link (optional)</label>
-                <div className="relative">
-                  <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                  <input
-                    type="url"
-                    placeholder="https://canva.com/..."
-                    value={tplLink}
-                    onChange={e => setTplLink(e.target.value)}
-                    className="w-full pl-8 pr-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/30"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="flex gap-3 mt-5">
-              <Dialog.Close className="flex-1 px-4 py-2.5 rounded-lg border border-border text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">
-                Cancel
-              </Dialog.Close>
-              <button
-                onClick={confirmAddTemplate}
-                disabled={!tplImagePreview}
-                className="flex-1 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                Save Template
-              </button>
-            </div>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog.Root>
 
       {/* ── Bulk selection bar ── */}
       {selectedCalItems.size > 0 && (
