@@ -72,6 +72,13 @@ import {
   deleteCampaign as deleteCampaignService,
   type Campaign as ServiceCampaign,
 } from "../../../lib/services/campaigns-service";
+import {
+  getContentItems,
+  createContentItem as createContentItemService,
+  updateContentItem as updateContentItemService,
+  deleteContentItem as deleteContentItemService,
+  type ContentItem as ServiceContentItem,
+} from "../../../lib/services/content-items-service";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -93,7 +100,7 @@ type FunnelStage = "Awareness" | "Consideration" | "Decision" | "Retention";
 type ViewMode = "calendar" | "list";
 
 interface ContentItem {
-  id: number;
+  id: number | string;
   date: string;
   topic: string;
   title?: string;
@@ -107,6 +114,66 @@ interface ContentItem {
   templateId?: string;
   postContent?: string;
   platform?: string;
+  serviceId?: string;
+}
+
+const UI_TYPE_MAP: Record<string, ContentType> = {
+  "blog-post": "Long Form",
+  "long-form": "Long Form",
+  "long_form": "Long Form",
+  article: "Long Form",
+  "short-clip": "Short Clip",
+  "short_clip": "Short Clip",
+  video: "Short Clip",
+  "highlight-reel": "Highlight Reel",
+  "highlight_reel": "Highlight Reel",
+  compilation: "Highlight Reel",
+  "ai-video": "Text to AI Video",
+  "text-to-ai-video": "Text to AI Video",
+  "text_to_ai_video": "Text to AI Video",
+  "quote-card": "Quote Card",
+  "quote_card": "Quote Card",
+  image: "Quote Card",
+  carousel: "Quote Card",
+  "social-post": "Quote Card",
+};
+
+function contentTypeToUI(contentType: string): ContentType {
+  return UI_TYPE_MAP[contentType.toLowerCase()] || "Quote Card";
+}
+
+function uiStatusToService(status: ContentStatus): string {
+  return status;
+}
+
+function serviceStatusToUI(status: string): ContentStatus {
+  const valid: ContentStatus[] = ["draft", "generating", "ready-for-review", "approved", "published", "rejected"];
+  return (valid.includes(status as ContentStatus) ? status : "draft") as ContentStatus;
+}
+
+function mapServiceToUIContentItem(
+  sci: ServiceContentItem,
+  campaignsLookup: Record<string, { name: string; color: string }>
+): ContentItem {
+  const campaign = sci.campaign_id ? campaignsLookup[sci.campaign_id] : null;
+  let nextId: number | string = sci.id;
+  try {
+    const n = parseInt(sci.id, 10);
+    if (!isNaN(n) && String(n) === sci.id) nextId = n;
+  } catch {}
+  return {
+    id: nextId,
+    serviceId: sci.id,
+    date: sci.scheduled_at ? sci.scheduled_at.split("T")[0] : new Date().toISOString().split("T")[0],
+    topic: sci.description || sci.title || "Untitled",
+    title: sci.title || undefined,
+    type: contentTypeToUI(sci.content_type),
+    funnelStage: "Awareness",
+    campaign: campaign?.name || "(No Campaign)",
+    campaignColor: campaign?.color || hashStringToColor(sci.content_type || "default"),
+    status: serviceStatusToUI(sci.status),
+    platform: sci.platform || undefined,
+  };
 }
 
 interface ProjectTemplate {
@@ -3333,7 +3400,8 @@ export function ProjectView() {
   const onBack = () => navigate('/projects');
   
   const [viewMode, setViewMode] = useState<ViewMode>("calendar");
-  const [items, setItems] = useState<ContentItem[]>(INITIAL_ITEMS);
+  const [items, setItems] = useState<ContentItem[]>([]);
+  const [itemsLoading, setItemsLoading] = useState(true);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [campaignsLoading, setCampaignsLoading] = useState(true);
   const [campaignToDelete, setCampaignToDelete] = useState<Campaign | null>(null);
@@ -3396,6 +3464,31 @@ export function ProjectView() {
     loadCampaigns();
     return () => { cancelled = true; };
   }, [projectId]);
+
+  // Load content items from Supabase (runs after campaigns so we can build a lookup by id)
+  useEffect(() => {
+    let cancelled = false;
+    async function loadContentItems() {
+      if (!projectId) return;
+      setItemsLoading(true);
+      const serviceItems = await getContentItems(projectId);
+      if (!cancelled) {
+        const campaignsLookup: Record<string, { name: string; color: string }> = {};
+        campaigns.forEach(c => {
+          if (c.id) campaignsLookup[c.id] = { name: c.name, color: c.color };
+        });
+        // Also index by name as fallback
+        campaigns.forEach(c => {
+          campaignsLookup[c.name] = { name: c.name, color: c.color };
+        });
+        const uiItems = serviceItems.map(si => mapServiceToUIContentItem(si, campaignsLookup));
+        setItems(uiItems);
+        setItemsLoading(false);
+      }
+    }
+    loadContentItems();
+    return () => { cancelled = true; };
+  }, [projectId, campaigns]);
 
   const handleTplImageDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -3538,7 +3631,20 @@ export function ProjectView() {
     [items, selectedCampaigns, selectedTypes, selectedFunnelStages, selectedStatuses, dateRange]
   );
 
-  const handleDelete = (id: number) => setItems((p) => p.filter((i) => i.id !== id));
+  const handleDelete = async (id: number | string) => {
+    const item = items.find(i => i.id === id);
+    let serviceId: string | undefined = item?.serviceId;
+    if (!serviceId && typeof id === 'string') serviceId = id;
+    if (!serviceId && typeof id === 'number') serviceId = String(id);
+    if (serviceId) {
+      const ok = await deleteContentItemService(serviceId);
+      if (!ok) {
+        toast.error("Failed to delete content item.");
+        return;
+      }
+    }
+    setItems((p) => p.filter((i) => i.id !== id));
+  };
 
   const handleSaveCampaign = async (updated: Campaign, regenerate = false) => {
     const oldName = campaignToEdit!.name;
@@ -4301,7 +4407,21 @@ export function ProjectView() {
             title: selectedItem.title,
             platform: selectedItem.platform,
           }}
-          onUpdate={(updates) => {
+          onUpdate={async (updates) => {
+            const sid = selectedItem.serviceId || (typeof selectedItem.id === 'string' ? selectedItem.id : String(selectedItem.id));
+            let persisted: ServiceContentItem | null = null;
+            const scheduledAt = updates.date ? new Date(updates.date).toISOString() : undefined;
+            try {
+              persisted = await updateContentItemService(sid, {
+                title: updates.title ?? null,
+                description: updates.topic ?? null,
+                scheduled_at: scheduledAt ?? undefined,
+              });
+            } catch {}
+            if (!persisted) {
+              toast.error("Failed to save content item.");
+              return;
+            }
             setItems(prev => prev.map(it => it.id === selectedItem.id ? { ...it, date: updates.date ?? it.date, topic: updates.topic ?? it.topic, title: updates.title ?? it.title } : it));
             setSelectedItem(null);
           }}
@@ -4352,6 +4472,31 @@ export function ProjectView() {
               const uiCampaign = mapServiceToUICampaign(created);
               setCampaigns(prev => [uiCampaign, ...prev]);
               toast.success(`Campaign "${config.campaignName}" created.`);
+
+              // Persist scheduled items as content items
+              if (config.scheduledItems && config.scheduledItems.length) {
+                const campaignsLookup: Record<string, { name: string; color: string }> = {
+                  [created.id]: { name: uiCampaign.name, color: uiCampaign.color },
+                  [uiCampaign.name]: { name: uiCampaign.name, color: uiCampaign.color },
+                };
+                const createdItems: ContentItem[] = [];
+                for (const sched of config.scheduledItems as any[]) {
+                  const serviceItem = await createContentItemService(projectId, {
+                    campaign_id: created.id,
+                    platform: sched.platform || "general",
+                    content_type: sched.typeId || "social-post",
+                    title: sched.topic?.slice(0, 80) || null,
+                    description: sched.topic || null,
+                    scheduled_at: new Date(sched.date).toISOString(),
+                  });
+                  if (serviceItem) {
+                    createdItems.push(mapServiceToUIContentItem(serviceItem, campaignsLookup));
+                  }
+                }
+                if (createdItems.length) {
+                  setItems(prev => [...createdItems, ...prev]);
+                }
+              }
             } else {
               toast.error("Failed to create campaign.");
             }
