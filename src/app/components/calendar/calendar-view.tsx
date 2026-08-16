@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   FileText, Scissors, Star, Wand2, Quote, ChevronDown, X, RefreshCw,
   Trash2, Send, Copy, Check, ChevronLeft, ChevronRight, Loader2,
@@ -147,6 +148,7 @@ function formatFileSize(bytes: number): string {
 // ─── RegenerateModal ─────────────────────────────────────────────────────────
 
 function RegenerateModal({ items, onClose, onConfirmRegenerate }: { items: CalendarItem[]; onClose: () => void; onConfirmRegenerate: (ids: string[]) => void }) {
+  const { t } = useTranslation();
   const primaryItem = items[0];
 
   const makeInitialVersions = (): ContentVersion[] => [
@@ -213,7 +215,7 @@ function RegenerateModal({ items, onClose, onConfirmRegenerate }: { items: Calen
           <div className="px-4 pt-5 pb-3 border-b border-border">
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-primary/15 text-primary text-[10px] font-black flex-shrink-0">{items.length}</span>
-              <p className="text-xs font-semibold text-foreground">{items.length === 1 ? 'item will be regenerated' : 'items will be regenerated'}</p>
+              <p className="text-xs font-semibold text-foreground">{t('calendar.itemsWillBeRegenerated', { count: items.length })}</p>
             </div>
             <p className="text-[11px] text-muted-foreground mt-1.5">{primaryItem.campaign}</p>
           </div>
@@ -248,7 +250,7 @@ function RegenerateModal({ items, onClose, onConfirmRegenerate }: { items: Calen
                   </div>
                   {/* Preview toggle hint */}
                   <span className={`flex-shrink-0 text-[9px] font-semibold uppercase tracking-wide transition-opacity mt-0.5 ${isPreviewing ? 'text-primary opacity-100' : 'text-muted-foreground/40 opacity-0 group-hover:opacity-100'}`}>
-                    {isPreviewing ? 'Hide' : 'View'}
+                    {isPreviewing ? t('calendar.hide') : t('calendar.view')}
                   </span>
                 </button>
               );
@@ -259,7 +261,7 @@ function RegenerateModal({ items, onClose, onConfirmRegenerate }: { items: Calen
           {previewItem && (
             <div className="border-t border-border flex-shrink-0">
               <div className="px-4 pt-3 pb-1 flex items-center justify-between">
-                <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">Current Content</p>
+                <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">{t('calendar.currentContent')}</p>
                 <button onClick={() => setPreviewItemId(null)} className="text-muted-foreground/40 hover:text-muted-foreground transition-colors"><X className="w-3 h-3" /></button>
               </div>
               <p className="text-[11px] text-muted-foreground leading-relaxed px-4 pb-3 max-h-28 overflow-y-auto">
@@ -273,8 +275,8 @@ function RegenerateModal({ items, onClose, onConfirmRegenerate }: { items: Calen
         <div className="flex flex-col flex-1 bg-card min-w-0">
           <div className="flex items-center gap-3 px-6 pt-5 pb-4 border-b border-border flex-shrink-0">
             <div className="flex-1 min-w-0">
-              <h2 className="text-base font-semibold leading-tight">Regenerate Content</h2>
-              <p className="text-xs text-muted-foreground mt-0.5 truncate">Version {currentIndex + 1} — {format(current.generatedAt, "MMM d, yyyy 'at' h:mm a")}</p>
+              <h2 className="text-base font-semibold leading-tight">{t('calendar.regenerateContent')}</h2>
+              <p className="text-xs text-muted-foreground mt-0.5 truncate">{t('calendar.version')} {currentIndex + 1} — {format(current.generatedAt, "MMM d, yyyy 'at' h:mm a")}</p>
             </div>
             <div className="flex items-center gap-1 bg-secondary rounded-lg px-1 py-1">
               <button onClick={() => handleVersionChange(currentIndex - 1)} disabled={currentIndex === 0} className="w-6 h-6 flex items-center justify-center rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed hover:bg-card enabled:cursor-pointer text-muted-foreground hover:text-foreground"><ChevronLeft className="w-3.5 h-3.5" /></button>
@@ -287,40 +289,40 @@ function RegenerateModal({ items, onClose, onConfirmRegenerate }: { items: Calen
           <div className="flex-1 overflow-y-auto">
             <div className="p-6 space-y-6">
               <section>
-                <p className={sectionTitleCls}>Content Settings</p>
+                <p className={sectionTitleCls}>{t('calendar.contentSettings')}</p>
                 <div className="space-y-3">
-                  <div><label className={labelCls}>Description</label><textarea rows={3} value={settings.description} onChange={e => set('description', e.target.value)} placeholder="What is this content piece about?" className={textareaCls} /></div>
-                  <div><label className={labelCls}>Directions</label><textarea rows={2} value={settings.directions} onChange={e => set('directions', e.target.value)} placeholder="Specific directions for the AI" className={textareaCls} /></div>
+                  <div><label className={labelCls}>{t('calendar.description')}</label><textarea rows={3} value={settings.description} onChange={e => set('description', e.target.value)} placeholder={t('calendar.descriptionPlaceholder')} className={textareaCls} /></div>
+                  <div><label className={labelCls}>{t('calendar.directions')}</label><textarea rows={2} value={settings.directions} onChange={e => set('directions', e.target.value)} placeholder={t('calendar.directionsPlaceholder')} className={textareaCls} /></div>
                   <div className="grid grid-cols-2 gap-3">
-                    <div><label className={labelCls}>Brand Guideline</label><select value={settings.brandGuideline} onChange={e => set('brandGuideline', e.target.value)} className={inputCls}>{brandGuidelineOptions.map(o => <option key={o} value={o}>{o}</option>)}</select></div>
-                    <div><label className={labelCls}>Funnel Stage</label><select value={settings.funnelStage} onChange={e => set('funnelStage', e.target.value as FunnelStage)} className={inputCls}>{funnelOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
+                    <div><label className={labelCls}>{t('calendar.brandGuideline')}</label><select value={settings.brandGuideline} onChange={e => set('brandGuideline', e.target.value)} className={inputCls}>{brandGuidelineOptions.map(o => <option key={o} value={o}>{o}</option>)}</select></div>
+                    <div><label className={labelCls}>{t('calendar.funnelStage')}</label><select value={settings.funnelStage} onChange={e => set('funnelStage', e.target.value as FunnelStage)} className={inputCls}>{funnelOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
                   </div>
-                  <div><label className={labelCls}>Topics <span className="text-muted-foreground/50 font-normal">(comma-separated)</span></label><div className="relative"><Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" /><input type="text" value={settings.topics} onChange={e => set('topics', e.target.value)} className={`${inputCls} pl-8`} /></div></div>
-                  <div><label className={labelCls}>Content Guidelines</label><textarea rows={2} value={settings.contentGuidelines} onChange={e => set('contentGuidelines', e.target.value)} className={textareaCls} /></div>
+                  <div><label className={labelCls}>{t('calendar.topics')} <span className="text-muted-foreground/50 font-normal">{t('calendar.topicsHint')}</span></label><div className="relative"><Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" /><input type="text" value={settings.topics} onChange={e => set('topics', e.target.value)} className={`${inputCls} pl-8`} /></div></div>
+                  <div><label className={labelCls}>{t('calendar.contentGuidelines')}</label><textarea rows={2} value={settings.contentGuidelines} onChange={e => set('contentGuidelines', e.target.value)} className={textareaCls} /></div>
                 </div>
               </section>
               <section>
                 <div className="flex items-center justify-between mb-3">
-                  <p className={sectionTitleCls} style={{ marginBottom: 0 }}>Generation Options</p>
+                  <p className={sectionTitleCls} style={{ marginBottom: 0 }}>{t('calendar.generationOptions')}</p>
                   {items.length > 1 && !showPlatform && (
-                    <span className="text-[10px] text-muted-foreground/50 font-medium">Mixed types — platform hidden</span>
+                    <span className="text-[10px] text-muted-foreground/50 font-medium">{t('calendar.mixedTypes')}</span>
                   )}
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <div><label className={labelCls}>Tone</label><select value={settings.tone} onChange={e => set('tone', e.target.value)} className={inputCls}>{toneOptions.map(o => <option key={o} value={o}>{o}</option>)}</select></div>
+                  <div><label className={labelCls}>{t('calendar.tone')}</label><select value={settings.tone} onChange={e => set('tone', e.target.value)} className={inputCls}>{toneOptions.map(o => <option key={o} value={o}>{o}</option>)}</select></div>
                   {showPlatform && (
-                    <div><label className={labelCls}>Platform</label><select value={settings.platform} onChange={e => set('platform', e.target.value)} className={inputCls}>{platformOptions.map(o => <option key={o} value={o}>{o}</option>)}</select></div>
+                    <div><label className={labelCls}>{t('calendar.platform')}</label><select value={settings.platform} onChange={e => set('platform', e.target.value)} className={inputCls}>{platformOptions.map(o => <option key={o} value={o}>{o}</option>)}</select></div>
                   )}
                   {/* Length intentionally omitted — not meaningful across mixed content types */}
-                  <div className={showPlatform ? 'col-span-2' : ''}><label className={labelCls}>Content Angle</label><select value={settings.angle} onChange={e => set('angle', e.target.value)} className={inputCls}>{angleOptions.map(o => <option key={o} value={o}>{o}</option>)}</select></div>
+                  <div className={showPlatform ? 'col-span-2' : ''}><label className={labelCls}>{t('calendar.contentAngle')}</label><select value={settings.angle} onChange={e => set('angle', e.target.value)} className={inputCls}>{angleOptions.map(o => <option key={o} value={o}>{o}</option>)}</select></div>
                 </div>
               </section>
               <section>
-                <p className={sectionTitleCls}>Additional Instructions</p>
-                <textarea rows={2} value={settings.additionalInstructions} onChange={e => set('additionalInstructions', e.target.value)} placeholder="Anything else to guide this regeneration…" className={textareaCls} />
+                <p className={sectionTitleCls}>{t('calendar.additionalInstructions')}</p>
+                <textarea rows={2} value={settings.additionalInstructions} onChange={e => set('additionalInstructions', e.target.value)} placeholder={t('calendar.additionalInstructionsPlaceholder')} className={textareaCls} />
               </section>
               <section>
-                <p className={sectionTitleCls}>Upload New Resource</p>
+                <p className={sectionTitleCls}>{t('calendar.uploadNewResource')}</p>
                 <input ref={fileInputRef} type="file" multiple className="hidden" onChange={e => handleFiles(e.target.files)} />
                 <div
                   onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
@@ -331,8 +333,8 @@ function RegenerateModal({ items, onClose, onConfirmRegenerate }: { items: Calen
                 >
                   <Upload className={`w-5 h-5 transition-colors ${isDragging ? 'text-primary' : 'text-muted-foreground'}`} />
                   <div className="text-center">
-                    <p className="text-sm font-medium text-foreground">Drop files here or <span className="text-primary">browse</span></p>
-                    <p className="text-xs text-muted-foreground mt-0.5">Text documents, images, PDFs — used as additional context</p>
+                    <p className="text-sm font-medium text-foreground">{t('calendar.dropFiles')} <span className="text-primary">{t('calendar.browse')}</span></p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{t('calendar.dropFilesDesc')}</p>
                   </div>
                 </div>
                 {uploadedFiles.length > 0 && (
@@ -350,14 +352,14 @@ function RegenerateModal({ items, onClose, onConfirmRegenerate }: { items: Calen
               </section>
               <section>
                 <div className="flex items-center justify-between mb-2">
-                  <p className={sectionTitleCls} style={{ marginBottom: 0 }}>Generated Output</p>
+                  <p className={sectionTitleCls} style={{ marginBottom: 0 }}>{t('calendar.generatedOutput')}</p>
                   <button onClick={handleCopy} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
                     {copied ? <Check className="w-3.5 h-3.5 text-primary" /> : <Copy className="w-3.5 h-3.5" />}
-                    {copied ? 'Copied' : 'Copy'}
+                    {copied ? t('calendar.copied') : t('calendar.copy')}
                   </button>
                 </div>
                 <div className={`min-h-28 px-4 py-3 bg-[#111] border border-border rounded-xl text-sm leading-relaxed text-foreground transition-opacity duration-300 ${isRegenerating ? 'opacity-40' : 'opacity-100'}`}>
-                  {isRegenerating ? <div className="flex items-center gap-2 text-muted-foreground py-2"><Loader2 className="w-4 h-4 animate-spin" /><span>Generating new version…</span></div> : current.output}
+                  {isRegenerating ? <div className="flex items-center gap-2 text-muted-foreground py-2"><Loader2 className="w-4 h-4 animate-spin" /><span>{t('calendar.generating')}</span></div> : current.output}
                 </div>
               </section>
             </div>
@@ -369,7 +371,7 @@ function RegenerateModal({ items, onClose, onConfirmRegenerate }: { items: Calen
               className="flex items-center gap-2 px-4 py-2 bg-secondary hover:bg-secondary/70 border border-border rounded-lg text-sm font-medium transition-colors text-muted-foreground hover:text-foreground"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
-              Version History
+              {t('calendar.versionHistory')}
             </button>
             <div className="flex-1" />
             <button
@@ -377,7 +379,7 @@ function RegenerateModal({ items, onClose, onConfirmRegenerate }: { items: Calen
               className="flex items-center gap-2 px-5 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg text-sm font-medium transition-all"
             >
               <RefreshCw className="w-4 h-4" />
-              Regenerate {items.length > 1 ? `All ${items.length}` : ''}
+              {items.length > 1 ? t('calendar.regenerateAll', { count: items.length }) : t('calendar.regenerate')}
             </button>
           </div>
         </div>
@@ -389,6 +391,7 @@ function RegenerateModal({ items, onClose, onConfirmRegenerate }: { items: Calen
 // ─── EditModal ───────────────────────────────────────────────────────────────
 
 function EditModal({ item, onClose, onSave, onRegenerate }: { item: CalendarItem; onClose: () => void; onSave: (item: CalendarItem) => void; onRegenerate: () => void }) {
+  const { t } = useTranslation();
   const [title, setTitle] = useState(item.title);
   const [status, setStatus] = useState<Status>(item.status);
   const [funnelStage, setFunnelStage] = useState<FunnelStage>(item.funnelStage);
@@ -404,14 +407,14 @@ function EditModal({ item, onClose, onSave, onRegenerate }: { item: CalendarItem
       <div className="relative bg-card border border-border rounded-xl shadow-xl w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h2 className="text-lg font-semibold">Edit Content</h2>
+            <h2 className="text-lg font-semibold">{t('calendar.editContent')}</h2>
             {item.platform && (
               <div className="flex items-center gap-1.5 mt-0.5 text-xs text-muted-foreground">
                 {PLATFORM_ICONS[item.platform]}
                 <span>{PLATFORM_LABEL[item.platform]}</span>
                 {item.batchId && (
                   <span className="flex items-center gap-1 ml-2 text-[10px] text-muted-foreground/50 font-medium">
-                    <Link2 className="w-2.5 h-2.5" /> Part of a batch
+                    <Link2 className="w-2.5 h-2.5" /> {t('calendar.partOfBatch')}
                   </span>
                 )}
               </div>
@@ -420,16 +423,16 @@ function EditModal({ item, onClose, onSave, onRegenerate }: { item: CalendarItem
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"><X className="w-4 h-4" /></button>
         </div>
         <div className="space-y-4">
-          <div><label className="block text-xs font-medium text-muted-foreground mb-1.5">Title</label><input type="text" value={title} onChange={e => setTitle(e.target.value)} className="w-full px-3 py-2 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 transition-all" /></div>
-          <div><label className="block text-xs font-medium text-muted-foreground mb-1.5">Status</label><select value={status} onChange={e => setStatus(e.target.value as Status)} className="w-full px-3 py-2 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 transition-all">{statusOptions.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}</select></div>
-          <div><label className="block text-xs font-medium text-muted-foreground mb-1.5">Funnel Stage</label><select value={funnelStage} onChange={e => setFunnelStage(e.target.value as FunnelStage)} className="w-full px-3 py-2 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 transition-all">{funnelOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
-          <div><label className="block text-xs font-medium text-muted-foreground mb-1.5">Scheduled Date</label><div className="px-3 py-2 bg-secondary border border-border rounded-lg text-sm text-muted-foreground">{format(item.date, 'MMMM d, yyyy')}</div></div>
+          <div><label className="block text-xs font-medium text-muted-foreground mb-1.5">{t('calendar.contentTitle')}</label><input type="text" value={title} onChange={e => setTitle(e.target.value)} className="w-full px-3 py-2 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 transition-all" /></div>
+          <div><label className="block text-xs font-medium text-muted-foreground mb-1.5">{t('calendar.status')}</label><select value={status} onChange={e => setStatus(e.target.value as Status)} className="w-full px-3 py-2 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 transition-all">{statusOptions.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}</select></div>
+          <div><label className="block text-xs font-medium text-muted-foreground mb-1.5">{t('calendar.funnelStage')}</label><select value={funnelStage} onChange={e => setFunnelStage(e.target.value as FunnelStage)} className="w-full px-3 py-2 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 transition-all">{funnelOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
+          <div><label className="block text-xs font-medium text-muted-foreground mb-1.5">{t('calendar.scheduledDate')}</label><div className="px-3 py-2 bg-secondary border border-border rounded-lg text-sm text-muted-foreground">{format(item.date, 'MMMM d, yyyy')}</div></div>
         </div>
         <div className="flex gap-3 mt-6">
-          <button onClick={onRegenerate} className="flex items-center gap-2 px-4 py-2 bg-secondary hover:bg-secondary/70 border border-border rounded-lg text-sm font-medium transition-colors"><RefreshCw className="w-3.5 h-3.5 text-primary" />Regenerate</button>
+          <button onClick={onRegenerate} className="flex items-center gap-2 px-4 py-2 bg-secondary hover:bg-secondary/70 border border-border rounded-lg text-sm font-medium transition-colors"><RefreshCw className="w-3.5 h-3.5 text-primary" />{t('calendar.regenerate')}</button>
           <div className="flex-1" />
-          <button onClick={onClose} className="px-4 py-2 bg-secondary hover:bg-secondary/70 rounded-lg text-sm font-medium transition-colors">Cancel</button>
-          <button onClick={() => { onSave({ ...item, title, status, funnelStage }); onClose(); }} className="px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg text-sm font-medium transition-colors">Save</button>
+          <button onClick={onClose} className="px-4 py-2 bg-secondary hover:bg-secondary/70 rounded-lg text-sm font-medium transition-colors">{t('calendar.cancel')}</button>
+          <button onClick={() => { onSave({ ...item, title, status, funnelStage }); onClose(); }} className="px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg text-sm font-medium transition-colors">{t('calendar.save')}</button>
         </div>
       </div>
     </div>
@@ -441,24 +444,25 @@ function EditModal({ item, onClose, onSave, onRegenerate }: { item: CalendarItem
 function SelectionBar({ count, onClear, onRegenerate, onPublish, onDuplicate, onDelete, campaignError }: {
   count: number; onClear: () => void; onRegenerate: () => void; onPublish: () => void; onDuplicate: () => void; onDelete: () => void; campaignError: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-2">
       {campaignError && (
         <div className="flex items-center gap-2 px-4 py-2.5 bg-destructive/15 border border-destructive/30 rounded-xl text-sm text-destructive backdrop-blur-sm shadow-lg max-w-sm text-center">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
-          <span>{"You're trying to regenerate from different campaigns. Please select items from only one campaign."}</span>
+          <span>{t('calendar.selectionError')}</span>
         </div>
       )}
       <div className="flex items-center gap-3 bg-[#1C1C1C] border border-white/10 rounded-2xl shadow-2xl px-4 py-3 min-w-max">
         <div className="flex items-center gap-2 pr-3 border-r border-white/10">
           <div className="w-5 h-5 rounded-md bg-primary flex items-center justify-center"><Check className="w-3 h-3 text-primary-foreground" /></div>
-          <span className="text-sm font-semibold text-foreground">{count} selected</span>
+          <span className="text-sm font-semibold text-foreground">{t('calendar.selected', { count })}</span>
         </div>
         <div className="flex items-center gap-1">
-          <button onClick={onRegenerate} className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-white/8 text-sm text-foreground transition-colors group"><RefreshCw className="w-3.5 h-3.5 text-primary group-hover:rotate-180 transition-transform duration-300" /><span>Regenerate</span></button>
-          <button onClick={onPublish} className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-white/8 text-sm text-foreground transition-colors"><Send className="w-3.5 h-3.5 text-[#3B82F6]" /><span>Publish</span></button>
-          <button onClick={onDuplicate} className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-white/8 text-sm text-foreground transition-colors"><Copy className="w-3.5 h-3.5 text-muted-foreground" /><span>Duplicate</span></button>
-          <button onClick={onDelete} className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-destructive/10 text-sm text-destructive transition-colors"><Trash2 className="w-3.5 h-3.5" /><span>Delete</span></button>
+          <button onClick={onRegenerate} className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-white/8 text-sm text-foreground transition-colors group"><RefreshCw className="w-3.5 h-3.5 text-primary group-hover:rotate-180 transition-transform duration-300" /><span>{t('calendar.regenerate')}</span></button>
+          <button onClick={onPublish} className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-white/8 text-sm text-foreground transition-colors"><Send className="w-3.5 h-3.5 text-[#3B82F6]" /><span>{t('calendar.publish')}</span></button>
+          <button onClick={onDuplicate} className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-white/8 text-sm text-foreground transition-colors"><Copy className="w-3.5 h-3.5 text-muted-foreground" /><span>{t('calendar.duplicate')}</span></button>
+          <button onClick={onDelete} className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-destructive/10 text-sm text-destructive transition-colors"><Trash2 className="w-3.5 h-3.5" /><span>{t('calendar.delete')}</span></button>
         </div>
         <button onClick={onClear} className="ml-1 w-6 h-6 flex items-center justify-center rounded-lg hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors"><X className="w-3.5 h-3.5" /></button>
       </div>
@@ -469,6 +473,7 @@ function SelectionBar({ count, onClear, onRegenerate, onPublish, onDuplicate, on
 // ─── CalendarView ─────────────────────────────────────────────────────────────
 
 export function CalendarView() {
+  const { t } = useTranslation();
   const [currentMonth, setCurrentMonth] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
@@ -1383,21 +1388,21 @@ export function CalendarView() {
             {/* Filters */}
             <div className="flex-shrink-0 relative">
               <select value="" onChange={e => e.target.value && toggleContentType(e.target.value as ContentType)} className="pr-8 pl-3 py-1.5 bg-secondary border border-border rounded-lg text-xs text-foreground focus:outline-none appearance-none">
-                <option value="">Content Type</option>
+                <option value="">{t('calendar.contentType')}</option>
                 {contentTypeConfig.map(({ type, label }) => <option key={type} value={type}>{label}</option>)}
               </select>
               <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
             </div>
             <div className="flex-shrink-0 relative">
               <select value="" onChange={e => e.target.value && toggleFunnelStage(e.target.value as FunnelStage)} className="pr-8 pl-3 py-1.5 bg-secondary border border-border rounded-lg text-xs text-foreground focus:outline-none appearance-none">
-                <option value="">Funnel Stage</option>
+                <option value="">{t('calendar.funnelStage')}</option>
                 {funnelStageConfig.map(({ stage, label }) => <option key={stage} value={stage}>{label}</option>)}
               </select>
               <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
             </div>
             <div className="flex-shrink-0 relative">
               <select value="" onChange={e => e.target.value && toggleStatus(e.target.value as Status)} className="pr-8 pl-3 py-1.5 bg-secondary border border-border rounded-lg text-xs text-foreground focus:outline-none appearance-none">
-                <option value="">Status</option>
+                <option value="">{t('calendar.status')}</option>
                 {statusConfig.map(({ status, label }) => <option key={status} value={status}>{label}</option>)}
               </select>
               <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
@@ -1410,9 +1415,9 @@ export function CalendarView() {
               <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center flex-shrink-0 transition-colors ${selectMode ? 'bg-primary border-primary' : 'border-muted-foreground'}`}>
                 {selectMode && <svg viewBox="0 0 8 6" className="w-1.5 h-1.5" fill="none"><path d="M1 3l2 2 4-4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>}
               </span>
-              Select
+              {t('calendar.select')}
             </button>
-            {selectMode && <button onClick={selectAll} className="flex-shrink-0 text-xs text-primary hover:text-primary/80 font-medium transition-colors">All</button>}
+            {selectMode && <button onClick={selectAll} className="flex-shrink-0 text-xs text-primary hover:text-primary/80 font-medium transition-colors">{t('calendar.all')}</button>}
 
             {/* Active filter tags */}
             {Array.from(selectedContentTypes).map(type => <span key={type} className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary text-[11px] rounded-full">{contentTypeConfig.find(c => c.type === type)?.label}<button onClick={() => toggleContentType(type)}>×</button></span>)}
@@ -1420,7 +1425,7 @@ export function CalendarView() {
             {Array.from(selectedStatuses).map(status => <span key={status} className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary text-[11px] rounded-full">{statusConfig.find(s => s.status === status)?.label}<button onClick={() => toggleStatus(status)}>×</button></span>)}
 
             <div className="flex-1" />
-            {hasActiveFilters && <button onClick={clearAllFilters} className="text-xs text-primary hover:text-primary/80 transition-colors font-medium flex-shrink-0">Clear</button>}
+            {hasActiveFilters && <button onClick={clearAllFilters} className="text-xs text-primary hover:text-primary/80 transition-colors font-medium flex-shrink-0">{t('calendar.clear')}</button>}
           </div>
 
           {(selectedContentTypes.size > 0 || selectedFunnelStages.size > 0 || selectedStatuses.size > 0) && (
@@ -1433,8 +1438,8 @@ export function CalendarView() {
 
           {hasActiveFilters && (
             <div className="flex items-center justify-between mt-2 pt-2 border-t border-border">
-              <span className="text-xs text-muted-foreground">{filteredItems.length} of {calendarItems.length} items shown</span>
-              <button onClick={clearAllFilters} className="text-xs text-primary hover:text-primary/80 transition-colors font-medium">Clear All</button>
+              <span className="text-xs text-muted-foreground">{t('calendar.itemsShown', { filtered: filteredItems.length, total: calendarItems.length })}</span>
+              <button onClick={clearAllFilters} className="text-xs text-primary hover:text-primary/80 transition-colors font-medium">{t('calendar.clearAll')}</button>
             </div>
           )}
         </div>
@@ -1451,7 +1456,7 @@ export function CalendarView() {
                 <Link2 className="w-2 h-2 flex-shrink-0" style={{ color: BATCH_PALETTE[0].bar }} />
                 <span className="text-[8px] font-bold" style={{ color: BATCH_PALETTE[0].text }}>3×</span>
               </div>
-              <span className="text-[11px]">Colored bracket = items from the same creation session</span>
+              <span className="text-[11px]">{t('calendar.legend')}</span>
             </div>
           </div>
 
@@ -1459,8 +1464,8 @@ export function CalendarView() {
           <div className="flex-1 min-h-0 flex flex-col rounded-lg overflow-hidden border border-border">
             {/* Day-of-week header — fixed */}
             <div className="grid grid-cols-7 gap-px bg-border flex-shrink-0">
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                <div key={day} className="bg-secondary/80 px-2 py-1.5 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider">{day}</div>
+              {['calendar.days.sun', 'calendar.days.mon', 'calendar.days.tue', 'calendar.days.wed', 'calendar.days.thu', 'calendar.days.fri', 'calendar.days.sat'].map(key => (
+                <div key={key} className="bg-secondary/80 px-2 py-1.5 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t(key)}</div>
               ))}
             </div>
 
@@ -1530,7 +1535,7 @@ export function CalendarView() {
               onClick={() => { setPanelState(null); setEditingItem(panelState.item); }}
               className="flex-1 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors text-left"
             >
-              Open &amp; Edit →
+              {t('calendar.openEdit')} →
             </button>
             <button onClick={() => setPanelState(null)} className="text-muted-foreground/40 hover:text-muted-foreground transition-colors">
               <X className="w-3 h-3" />
