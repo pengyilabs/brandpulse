@@ -1,29 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useUIStore } from '../../stores/ui-store';
 import { Plus, Search, Target, FileText, FolderOpen, MoreHorizontal } from 'lucide-react';
+import { getProjects, createTemplateProject, type ProjectWithCounts } from '../../../lib/services/projects-service';
 
-interface Project {
-  id: number;
-  name: string;
-  client: string;
-  campaigns: number;
-  contentItems: number;
+interface Project extends ProjectWithCounts {
   status: 'active' | 'paused' | 'completed';
   lastUpdated: string;
   accentColor: string;
 }
-
-const PROJECTS: Project[] = [
-  { id: 1, name: 'Velocity Athletics Project', client: 'Velocity Athletics Inc.', campaigns: 4, contentItems: 47, status: 'active', lastUpdated: '2 hours ago', accentColor: '#F97316' },
-  { id: 2, name: 'Tech Startup Project', client: 'StartupCo', campaigns: 2, contentItems: 23, status: 'active', lastUpdated: '1 day ago', accentColor: '#8B5CF6' },
-  { id: 3, name: 'Wellness Brand Project', client: 'ZenLife', campaigns: 3, contentItems: 31, status: 'active', lastUpdated: '3 days ago', accentColor: '#06B6D4' },
-  { id: 4, name: 'Fashion E-commerce Project', client: 'StyleHub', campaigns: 5, contentItems: 62, status: 'paused', lastUpdated: '1 week ago', accentColor: '#EC4899' },
-  { id: 5, name: 'Food & Beverage Project', client: 'FreshBites', campaigns: 2, contentItems: 18, status: 'active', lastUpdated: '5 hours ago', accentColor: '#EAB308' },
-  { id: 6, name: 'B2B SaaS Platform Project', client: 'CloudSync', campaigns: 3, contentItems: 29, status: 'active', lastUpdated: '2 days ago', accentColor: '#4B56F2' },
-  { id: 7, name: 'Lumina Wellness Project', client: 'Lumina Wellness', campaigns: 1, contentItems: 12, status: 'active', lastUpdated: '1 hour ago', accentColor: '#D946EF' },
-];
 
 export function ProjectsDashboard() {
   const { t } = useTranslation();
@@ -31,17 +17,75 @@ export function ProjectsDashboard() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'paused'>('all');
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = PROJECTS.filter(p => {
+  useEffect(() => {
+    loadProjects();
+  }, []);
+
+  const loadProjects = async () => {
+    setLoading(true);
+    const data = await getProjects();
+
+    // If no projects exist, create template project
+    if (data.length === 0) {
+      await createTemplateProject();
+      const refreshed = await getProjects();
+      setProjects(mapProjects(refreshed));
+    } else {
+      setProjects(mapProjects(data));
+    }
+    setLoading(false);
+  };
+
+  const mapProjects = (data: ProjectWithCounts[]): Project[] => {
+    const colors = ['#F97316', '#8B5CF6', '#06B6D4', '#EC4899', '#EAB308', '#4B56F2', '#D946EF'];
+    return data.map((p, i) => ({
+      ...p,
+      status: 'active' as const,
+      lastUpdated: formatRelativeTime(p.updated_at),
+      accentColor: colors[i % colors.length],
+    }));
+  };
+
+  const formatRelativeTime = (dateStr: string): string => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'just now';
+    if (diffMins < 60) return `${diffMins} min ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    return date.toLocaleDateString();
+  };
+
+  const filtered = projects.filter(p => {
     const q = search.toLowerCase();
-    const matchSearch = p.name.toLowerCase().includes(q) || p.client.toLowerCase().includes(q);
+    const matchSearch = p.name.toLowerCase().includes(q) || (p.description || '').toLowerCase().includes(q);
     const matchStatus = statusFilter === 'all' || p.status === statusFilter;
     return matchSearch && matchStatus;
   });
 
-  const totalCampaigns = PROJECTS.reduce((a, p) => a + p.campaigns, 0);
-  const totalItems = PROJECTS.reduce((a, p) => a + p.contentItems, 0);
-  const activeCount = PROJECTS.filter(p => p.status === 'active').length;
+  const totalCampaigns = projects.reduce((a, p) => a + p.campaigns_count, 0);
+  const totalItems = projects.reduce((a, p) => a + p.content_items_count, 0);
+  const activeCount = projects.filter(p => p.status === 'active').length;
+
+  if (loading) {
+    return (
+      <div className="flex flex-col flex-1 h-full bg-background overflow-hidden">
+        <div className="flex-1 overflow-auto">
+          <div className="px-6 py-8">
+            <div className="text-center text-muted-foreground">Loading projects...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col flex-1 h-full bg-background overflow-hidden">
@@ -142,10 +186,10 @@ export function ProjectsDashboard() {
 
 function ProjectCard({ project, onClick }: { project: Project; onClick: () => void }) {
   const { t } = useTranslation();
-  const words = project.client.split(' ');
+  const words = project.name.split(' ');
   const initials = words.length >= 2
     ? (words[0][0] + words[1][0]).toUpperCase()
-    : project.client.slice(0, 2).toUpperCase();
+    : project.name.slice(0, 2).toUpperCase();
 
   return (
     <div
@@ -188,20 +232,22 @@ function ProjectCard({ project, onClick }: { project: Project; onClick: () => vo
         <h3 className="font-semibold text-foreground text-base leading-snug group-hover:text-primary transition-colors">
           {project.name}
         </h3>
-        <p className="text-sm text-muted-foreground mt-0.5 truncate">{project.client}</p>
+        <p className="text-sm text-muted-foreground mt-0.5 truncate">
+          {project.description || 'No description'}
+        </p>
       </div>
 
       <div className="flex items-center gap-4 mt-4 pt-3 border-t border-border">
         <div className="flex items-center gap-1.5">
           <Target className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
           <span className="text-sm text-muted-foreground">
-            <span className="font-semibold text-foreground">{project.campaigns}</span> {t('projects.campaigns')}
+            <span className="font-semibold text-foreground">{project.campaigns_count}</span> {t('projects.campaigns')}
           </span>
         </div>
         <div className="flex items-center gap-1.5">
           <FileText className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
           <span className="text-sm text-muted-foreground">
-            <span className="font-semibold text-foreground">{project.contentItems}</span> {t('dashboard.items')}
+            <span className="font-semibold text-foreground">{project.content_items_count}</span> {t('dashboard.items')}
           </span>
         </div>
       </div>
