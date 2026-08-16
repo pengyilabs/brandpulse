@@ -65,6 +65,13 @@ import { PREVIOUS_CAMPAIGNS } from "./campaign-creation-full-view";
 import { ContentReview } from "../content/content-review";
 import { ReviewWizard } from "../content/review-wizard";
 import { ReportsView } from "../reports/reports-view";
+import {
+  getCampaigns,
+  createCampaign as createCampaignService,
+  updateCampaign as updateCampaignService,
+  deleteCampaign as deleteCampaignService,
+  type Campaign as ServiceCampaign,
+} from "../../../lib/services/campaigns-service";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -124,6 +131,35 @@ interface Campaign {
   funnelStages: string[];
   resources: string[];
   templates: string[];
+  id?: string;
+}
+
+const CAMPAIGN_COLORS = ["#F97316", "#8B5CF6", "#4B56F2", "#EC4899", "#06B6D4", "#10B981", "#F59E0B"];
+
+function hashStringToColor(str: string): string {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return CAMPAIGN_COLORS[Math.abs(hash) % CAMPAIGN_COLORS.length];
+}
+
+function mapServiceToUICampaign(sc: ServiceCampaign): Campaign {
+  return {
+    id: sc.id,
+    name: sc.name,
+    color: hashStringToColor(sc.id || sc.name),
+    description: sc.description || "",
+    instructions: "",
+    duration: "",
+    topics: "",
+    brandGuidelines: "",
+    targetAudience: "",
+    contentTypes: [],
+    funnelStages: [],
+    resources: [],
+    templates: [],
+  };
 }
 
 // ─── Config ───────────────────────────────────────────────────────────────────
@@ -3298,7 +3334,8 @@ export function ProjectView() {
   
   const [viewMode, setViewMode] = useState<ViewMode>("calendar");
   const [items, setItems] = useState<ContentItem[]>(INITIAL_ITEMS);
-  const [campaigns, setCampaigns] = useState<Campaign[]>(CAMPAIGNS);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [campaignsLoading, setCampaignsLoading] = useState(true);
   const [campaignToDelete, setCampaignToDelete] = useState<Campaign | null>(null);
   const [campaignToEdit, setCampaignToEdit] = useState<Campaign | null>(null);
   const [selectedItem, setSelectedItem] = useState<ContentItem | null>(null);
@@ -3343,6 +3380,22 @@ export function ProjectView() {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [createMenuOpen]);
+
+  // Load campaigns from Supabase
+  useEffect(() => {
+    let cancelled = false;
+    async function loadCampaigns() {
+      if (!projectId) return;
+      setCampaignsLoading(true);
+      const serviceCampaigns = await getCampaigns(projectId);
+      if (!cancelled) {
+        setCampaigns(serviceCampaigns.map(mapServiceToUICampaign));
+        setCampaignsLoading(false);
+      }
+    }
+    loadCampaigns();
+    return () => { cancelled = true; };
+  }, [projectId]);
 
   const handleTplImageDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -3487,9 +3540,25 @@ export function ProjectView() {
 
   const handleDelete = (id: number) => setItems((p) => p.filter((i) => i.id !== id));
 
-  const handleSaveCampaign = (updated: Campaign, regenerate = false) => {
+  const handleSaveCampaign = async (updated: Campaign, regenerate = false) => {
     const oldName = campaignToEdit!.name;
-    setCampaigns(p => p.map(c => c.name === oldName ? updated : c));
+    const oldId = campaignToEdit!.id;
+
+    // Persist to Supabase if we have an id
+    if (oldId) {
+      const result = await updateCampaignService(oldId, {
+        name: updated.name,
+        description: updated.description || null,
+      });
+      if (!result) {
+        toast.error("Failed to save campaign.");
+        return;
+      }
+      // Sync id back from server
+      updated.id = result.id;
+    }
+
+    setCampaigns(p => p.map(c => c.id === oldId || c.name === oldName ? updated : c));
     // If name changed, update all items that referenced the old name
     if (oldName !== updated.name) {
       setItems(p => p.map(i => i.campaign === oldName
@@ -3518,15 +3587,23 @@ export function ProjectView() {
     setCampaignToEdit(null);
   };
 
-  const handleDeleteCampaign = (campaign: Campaign) => {
+  const handleDeleteCampaign = async (campaign: Campaign) => {
+    if (campaign.id) {
+      const ok = await deleteCampaignService(campaign.id);
+      if (!ok) {
+        toast.error("Failed to delete campaign.");
+        return;
+      }
+    }
     setItems((p) => p.filter((i) => i.campaign !== campaign.name));
-    setCampaigns((p) => p.filter((c) => c.name !== campaign.name));
+    setCampaigns((p) => p.filter((c) => !(c.id === campaign.id || c.name === campaign.name)));
     setSelectedCampaigns((prev) => {
       const next = new Set(prev);
       next.delete(campaign.name);
       return next;
     });
     setCampaignToDelete(null);
+    toast.success("Campaign deleted.");
   };
   const handleReschedule = (id: number, date: string) =>
     setItems((p) => p.map((i) => (i.id === id ? { ...i, date } : i)));
@@ -4263,8 +4340,22 @@ export function ProjectView() {
       <CampaignCreationFullView
         isOpen={campaignModalOpen}
         onClose={() => { setCampaignModalOpen(false); setCampaignDuplicate(null); }}
-        onComplete={(config) => {
+        onComplete={async (config) => {
           console.log('Campaign created:', config);
+          if (projectId && config.campaignName) {
+            const created = await createCampaignService(
+              projectId,
+              config.campaignName,
+              config.scheduledItems ? `Content plan: ${config.totalItems || 0} items across ${new Set(config.scheduledItems.map((i: any) => i.date.split('T')[0]).sort()).size} days` : null
+            );
+            if (created) {
+              const uiCampaign = mapServiceToUICampaign(created);
+              setCampaigns(prev => [uiCampaign, ...prev]);
+              toast.success(`Campaign "${config.campaignName}" created.`);
+            } else {
+              toast.error("Failed to create campaign.");
+            }
+          }
           setCampaignModalOpen(false);
           setCampaignDuplicate(null);
         }}
