@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useUIStore } from '../../stores/ui-store';
-import { Plus, Search, Target, FileText, FolderOpen, MoreHorizontal } from 'lucide-react';
-import { getProjects, createTemplateProject, type ProjectWithCounts } from '../../../lib/services/projects-service';
+import { Plus, Search, Target, FileText, FolderOpen, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
+import { getProjects, createTemplateProject, type ProjectWithCounts, type Project } from '../../../lib/services/projects-service';
+import { ProjectEditModal } from './project-edit-modal';
+import { ProjectDeleteModal } from './project-delete-modal';
 
 interface Project extends ProjectWithCounts {
   status: 'active' | 'paused' | 'completed';
@@ -19,6 +21,8 @@ export function ProjectsDashboard() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'paused'>('all');
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [deletingProject, setDeletingProject] = useState<Project | null>(null);
 
   useEffect(() => {
     loadProjects();
@@ -163,7 +167,13 @@ export function ProjectsDashboard() {
           {/* Projects Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {filtered.map(project => (
-              <ProjectCard key={project.id} project={project} onClick={() => navigate(`/projects/${project.id}`)} />
+              <ProjectCard
+                key={project.id}
+                project={project}
+                onClick={() => navigate(`/projects/${project.id}`)}
+                onEdit={() => setEditingProject(project)}
+                onDelete={() => setDeletingProject(project)}
+              />
             ))}
             <button
               onClick={() => openProjectModal()}
@@ -180,12 +190,35 @@ export function ProjectsDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Edit Modal */}
+      <ProjectEditModal
+        project={editingProject}
+        isOpen={!!editingProject}
+        onClose={() => setEditingProject(null)}
+        onUpdate={() => {
+          setEditingProject(null);
+          loadProjects();
+        }}
+      />
+
+      {/* Delete Modal */}
+      <ProjectDeleteModal
+        project={deletingProject}
+        isOpen={!!deletingProject}
+        onClose={() => setDeletingProject(null)}
+        onDelete={() => {
+          setDeletingProject(null);
+          loadProjects();
+        }}
+      />
     </div>
   );
 }
 
-function ProjectCard({ project, onClick }: { project: Project; onClick: () => void }) {
+function ProjectCard({ project, onClick, onEdit, onDelete }: { project: Project; onClick: () => void; onEdit: () => void; onDelete: () => void }) {
   const { t } = useTranslation();
+  const [showMenu, setShowMenu] = useState(false);
   const words = project.name.split(' ');
   const initials = words.length >= 2
     ? (words[0][0] + words[1][0]).toUpperCase()
@@ -211,7 +244,7 @@ function ProjectCard({ project, onClick }: { project: Project; onClick: () => vo
         >
           {initials}
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 relative">
           <span className={`text-sm font-medium px-2 py-0.5 rounded-full ${
             project.status === 'active'
               ? 'bg-primary/10 text-primary'
@@ -221,10 +254,39 @@ function ProjectCard({ project, onClick }: { project: Project; onClick: () => vo
           </span>
           <button
             className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-secondary transition-all text-muted-foreground"
-            onClick={e => e.stopPropagation()}
+            onClick={e => {
+              e.stopPropagation();
+              setShowMenu(!showMenu);
+            }}
           >
             <MoreHorizontal className="w-3.5 h-3.5" />
           </button>
+          {showMenu && (
+            <div className="absolute right-0 top-8 z-10 w-32 bg-card border border-border rounded-lg shadow-lg">
+              <button
+                onClick={e => {
+                  e.stopPropagation();
+                  setShowMenu(false);
+                  onEdit();
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-secondary transition-colors"
+              >
+                <Edit className="w-3.5 h-3.5" />
+                Edit
+              </button>
+              <button
+                onClick={e => {
+                  e.stopPropagation();
+                  setShowMenu(false);
+                  onDelete();
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Delete
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
