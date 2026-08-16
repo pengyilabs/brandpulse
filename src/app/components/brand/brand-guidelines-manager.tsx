@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Plus, Upload, Trash2, Edit2, Copy, MoreVertical, Star,
@@ -8,6 +8,10 @@ import {
 import * as Dialog from '@radix-ui/react-dialog';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { useAuditAssets } from '../../data/audit-asset-store';
+import {
+  getBrandKits, createBrandKit, updateBrandKit, deleteBrandKit,
+  type BrandKit
+} from '../../../lib/services/brand-kits-service';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -18,7 +22,7 @@ interface ReferenceLink {
 }
 
 interface BrandGuideline {
-  id: number;
+  id: string;
   name: string;
   description: string;
   logo: string | null;
@@ -42,57 +46,34 @@ interface EditWarningModalProps {
   onCreateNewVersion: () => void;
 }
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
+// ─── Service Mapping ──────────────────────────────────────────────────────────
 
-const MOCK_GUIDELINES: BrandGuideline[] = [
-  {
-    id: 1,
-    name: 'Velocity Athletics',
-    description: 'Bold, motivational, performance-driven. Active voice, strong verbs, energetic language.',
-    logo: '/brand-tile-navy.svg?w=200&h=200&fit=crop&auto=format',
-    primaryColor: '#4B56F2',
-    secondaryColor: '#000000',
-    headingFont: 'Montserrat',
-    bodyFont: 'Noto Sans',
-    referenceLinks: [
-      { id: 1, label: 'Brand Portal', url: 'https://brand.velocity-athletics.example' },
-      { id: 2, label: 'Style Guide', url: 'https://velocity-athletics.example/style' },
-    ],
-    isDefault: true,
-    lastModified: '2026-05-27',
-    usedByContentCount: 47,
-  },
-  {
-    id: 2,
-    name: 'Velocity Athletics Sustainability',
-    description: 'Environmental focus. Authentic, transparent, hopeful tone. Emphasize innovation and responsibility.',
-    logo: '/brand-tile-violet.svg?w=200&h=200&fit=crop&auto=format',
-    primaryColor: '#34D399',
-    secondaryColor: '#047857',
-    headingFont: 'Raleway',
-    bodyFont: 'Open Sans',
-    referenceLinks: [
-      { id: 1, label: 'Forward Stride Zero', url: 'https://velocity-athletics.example/sustainability' },
-    ],
-    isDefault: false,
-    lastModified: '2026-05-20',
-    usedByContentCount: 12,
-  },
-  {
-    id: 3,
-    name: 'Velocity Athletics Women',
-    description: 'Empowering, inclusive, bold. Celebrate strength and diversity. Inspiring and uplifting voice.',
-    logo: '/brand-tile-cyan.svg?w=200&h=200&fit=crop&auto=format',
-    primaryColor: '#F472B6',
-    secondaryColor: '#EC4899',
-    headingFont: 'Poppins',
-    bodyFont: 'Lora',
+function mapServiceToUI(kit: BrandKit): BrandGuideline {
+  return {
+    id: kit.id,
+    name: kit.name,
+    description: kit.tone_of_voice || '',
+    logo: kit.logo_url,
+    primaryColor: kit.colors[0] || '#4B56F2',
+    secondaryColor: kit.colors[1] || '#8B5CF6',
+    headingFont: kit.fonts[0] || 'Noto Sans SC',
+    bodyFont: kit.fonts[1] || 'Noto Sans',
     referenceLinks: [],
     isDefault: false,
-    lastModified: '2026-05-15',
+    lastModified: kit.updated_at || kit.created_at,
     usedByContentCount: 0,
-  },
-];
+  };
+}
+
+function mapUIToService(guideline: Partial<BrandGuideline>): Partial<BrandKit> {
+  return {
+    name: guideline.name,
+    tone_of_voice: guideline.description || null,
+    logo_url: guideline.logo || null,
+    colors: [guideline.primaryColor || '#4B56F2', guideline.secondaryColor || '#8B5CF6'],
+    fonts: [guideline.headingFont || 'Noto Sans SC', guideline.bodyFont || 'Noto Sans'],
+  };
+}
 
 const FONT_OPTIONS = [
   'Noto Sans SC', 'Noto Sans', 'Playfair Display', 'Montserrat', 'Poppins', 'Raleway',
@@ -528,35 +509,24 @@ function GuidelineFormModal({ isOpen, mode, guideline, onClose, onSave }: Guidel
 
 export function BrandGuidelinesManager() {
   const { t } = useTranslation();
-  const { brandKits } = useAuditAssets();
-  const [guidelines, setGuidelines] = useState<BrandGuideline[]>(MOCK_GUIDELINES);
+  const { brandKits: auditBrandKits } = useAuditAssets();
+  const [guidelines, setGuidelines] = useState<BrandGuideline[]>([]);
+  const [loading, setLoading] = useState(true);
   const [modalMode, setModalMode] = useState<ModalMode>(null);
   const [selectedGuideline, setSelectedGuideline] = useState<BrandGuideline | null>(null);
   const [showEditWarning, setShowEditWarning] = useState(false);
   const [showRegeneratePrompt, setShowRegeneratePrompt] = useState(false);
 
+  const loadGuidelines = useCallback(async () => {
+    setLoading(true);
+    const kits = await getBrandKits();
+    setGuidelines(kits.map(mapServiceToUI));
+    setLoading(false);
+  }, []);
+
   useEffect(() => {
-    if (brandKits.length === 0) return;
-    const auditGuidelines: BrandGuideline[] = brandKits.map((kit, i) => ({
-      id: -1 - i,
-      name: kit.name,
-      description: kit.description,
-      logo: null,
-      primaryColor: kit.primaryColor,
-      secondaryColor: kit.secondaryColor,
-      headingFont: kit.headingFont,
-      bodyFont: kit.bodyFont,
-      referenceLinks: [],
-      isDefault: false,
-      lastModified: new Date(kit.createdAt).toISOString().split('T')[0],
-      usedByContentCount: 0,
-    }));
-    setGuidelines((prev) => {
-      const existingNames = new Set(prev.map((g) => g.name));
-      const newOnes = auditGuidelines.filter((g) => !existingNames.has(g.name));
-      return [...newOnes, ...prev];
-    });
-  }, [brandKits]);
+    loadGuidelines();
+  }, [loadGuidelines]);
 
   const handleCreateNew = () => {
     setSelectedGuideline(null);
@@ -576,7 +546,7 @@ export function BrandGuidelinesManager() {
     setSelectedGuideline({
       ...guideline,
       name: `${guideline.name} (Copy)`,
-      id: 0,
+      id: '',
       isDefault: false,
     });
     setModalMode('duplicate');
@@ -587,42 +557,45 @@ export function BrandGuidelinesManager() {
     setModalMode('rename');
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: string) => {
     if (confirm(t('brand.confirmDeleteGuideline'))) {
-      setGuidelines(guidelines.filter(g => g.id !== id));
+      const success = await deleteBrandKit(id);
+      if (success) {
+        setGuidelines(prev => prev.filter(g => g.id !== id));
+      }
     }
   };
 
-  const handleSetDefault = (id: number) => {
-    setGuidelines(guidelines.map(g => ({
+  const handleSetDefault = (id: string) => {
+    setGuidelines(prev => prev.map(g => ({
       ...g,
       isDefault: g.id === id,
     })));
   };
 
-  const handleSave = (data: Partial<BrandGuideline>) => {
+  const handleSave = async (data: Partial<BrandGuideline>) => {
     if (modalMode === 'create' || modalMode === 'duplicate') {
-      const newGuideline: BrandGuideline = {
-        id: Date.now(),
-        name: data.name || '',
-        description: data.description || '',
-        logo: data.logo || null,
-        primaryColor: data.primaryColor || '#4B56F2',
-        secondaryColor: data.secondaryColor || '#8B5CF6',
-        headingFont: data.headingFont || 'Noto Sans SC',
-        bodyFont: data.bodyFont || 'Noto Sans',
-        referenceLinks: data.referenceLinks || [],
-        isDefault: false,
-        lastModified: new Date().toISOString().split('T')[0],
-        usedByContentCount: 0,
-      };
-      setGuidelines([...guidelines, newGuideline]);
+      const serviceData = mapUIToService(data);
+      const created = await createBrandKit(
+        serviceData.name || '',
+        serviceData.colors,
+        serviceData.fonts,
+        serviceData.logo_url || null,
+        serviceData.tone_of_voice || null
+      );
+      if (created) {
+        setGuidelines(prev => [...prev, mapServiceToUI(created)]);
+      }
     } else if (modalMode === 'edit' || modalMode === 'rename') {
-      setGuidelines(guidelines.map(g =>
-        g.id === selectedGuideline?.id
-          ? { ...g, ...data, lastModified: new Date().toISOString().split('T')[0] }
-          : g
-      ));
+      if (selectedGuideline) {
+        const serviceData = mapUIToService(data);
+        const updated = await updateBrandKit(selectedGuideline.id, serviceData);
+        if (updated) {
+          setGuidelines(prev => prev.map(g =>
+            g.id === selectedGuideline.id ? mapServiceToUI(updated) : g
+          ));
+        }
+      }
     }
     setModalMode(null);
     setSelectedGuideline(null);
@@ -659,6 +632,21 @@ export function BrandGuidelinesManager() {
         </div>
 
         {/* Guidelines Grid */}
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : guidelines.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <Palette className="w-12 h-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-1">{t('brand.noBrandGuidelines')}</h3>
+            <p className="text-sm text-muted-foreground mb-6">{t('brand.noBrandGuidelinesDesc')}</p>
+            <button onClick={handleCreateNew} className="flex items-center gap-2 px-5 py-3 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors font-medium">
+              <Plus className="w-4 h-4" />
+              {t('brand.createNewGuideline')}
+            </button>
+          </div>
+        ) : (
         <div className="grid grid-cols-3 gap-4">
           {/* Create New Card */}
           <button
@@ -837,6 +825,7 @@ export function BrandGuidelinesManager() {
             </div>
           ))}
         </div>
+      )}
       </div>
 
       {/* Modals */}
