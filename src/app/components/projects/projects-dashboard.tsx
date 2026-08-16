@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useUIStore } from '../../stores/ui-store';
 import { Plus, Search, Target, FileText, FolderOpen, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
-import { getProjects, createTemplateProject, type ProjectWithCounts, type Project } from '../../../lib/services/projects-service';
+import { getProjects, type ProjectWithCounts, type Project } from '../../../lib/services/projects-service';
 import { ProjectEditModal } from './project-edit-modal';
 import { ProjectDeleteModal } from './project-delete-modal';
 
@@ -31,15 +31,7 @@ export function ProjectsDashboard() {
   const loadProjects = async () => {
     setLoading(true);
     const data = await getProjects();
-
-    // If no projects exist, create template project
-    if (data.length === 0) {
-      await createTemplateProject();
-      const refreshed = await getProjects();
-      setProjects(mapProjects(refreshed));
-    } else {
-      setProjects(mapProjects(data));
-    }
+    setProjects(mapProjects(data));
     setLoading(false);
   };
 
