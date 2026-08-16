@@ -138,6 +138,21 @@ const UI_TYPE_MAP: Record<string, ContentType> = {
   "social-post": "Quote Card",
 };
 
+const SERVICE_TYPE_MAP: Record<string, string> = {
+  "Long Form": "long-form",
+  "Short Clip": "short-clip",
+  "Highlight Reel": "highlight-reel",
+  "Text to AI Video": "ai-video",
+  "Quote Card": "quote-card",
+  "long-form": "long-form",
+  "short-clip": "short-clip",
+  "highlight-reel": "highlight-reel",
+  "quote-card": "quote-card",
+  "ai-video": "ai-video",
+  "social-post": "social-post",
+  carousel: "carousel",
+};
+
 function contentTypeToUI(contentType: string): ContentType {
   return UI_TYPE_MAP[contentType.toLowerCase()] || "Quote Card";
 }
@@ -3711,9 +3726,17 @@ export function ProjectView() {
     setCampaignToDelete(null);
     toast.success("Campaign deleted.");
   };
-  const handleReschedule = (id: number, date: string) =>
+  const handleReschedule = async (id: number | string, date: string) => {
+    const item = items.find(i => i.id === id);
+    const sid = item?.serviceId || (typeof id === 'string' ? id : String(id));
+    try {
+      await updateContentItemService(sid, {
+        scheduled_at: new Date(date).toISOString(),
+      });
+    } catch {}
     setItems((p) => p.map((i) => (i.id === id ? { ...i, date } : i)));
-  const handleReorder = (fromId: number, toId: number) =>
+  };
+  const handleReorder = (fromId: number | string, toId: number | string) =>
     setItems((prev) => {
       const fi = prev.findIndex((i) => i.id === fromId);
       const ti = prev.findIndex((i) => i.id === toId);
@@ -4439,10 +4462,84 @@ export function ProjectView() {
           setSelectedContentTypeForCreation(undefined);
           setDroppedFile(null);
         }}
-        onComplete={() => {
+        onComplete={async (config: any) => {
           setCreateOpen(false);
           setSelectedContentTypeForCreation(undefined);
           setDroppedFile(null);
+
+          if (!projectId || !config) return;
+
+          // Resolve campaign_id if a campaign was selected
+          let campaignId: string | null = null;
+          const campaignRef = config.campaign;
+          if (campaignRef) {
+            const match = campaigns.find(c => c.id === campaignRef || c.name === campaignRef);
+            if (match?.id) campaignId = match.id;
+          }
+
+          const serviceItems: { typeId: string; platform: string; quantity: number }[] = [];
+          const quantities: Record<string, number> = config.quantities || {};
+          const platformsByType: Record<string, string[]> = config.platformsByType || {};
+
+          // Include the selectedContentType (primary) as fallback
+          const typeIds = new Set<string>(Object.keys(quantities).filter(k => (quantities[k] || 0) > 0));
+          if (config.contentType) typeIds.add(config.contentType);
+          if (typeIds.size === 0) typeIds.add(config.contentType || "social-post");
+
+          typeIds.forEach(tid => {
+            const qty = quantities[tid] || 1;
+            const platforms: string[] = platformsByType[tid] && platformsByType[tid].length ? platformsByType[tid] : ["general"];
+            // Distribute quantity across platforms or add qty for each platform
+            platforms.forEach((p, pi) => {
+              const each = Math.floor(qty / platforms.length) + (pi < (qty % platforms.length) ? 1 : 0);
+              if (each > 0) {
+                serviceItems.push({ typeId: tid, platform: p, quantity: each });
+              }
+            });
+          });
+
+          if (!serviceItems.length) {
+            serviceItems.push({
+              typeId: config.contentType || "social-post",
+              platform: "general",
+              quantity: 1,
+            });
+          }
+
+          const title = config.title || config.topic?.slice(0, 80) || "Untitled content";
+          const description = config.topic || config.title || "Content created via Smart Content Creation";
+          const todayISO = new Date().toISOString();
+          const scheduledAt = todayISO;
+
+          const campaignsLookup: Record<string, { name: string; color: string }> = {};
+          campaigns.forEach(c => {
+            if (c.id) campaignsLookup[c.id] = { name: c.name, color: c.color };
+            campaignsLookup[c.name] = { name: c.name, color: c.color };
+          });
+
+          const createdItems: ContentItem[] = [];
+          for (const group of serviceItems) {
+            for (let i = 0; i < group.quantity; i++) {
+              const created = await createContentItemService(projectId, {
+                campaign_id: campaignId,
+                platform: group.platform || "general",
+                content_type: SERVICE_TYPE_MAP[group.typeId] || group.typeId || "social-post",
+                title,
+                description,
+                scheduled_at: scheduledAt,
+              });
+              if (created) {
+                createdItems.push(mapServiceToUIContentItem(created, campaignsLookup));
+              }
+            }
+          }
+
+          if (createdItems.length) {
+            setItems(prev => [...createdItems, ...prev]);
+            toast.success(`${createdItems.length} content item${createdItems.length > 1 ? "s" : ""} created via planning flow.`);
+          } else {
+            toast.warning("No items were created.");
+          }
         }}
         contentType={selectedContentTypeForCreation}
         defaultFile={droppedFile ?? undefined}
