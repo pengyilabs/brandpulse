@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Plus, Upload, Link as LinkIcon, FileText, Video, Image as ImageIcon,
   Search, Download, Trash2, Clock, ArrowLeft, Play,
@@ -170,6 +171,7 @@ const RESOURCES: Resource[] = [
 ];
 
 function CardMenu({ resource }: { resource: Resource }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -201,22 +203,22 @@ function CardMenu({ resource }: { resource: Resource }) {
 
   if (resource.transcribed && (resource.transcription || resource.fullText)) {
     items.push({
-      label: 'Download Transcription',
+      label: t('resources.downloadTranscription'),
       action: () => downloadBlob(resource.name.replace(/\.[^.]+$/, '') + '_transcription.txt', resource.transcription ?? resource.fullText ?? ''),
     });
   }
 
   if (resource.type === 'video') {
-    items.push({ label: 'Download Audio', action: () => downloadHref(resource.videoUrl ?? '#', resource.name.replace(/\.[^.]+$/, '.mp3')) });
-    items.push({ label: 'Download Video', action: () => downloadHref(resource.videoUrl ?? '#', resource.name) });
+    items.push({ label: t('resources.downloadAudio'), action: () => downloadHref(resource.videoUrl ?? '#', resource.name.replace(/\.[^.]+$/, '.mp3')) });
+    items.push({ label: t('resources.downloadVideo'), action: () => downloadHref(resource.videoUrl ?? '#', resource.name) });
   }
 
   if (resource.type === 'image' && resource.thumbnail) {
-    items.push({ label: 'Download Image', action: () => downloadHref(resource.thumbnail!, resource.name) });
+    items.push({ label: t('resources.downloadImage'), action: () => downloadHref(resource.thumbnail!, resource.name) });
   }
 
   if (resource.type === 'document' || resource.type === 'text') {
-    items.push({ label: 'Download Document', action: () => downloadBlob(resource.name, resource.fullText ?? '') });
+    items.push({ label: t('resources.downloadDocument'), action: () => downloadBlob(resource.name, resource.fullText ?? '') });
   }
 
   return (
@@ -232,7 +234,7 @@ function CardMenu({ resource }: { resource: Resource }) {
       {open && (
         <div className="absolute right-0 top-6 z-30 bg-popover border border-border rounded-xl shadow-2xl min-w-[11rem] py-1.5 overflow-hidden">
           {items.length === 0 ? (
-            <p className="px-3 py-2 text-xs text-muted-foreground">No downloads available</p>
+            <p className="px-3 py-2 text-xs text-muted-foreground">{t('resources.noDownloads')}</p>
           ) : (
             items.map(item => (
               <button key={item.label} onClick={e => { e.stopPropagation(); item.action(); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-foreground hover:bg-secondary transition-colors text-left">
@@ -260,6 +262,7 @@ interface Post {
 }
 
 function ResourceDetail({ resource, onBack }: { resource: Resource; onBack: () => void }) {
+  const { t } = useTranslation();
   const [textTab, setTextTab] = useState<'transcript' | 'summary'>('transcript');
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
   const [isArchived, setIsArchived] = useState(false);
@@ -306,7 +309,7 @@ function ResourceDetail({ resource, onBack }: { resource: Resource; onBack: () =
         className="flex items-center gap-2 px-8 py-4 text-sm text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 w-fit"
       >
         <ArrowLeft className="w-4 h-4" />
-        <span>Back to Resources</span>
+        <span>{t('resources.backToLibrary')}</span>
       </button>
 
       <div className="flex gap-8 p-8 pb-16">
@@ -317,12 +320,12 @@ function ResourceDetail({ resource, onBack }: { resource: Resource; onBack: () =
             </span>
             {resource.transcribed && (
               <span className="px-3 py-1 rounded-lg bg-[#1a1a1a] border border-[#ffffff14] text-xs font-semibold text-[#66b266] uppercase">
-                transcribed
+                {t('resources.transcribed')}
               </span>
             )}
             {isArchived && (
               <span className="px-3 py-1 rounded-lg bg-[#1a1a1a] border border-[#ffffff14] text-xs font-semibold text-[#F59E0B] uppercase">
-                archived
+                {t('resources.archived')}
               </span>
             )}
           </div>
@@ -355,8 +358,8 @@ function ResourceDetail({ resource, onBack }: { resource: Resource; onBack: () =
 
           <div className="mb-6">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-semibold text-foreground">Content Created ({posts.length})</h2>
-              <p className="text-xs text-muted-foreground">Social media content generated using this resource</p>
+              <h2 className="text-lg font-semibold text-foreground">{t('resources.contentCreated', { count: posts.length })}</h2>
+              <p className="text-xs text-muted-foreground">{t('resources.contentCreatedDesc')}</p>
             </div>
 
             <div className="space-y-3">
@@ -394,7 +397,7 @@ function ResourceDetail({ resource, onBack }: { resource: Resource; onBack: () =
               ))}
               {posts.length === 0 && (
                 <div className="p-8 bg-[#1a1a1a] rounded-xl text-center">
-                  <p className="text-sm text-muted-foreground">No content created</p>
+                  <p className="text-sm text-muted-foreground">{t('resources.noContentCreated')}</p>
                 </div>
               )}
             </div>
@@ -410,13 +413,13 @@ function ResourceDetail({ resource, onBack }: { resource: Resource; onBack: () =
                     onClick={() => setTextTab('transcript')}
                     className={`flex-1 py-2.5 text-xs font-semibold uppercase transition-colors ${textTab === 'transcript' ? 'bg-[#262626] text-foreground rounded-lg' : 'text-muted-foreground hover:text-foreground'}`}
                   >
-                    Transcript
+                    {t('resources.transcript')}
                   </button>
                   <button
                     onClick={() => setTextTab('summary')}
                     className={`flex-1 py-2.5 text-xs font-semibold uppercase transition-colors ${textTab === 'summary' ? 'bg-[#262626] text-foreground rounded-lg' : 'text-muted-foreground hover:text-foreground'}`}
                   >
-                    Summary
+                    {t('resources.summary')}
                   </button>
                 </div>
 
@@ -442,34 +445,34 @@ function ResourceDetail({ resource, onBack }: { resource: Resource; onBack: () =
             <div className="mb-5 pt-5 border-t border-[#ffffff14]">
               <div className="space-y-3">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-gray-400">File size</span>
+                  <span className="text-gray-400">{t('resources.fileSize')}</span>
                   <span className="text-white font-medium">{resource.size}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-gray-400">Uploaded</span>
+                  <span className="text-gray-400">{t('resources.uploaded')}</span>
                   <span className="text-white font-medium">{resource.uploadedDate}</span>
                 </div>
                 {resource.duration && (
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-gray-400">Duration</span>
+                    <span className="text-gray-400">{t('resources.duration')}</span>
                     <span className="text-white font-medium">{resource.duration}</span>
                   </div>
                 )}
                 {resource.pageCount && (
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-gray-400">Pages</span>
-                    <span className="text-white font-medium">{resource.pageCount} pages</span>
+                    <span className="text-gray-400">{t('resources.pagesLabel')}</span>
+                    <span className="text-white font-medium">{resource.pageCount} {t('resources.pages', { count: resource.pageCount })}</span>
                   </div>
                 )}
                 {resource.wordCount && (
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-gray-400">Words</span>
-                    <span className="text-white font-medium">{resource.wordCount.toLocaleString()} words</span>
+                    <span className="text-gray-400">{t('resources.wordsLabel')}</span>
+                    <span className="text-white font-medium">{resource.wordCount.toLocaleString()} {t('resources.words', { count: resource.wordCount })}</span>
                   </div>
                 )}
                 {resource.resolution && (
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-gray-400">Resolution</span>
+                    <span className="text-gray-400">{t('resources.resolution')}</span>
                     <span className="text-white font-medium">{resource.resolution}</span>
                   </div>
                 )}
@@ -481,31 +484,31 @@ function ResourceDetail({ resource, onBack }: { resource: Resource; onBack: () =
                 {resource.transcribed && (resource.transcription || resource.fullText) && (
                   <button onClick={() => downloadBlob(resource.name.replace(/\.[^.]+$/, '') + '_transcription.txt', resource.transcription ?? resource.fullText ?? '')} className="flex items-center gap-3 px-4 py-3 bg-[#262626] hover:bg-[#333333] rounded-lg text-sm font-medium text-white transition-colors text-left">
                     <FileText className="w-4 h-4 text-gray-400" />
-                    Download Transcription
+                    {t('resources.downloadTranscription')}
                   </button>
                 )}
                 {resource.type === 'video' && (
                   <>
                     <button onClick={() => downloadHref(resource.videoUrl ?? '#', resource.name.replace(/\.[^.]+$/, '.mp3'))} className="flex items-center gap-3 px-4 py-3 bg-[#262626] hover:bg-[#333333] rounded-lg text-sm font-medium text-white transition-colors text-left">
                       <Mic className="w-4 h-4 text-gray-400" />
-                      Download Audio
+                      {t('resources.downloadAudio')}
                     </button>
                     <button onClick={() => downloadHref(resource.videoUrl ?? '#', resource.name)} className="flex items-center gap-3 px-4 py-3 bg-[#262626] hover:bg-[#333333] rounded-lg text-sm font-medium text-white transition-colors text-left">
                       <Video className="w-4 h-4 text-gray-400" />
-                      Download Video
+                      {t('resources.downloadVideo')}
                     </button>
                   </>
                 )}
                 {resource.type === 'image' && resource.thumbnail && (
                   <button onClick={() => downloadHref(resource.thumbnail!, resource.name)} className="flex items-center gap-3 px-4 py-3 bg-[#262626] hover:bg-[#333333] rounded-lg text-sm font-medium text-white transition-colors text-left">
                     <ImageIcon className="w-4 h-4 text-gray-400" />
-                    Download Image
+                    {t('resources.downloadImage')}
                   </button>
                 )}
                 {(resource.type === 'document' || resource.type === 'text') && (
                   <button onClick={() => downloadBlob(resource.name, resource.fullText ?? '')} className="flex items-center gap-3 px-4 py-3 bg-[#262626] hover:bg-[#333333] rounded-lg text-sm font-medium text-white transition-colors text-left">
                     <FileText className="w-4 h-4 text-gray-400" />
-                    Download Document
+                    {t('resources.downloadDocument')}
                   </button>
                 )}
 
@@ -515,7 +518,7 @@ function ResourceDetail({ resource, onBack }: { resource: Resource; onBack: () =
                     className="flex items-center gap-3 px-4 py-3 bg-[#262626] hover:bg-[#333333] rounded-lg text-sm font-medium text-white transition-colors text-left mt-2"
                   >
                     <Trash2 className="w-4 h-4 text-gray-400" />
-                    Archive Resource
+                    {t('resources.archiveResource')}
                   </button>
                 )}
               </div>
@@ -527,22 +530,22 @@ function ResourceDetail({ resource, onBack }: { resource: Resource; onBack: () =
       {showArchiveDialog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-[#1a1a1a] rounded-xl p-6 max-w-md w-full mx-4 border border-[#ffffff14]">
-            <h3 className="text-lg font-semibold text-white mb-2">Archive Resource</h3>
+            <h3 className="text-lg font-semibold text-white mb-2">{t('resources.archiveResource')}</h3>
             <p className="text-sm text-gray-400 mb-6">
-              This action will archive this resource. It will no longer appear in the main resources list but can be restored later. This is not a permanent deletion.
+              {t('resources.archiveDesc')}
             </p>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setShowArchiveDialog(false)}
                 className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white transition-colors"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 onClick={handleArchive}
                 className="px-4 py-2 bg-[#F59E0B] hover:bg-[#D97706] text-white text-sm font-medium rounded-lg transition-colors"
               >
-                Confirm
+                {t('common.confirm')}
               </button>
             </div>
           </div>
@@ -631,6 +634,7 @@ const getFileIcon = (type: string) => {
 };
 
 export function EnhancedResourcesView() {
+  const { t } = useTranslation();
   const [activeFilter, setActiveFilter] = useState('all');
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploadSource, setUploadSource] = useState<UploadSource>('device');
@@ -709,14 +713,14 @@ export function EnhancedResourcesView() {
         <div className="px-8 py-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-foreground mb-1">Resource Library</h1>
+              <h1 className="text-3xl font-bold text-foreground mb-1">{t('resources.title')}</h1>
               <p className="text-sm text-muted-foreground">
-                Upload files and URLs that can be used as reference for content generation
+                {t('resources.description')}
               </p>
             </div>
             <button onClick={() => setShowUploadModal(true)} className="flex items-center gap-2 px-5 py-3 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors font-medium">
               <Plus className="w-4 h-4" />
-              Add Resources
+              {t('resources.addResources')}
             </button>
           </div>
 
@@ -725,16 +729,15 @@ export function EnhancedResourcesView() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
-                placeholder="Search resources..."
+                placeholder={t('resources.searchPlaceholder')}
                 className="w-full pl-11 pr-5 py-2.5 bg-[#1a1a1a] border border-[#ffffff14] rounded-xl text-foreground placeholder:text-muted-foreground text-sm"
               />
             </div>
             <div className="flex items-center gap-2 p-1 bg-[#1a1a1a] rounded-xl border border-[#ffffff14]">
-              {[
-                { value: 'all', label: 'All' },
-                { value: 'video', label: 'Videos' },
-                { value: 'document', label: 'Documents' },
-                { value: 'image', label: 'Images' },
+              {[                { value: 'all', label: t('resources.all') },
+                { value: 'video', label: t('resources.videos') },
+                { value: 'document', label: t('resources.documents') },
+                { value: 'image', label: t('resources.images') },
               ].map((filter) => (
                 <button
                   key={filter.value}
@@ -790,17 +793,17 @@ export function EnhancedResourcesView() {
 
                   <div className="flex flex-col" style={{ rowGap: '4px' }}>
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>Size: {resource.size}</span>
+                      <span>{t('resources.size')}: {resource.size}</span>
                       <span>
                         {resource.duration ??
-                          (resource.pageCount ? `${resource.pageCount} pages` : '') ??
-                          (resource.wordCount ? `${resource.wordCount.toLocaleString()} words` : '') ??
+                          (resource.pageCount ? t('resources.pages', { count: resource.pageCount }) : '') ??
+                          (resource.wordCount ? t('resources.words', { count: resource.wordCount }) : '') ??
                           resource.resolution ?? ''}
                       </span>
                     </div>
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                       <Clock className="w-2.5 h-2.5" />
-                      <span>Uploaded {resource.uploadedDate}</span>
+                      <span>{t('resources.uploaded')} {resource.uploadedDate}</span>
                     </div>
                   </div>
                 </div>
@@ -834,8 +837,8 @@ export function EnhancedResourcesView() {
                     <div className="relative">
                       <span className={`text-xs font-medium ${resource.postsCreated && resource.postsCreated > 0 ? 'text-primary cursor-pointer hover:text-primary/80' : 'text-muted-foreground'}`}>
                         {resource.postsCreated && resource.postsCreated > 0
-                          ? `${resource.postsCreated} posts created`
-                          : 'No content created'}
+                          ? t('resources.postsCreated', { count: resource.postsCreated })
+                          : t('resources.noContentCreated')}
                       </span>
                       {resource.posts && resource.posts.length > 0 && (
                         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50" style={{ width: '246px' }}>
@@ -848,7 +851,7 @@ export function EnhancedResourcesView() {
                               ))}
                               {resource.posts.length > 3 && (
                                 <div className="text-xs text-[#999999] pt-1 border-t border-[#ffffff14] mt-[6px]">
-                                  +{resource.posts.length - 3} more posts
+                                  {t('resources.morePosts', { count: resource.posts.length - 3 })}
                                 </div>
                               )}
                             </div>
@@ -870,18 +873,17 @@ export function EnhancedResourcesView() {
           <div className="bg-[#0d0d0d] w-full max-w-[900px] max-h-[90vh] rounded-2xl shadow-2xl border border-[#ffffff14] flex flex-col overflow-hidden">
             {/* Header */}
             <div className="px-8 py-6 flex-shrink-0">
-              <h2 className="text-[28px] font-bold text-white leading-tight">Add Resources</h2>
-              <p className="text-sm text-[#a1a1aa] mt-2">Upload files or paste URLs to add to your library</p>
+              <h2 className="text-[28px] font-bold text-white leading-tight">{t('resources.addResources')}</h2>
+              <p className="text-sm text-[#a1a1aa] mt-2">{t('resources.uploadFiles')}</p>
             </div>
 
             {/* Body */}
             <div className="flex flex-1 min-h-0 overflow-hidden">
               {/* Sidebar */}
               <div className="w-[200px] flex-shrink-0 border-r border-[#ffffff14] px-4 py-3 flex flex-col gap-1">
-                {([
-                  { key: 'device' as UploadSource, icon: Upload, label: 'Upload from Device' },
-                  { key: 'google-drive' as UploadSource, icon: Cloud, label: 'Google Drive' },
-                  { key: 'dropbox' as UploadSource, icon: Archive, label: 'Dropbox' },
+                {([                  { key: 'device' as UploadSource, icon: Upload, label: t('resources.uploadFromDevice') },
+                  { key: 'google-drive' as UploadSource, icon: Cloud, label: t('resources.googleDrive') },
+                  { key: 'dropbox' as UploadSource, icon: Archive, label: t('resources.dropbox') },
                 ]).map(({ key, icon: Icon, label }) => (
                   <button
                     key={key}
@@ -906,12 +908,12 @@ export function EnhancedResourcesView() {
                     <label className="border-2 border-dashed border-[#ffffff14] rounded-xl bg-[#0a0a0a33] h-[120px] flex flex-col items-center justify-center cursor-pointer hover:border-[#4B56F2]/40 transition-colors">
                       <input type="file" multiple className="hidden" />
                       <Cloud className="w-8 h-8 text-[#a1a1aa] mb-2" />
-                      <p className="text-[#fafafa] text-sm font-semibold">Click or drag to upload</p>
+                      <p className="text-[#fafafa] text-sm font-semibold">{t('resources.clickOrDrag')}</p>
                     </label>
 
                     {/* Recent Assets */}
                     <div className="flex flex-col gap-4">
-                      <p className="text-xs font-bold text-[#a1a1aa] uppercase tracking-wider">Recent Assets</p>
+                      <p className="text-xs font-bold text-[#a1a1aa] uppercase tracking-wider">{t('resources.recentAssets')}</p>
                       <div className="grid grid-cols-4 gap-3">
                         {RECENT_ASSETS.map((asset) => {
                           const AssetIcon = getAssetIcon(asset.type);
@@ -925,12 +927,12 @@ export function EnhancedResourcesView() {
                                 {asset.usedIn ? (
                                   <div className="absolute bottom-1.5 left-1.5 flex items-center border border-[#12B667]/40 rounded-[4px] bg-[#12B667]/20 px-1.5 py-0.5 max-w-[130px]">
                                     <span className="text-[9px] font-bold text-[#8FE6B5] whitespace-nowrap overflow-hidden text-ellipsis">
-                                      Used in {asset.usedIn}
+                                      {t('resources.usedIn', { name: asset.usedIn })}
                                     </span>
                                   </div>
                                 ) : (
                                   <div className="absolute bottom-1.5 left-1.5 flex items-center border border-[#ffffff14] rounded-[4px] bg-[#ffffff0a] px-1.5 py-0.5 w-[46px] h-[17px] justify-center">
-                                    <span className="text-[9px] font-medium text-[#a1a1aa] opacity-60">Unused</span>
+                                    <span className="text-[9px] font-medium text-[#a1a1aa] opacity-60">{t('resources.unused')}</span>
                                   </div>
                                 )}
                               </div>
@@ -949,10 +951,10 @@ export function EnhancedResourcesView() {
                 {uploadSource === 'google-drive' && (
                   <div className="flex flex-col gap-3">
                     <div className="flex items-center justify-between">
-                      <p className="text-xs font-bold text-[#a1a1aa] uppercase tracking-wider">Google Drive Files</p>
+                      <p className="text-xs font-bold text-[#a1a1aa] uppercase tracking-wider">{t('resources.googleDriveFiles')}</p>
                       {selectedDriveFiles.size > 0 && (
                         <span className="text-xs font-semibold text-[#12B667]">
-                          {selectedDriveFiles.size} selected
+                          {t('resources.selected', { count: selectedDriveFiles.size })}
                         </span>
                       )}
                     </div>
@@ -1000,10 +1002,10 @@ export function EnhancedResourcesView() {
                 {uploadSource === 'dropbox' && (
                   <div className="flex flex-col gap-3">
                     <div className="flex items-center justify-between">
-                      <p className="text-xs font-bold text-[#a1a1aa] uppercase tracking-wider">Dropbox Files</p>
+                      <p className="text-xs font-bold text-[#a1a1aa] uppercase tracking-wider">{t('resources.dropboxFiles')}</p>
                       {selectedDropboxFiles.size > 0 && (
                         <span className="text-xs font-semibold text-[#12B667]">
-                          {selectedDropboxFiles.size} selected
+                          {t('resources.selected', { count: selectedDropboxFiles.size })}
                         </span>
                       )}
                     </div>
@@ -1059,7 +1061,7 @@ export function EnhancedResourcesView() {
                 }}
                 className="text-sm font-semibold text-[#a1a1aa] hover:text-white transition-colors"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               {uploadSource === 'device' ? (
                 <label className="inline-flex items-center justify-center rounded-lg bg-[#4B56F2] px-6 py-2.5 text-sm font-bold text-white shadow-[0px_4px_12px_0px_#4B56F24d] cursor-pointer hover:opacity-90 transition-opacity">
@@ -1093,7 +1095,7 @@ export function EnhancedResourcesView() {
                       }
                     }}
                   />
-                  Upload
+                  {t('resources.upload')}
                 </label>
               ) : (
                 <button
@@ -1105,7 +1107,7 @@ export function EnhancedResourcesView() {
                       : 'bg-[#4B56F2] shadow-[0px_4px_12px_0px_#4B56F24d] hover:opacity-90 cursor-pointer'
                   }`}
                 >
-                  Upload{(uploadSource === 'google-drive' ? selectedDriveFiles : selectedDropboxFiles).size > 0 ? ` (${(uploadSource === 'google-drive' ? selectedDriveFiles : selectedDropboxFiles).size})` : ''}
+                  {t('resources.upload')}{(uploadSource === 'google-drive' ? selectedDriveFiles : selectedDropboxFiles).size > 0 ? ` (${(uploadSource === 'google-drive' ? selectedDriveFiles : selectedDropboxFiles).size})` : ''}
                 </button>
               )}
             </div>
