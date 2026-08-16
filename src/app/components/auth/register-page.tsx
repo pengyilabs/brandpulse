@@ -17,7 +17,6 @@ export function RegisterPage() {
   const { user, initialized } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const { register, handleSubmit, watch, formState: { errors } } = useForm<RegisterForm>();
 
@@ -25,17 +24,24 @@ export function RegisterPage() {
 
   const onSubmit = async (data: RegisterForm) => {
     setError('');
-    setSuccess('');
     setLoading(true);
     const { error: authError } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
     });
-    setLoading(false);
     if (authError) {
+      setLoading(false);
       setError(authError.message);
-    } else {
-      setSuccess(t('auth.checkEmail'));
+      return;
+    }
+    // Auto-login after successful signup
+    const { error: loginError } = await supabase.auth.signInWithPassword({
+      email: data.email,
+      password: data.password,
+    });
+    setLoading(false);
+    if (loginError) {
+      setError(loginError.message);
     }
   };
 
@@ -58,11 +64,7 @@ export function RegisterPage() {
             </div>
           )}
 
-          {success && (
-            <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-sm rounded-lg p-3">
-              {success}
-            </div>
-          )}
+
 
           <div>
             <label className="block text-sm font-medium text-foreground mb-1.5">{t('auth.email')}</label>
