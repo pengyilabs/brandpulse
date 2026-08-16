@@ -113,7 +113,7 @@ export function ProjectsDashboard() {
           {/* Stats Row */}
           <div className="grid grid-cols-3 gap-3 mb-6">
             {[
-              { label: t('projects.totalProjects'), value: PROJECTS.length, icon: <FolderOpen className="w-5 h-5" /> },
+              { label: t('projects.totalProjects'), value: projects.length, icon: <FolderOpen className="w-5 h-5" /> },
               { label: t('projects.campaignsLabel'), value: totalCampaigns, icon: <Target className="w-5 h-5" /> },
               { label: t('projects.contentItemsLabel'), value: totalItems, icon: <FileText className="w-5 h-5" /> },
             ].map(stat => (
