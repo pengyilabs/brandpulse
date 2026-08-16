@@ -1,0 +1,53 @@
+{
+  "name": "BrandPulse — AI Brand Analytics & Content Studio",
+  "short_name": "BrandPulse",
+  "description": "White-label AI platform for brand audits, competitive pulse analytics, and multi-channel content generation.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0B0E14",
+  "theme_color": "#4B56F2",
+  "lang": "en",
+  "categories": ["business", "productivity", "marketing"],
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/android-chrome-512x512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New Audit",
+      "short_name": "Audit",
+      "description": "Start a new brand audit",
+      "url": "/?tab=audits&view=wizard"
+    },
+    {
+      "name": "Brand Kit",
+      "short_name": "Kit",
+      "description": "Open brand guidelines manager",
+      "url": "/?tab=brand-kit"
+    },
+    {
+      "name": "Calendar",
+      "short_name": "Calendar",
+      "description": "Open content calendar",
+      "url": "/?tab=calendar"
+    }
+  ]
+}

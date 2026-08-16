@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="BrandPulse mark">
+  <defs>
+    <linearGradient id="bp-tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4B56F2"/>
+      <stop offset="100%" stop-color="#6A4FFF"/>
+    </linearGradient>
+  </defs>
+  <!-- Pulse-wave B tile — BrandPulse monogram 32x32 -->
+  <rect x="1" y="1" width="30" height="30" rx="7" ry="7" fill="url(#bp-tile)"/>
+  <!-- Letter B bowls (white/foreground) -->
+  <path d="M9 6.5h8.2a4.8 4.8 0 0 1 0 9.6H9V6.5z" fill="#FFFFFF"/>
+  <path d="M9 15.9h9.6a4.8 4.8 0 0 1 0 9.6H9V15.9z" fill="#FFFFFF"/>
+  <rect x="9" y="6.5" width="3.2" height="19" rx="1.2" fill="#FFFFFF"/>
+  <!-- Analytics pulse wave superimposed inside B constriction -->
+  <polyline
+    points="12.6,17.5 15.1,14.6 17.5,12.0 20.0,15.0 22.4,18.0"
+    fill="none"
+    stroke="#4B56F2"
+    stroke-width="1.85"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>

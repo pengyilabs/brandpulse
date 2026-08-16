@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200" role="img" aria-label="BrandPulse tile">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#082F49"/>
+      <stop offset="55%" stop-color="#0369A1"/>
+      <stop offset="100%" stop-color="#22B1F5"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="30%" cy="78%" r="65%">
+      <stop offset="0%" stop-color="#BAE6FD" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#BAE6FD" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="wave" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#ffffff" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="1200" fill="url(#bg)"/>
+  <rect width="1200" height="1200" fill="url(#glow)"/>
+  <path d="M0 800 C 240 710, 520 890, 800 770 S 1200 860, 1200 800 L 1200 1200 L 0 1200 Z" fill="url(#wave)"/>
+  <path d="M0 920 C 240 830, 520 1010, 800 890 S 1200 980, 1200 920 L 1200 1200 L 0 1200 Z" fill="url(#wave)"/>
+  <g transform="translate(600 600)" fill="#ffffff" opacity="0.92">
+    <path d="M-110 -120 h96 c 50 0 90 36 90 88 s -40 88 -90 88 h-58 v-80 h54 c 21 0 38 -16 38 -38 s -17 -38 -38 -38 h-92 v-20 z"/>
+    <path d="M-110 -14 h56 c 18 0 32 14 32 34 s -14 34 -32 34 h-56 v-68 z"/>
+  </g>
+</svg>
