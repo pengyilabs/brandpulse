@@ -5,7 +5,7 @@ import {
   Target, Layers, Hash, Feather, ArrowLeft, ChevronRight, Quote,
   Wand2, Play, Scissors, Star, Folder, Plus, Minus, AlignLeft, Type, Zap,
   Share2, Instagram, Facebook, Linkedin, Twitter, Youtube,
-  RefreshCw, Image,
+  RefreshCw, Image, MessageCircle, Music2,
 } from "lucide-react";
 import { clsx } from "clsx";
 import { WordCountRangeSelector } from "./word-count-range-selector";
@@ -70,13 +70,13 @@ interface SmartContentCreationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onComplete: (config: any) => void;
-  contentType?: "long-form" | "short-clip" | "highlight-reel" | "ai-video" | "quote-card";
+  contentType?: "wechat-article" | "short-video" | "live-clip" | "ai-video" | "quote-card" | "social-post" | "carousel";
   defaultCampaign?: string;
   defaultFile?: File;
 }
 
-type ContentTypeId = "long-form" | "short-clip" | "highlight-reel" | "quote-card" | "ai-video" | "social-post" | "carousel";
-type SocialPlatformId = "instagram" | "facebook" | "linkedin" | "x" | "tiktok" | "youtube";
+type ContentTypeId = "wechat-article" | "short-video" | "social-post" | "carousel" | "quote-card" | "ai-video" | "live-clip";
+type SocialPlatformId = "wechat" | "xiaohongshu" | "douyin" | "weibo" | "bilibili" | "youtube";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
@@ -151,12 +151,12 @@ interface SocialPlatformDef {
 }
 
 const SOCIAL_PLATFORMS: SocialPlatformDef[] = [
-  { id: "instagram",  label: "Instagram",  Icon: Instagram, color: "#E1306C", textLength: "125–150 chars",  dimensions: "1:1 or 4:5 portrait", toneNote: "Visual-first, aspirational" },
-  { id: "facebook",   label: "Facebook",   Icon: Facebook,  color: "#1877F2", textLength: "150–300 words",  dimensions: "1.91:1 landscape",     toneNote: "Conversational, community" },
-  { id: "linkedin",   label: "LinkedIn",   Icon: Linkedin,  color: "#0A66C2", textLength: "150–300 words",  dimensions: "1.91:1 landscape",     toneNote: "Professional, thought-leader" },
-  { id: "x",          label: "X (Twitter)", Icon: Twitter,  color: "#000000", textLength: "Under 280 chars", dimensions: "16:9 landscape",       toneNote: "Punchy, direct, trending" },
-  { id: "tiktok",     label: "TikTok",     Icon: Share2,    color: "#010101", textLength: "Under 150 chars", dimensions: "9:16 portrait",        toneNote: "Casual, trend-native" },
-  { id: "youtube",    label: "YouTube",    Icon: Youtube,   color: "#FF0000", textLength: "100–200 chars",   dimensions: "16:9 landscape",       toneNote: "Informational, SEO-driven" },
+  { id: "wechat",      label: "WeChat",       Icon: MessageCircle, color: "#07C160", textLength: "Up to 10,000 chars (articles)", dimensions: "16:9 cover · 1:1 thumb", toneNote: "Professional, informative, trust-building" },
+  { id: "xiaohongshu", label: "Xiaohongshu",   Icon: LayoutGrid,   color: "#FF2442", textLength: "100–1,000 chars",              dimensions: "3:4 or 1:1",          toneNote: "Aesthetic, personal, lifestyle-driven" },
+  { id: "douyin",      label: "Douyin",        Icon: Music2,       color: "#010101", textLength: "Under 100 chars (caption)",    dimensions: "9:16 portrait",        toneNote: "Trendy, fast-paced, entertaining" },
+  { id: "weibo",       label: "Weibo",         Icon: Share2,       color: "#E6162D", textLength: "Under 140 chars default",      dimensions: "16:9 or 1:1",          toneNote: "Newsy, trending, conversational" },
+  { id: "bilibili",    label: "Bilibili",      Icon: Play,         color: "#00A1D6", textLength: "100–300 chars (description)",  dimensions: "16:9 landscape",       toneNote: "Creative, in-depth, community-driven" },
+  { id: "youtube",     label: "YouTube",       Icon: Youtube,      color: "#FF0000", textLength: "100–200 chars",               dimensions: "16:9 landscape",       toneNote: "Informational, SEO-driven" },
 ];
 
 interface ContentTypeDef {
@@ -171,67 +171,67 @@ interface ContentTypeDef {
 
 const CONTENT_TYPES: ContentTypeDef[] = [
   {
-    id: "long-form",
-    label: "Long Form",
-    sublabel: "Article / Blog Post",
+    id: "wechat-article",
+    label: "WeChat Article",
+    sublabel: "公众号文章",
     Icon: FileText,
-    color: "#60A5FA",
-    description: "In-depth articles, guides & editorial content",
+    color: "#07C160",
+    description: "In-depth articles for WeChat Official Accounts",
     credits: 20,
   },
   {
-    id: "short-clip",
-    label: "Short Clip",
-    sublabel: "Video Segment",
-    Icon: Scissors,
-    color: "#4B56F2",
-    description: "Extract and edit clips from longer videos",
+    id: "short-video",
+    label: "Short Video",
+    sublabel: "短视频",
+    Icon: Film,
+    color: "#010101",
+    description: "Short-form video for Douyin, Xiaohongshu & Bilibili",
     credits: 15,
   },
   {
-    id: "highlight-reel",
-    label: "Highlight Reel",
-    sublabel: "Multi-Clip Compilation",
-    Icon: Star,
-    color: "#F59E0B",
-    description: "Curated compilation of key moments",
-    credits: 25,
+    id: "social-post",
+    label: "Social Post",
+    sublabel: "社交帖子",
+    Icon: Share2,
+    color: "#06B6D4",
+    description: "Platform-native posts for WeChat Moments, Weibo & more",
+    credits: 10,
+  },
+  {
+    id: "carousel",
+    label: "Carousel",
+    sublabel: "图文/轮播",
+    Icon: LayoutGrid,
+    color: "#8B5CF6",
+    description: "Multi-slide image-text posts for Xiaohongshu & WeChat",
+    credits: 12,
   },
   {
     id: "quote-card",
     label: "Quote Card",
-    sublabel: "Template-Based",
+    sublabel: "引用卡片",
     Icon: Quote,
     color: "#A78BFA",
-    description: "Designed quote graphics from templates",
+    description: "Branded quote graphics from templates",
     credits: 8,
   },
   {
     id: "ai-video",
-    label: "Text to AI Video",
-    sublabel: "Generated Video",
+    label: "AI Video",
+    sublabel: "AI生成视频",
     Icon: Wand2,
     color: "#EC4899",
     description: "AI-generated video from text prompts",
     credits: 30,
   },
   {
-    id: "social-post",
-    label: "Social Post",
-    sublabel: "Multi-Platform",
-    Icon: Share2,
-    color: "#06B6D4",
-    description: "Platform-native posts adapted for each channel's format and algorithm",
-    credits: 10,
-  },
-  {
-    id: "carousel",
-    label: "Carousel",
-    sublabel: "Multi-Slide Posts",
-    Icon: LayoutGrid,
-    color: "#8B5CF6",
-    description: "Multi-slide swipeable posts",
-    credits: 12,
+    id: "live-clip",
+    label: "Live Stream Clip",
+    sublabel: "直播切片",
+    Icon: Scissors,
+    color: "#F59E0B",
+    description: "Extract and edit clips from live streams",
+    credits: 15,
   },
 ];
 
@@ -258,7 +258,7 @@ const QUOTE_TEMPLATES = [
   "Branded",
 ];
 
-const STEP_LABELS = ["How to Create", "Sources & Assets", "Content Type", "Configuration", "Review"];
+const STEP_LABELS = ["How to Create", "Sources & Assets", "Content Type", "Review & Configure"];
 const CREDIT_BALANCE = 147;
 
 // Mock library assets
@@ -341,12 +341,12 @@ export function SmartContentCreationModal({
   const [originMode, setOriginMode] = useState<"new" | "campaign">("new");
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>("");
 
-  // Steps: 1=Origin, 2=Sources & Assets, 3=Content Type, 4=Configuration, 5=Review
-  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+  // Steps: 1=Origin, 2=Sources & Assets, 3=Content Type, 4=Review & Configure
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
 
   // Step 3 - Content Type quantities
   const [quantities, setQuantities] = useState<Record<ContentTypeId, number>>({
-    "long-form": 0, "short-clip": 0, "highlight-reel": 0,
+    "wechat-article": 0, "short-video": 0, "live-clip": 0,
     "quote-card": 0, "ai-video": 0, "social-post": 0, "carousel": 0,
   });
 
@@ -358,9 +358,9 @@ export function SmartContentCreationModal({
 
   // Per-type platform selection
   const [platformsByType, setPlatformsByType] = useState<Record<ContentTypeId, Set<SocialPlatformId>>>({
-    "long-form": new Set(),
-    "short-clip": new Set(),
-    "highlight-reel": new Set(),
+    "wechat-article": new Set(),
+    "short-video": new Set(),
+    "live-clip": new Set(),
     "quote-card": new Set(),
     "ai-video": new Set(),
     "social-post": new Set(),
@@ -380,14 +380,14 @@ export function SmartContentCreationModal({
   const getTypeItemCount = (typeId: ContentTypeId): number => {
     const qty = quantities[typeId];
     if (qty === 0) return 0;
-    if (typeId === "long-form") return qty;
+    if (typeId === "wechat-article") return qty;
     const platforms = platformsByType[typeId];
     return qty * (platforms.size > 0 ? platforms.size : 1);
   };
 
   const grandTotal = CONTENT_TYPES.reduce((sum, t) => sum + getTypeItemCount(t.id), 0);
 
-  // Primary type drives config/review steps — first type with qty > 0
+  // Primary type drives review & configure step — first type with qty > 0
   const selectedType: ContentTypeId | null = CONTENT_TYPES.find(t => quantities[t.id] > 0)?.id ?? null;
 
   // Step 4 - Configuration
@@ -586,18 +586,18 @@ export function SmartContentCreationModal({
     setOriginMode("new");
     setSelectedCampaignId("");
     setQuantities({
-      "long-form": initialType === "long-form" ? 1 : 0,
-      "short-clip": initialType === "short-clip" ? 1 : 0,
-      "highlight-reel": initialType === "highlight-reel" ? 1 : 0,
+      "wechat-article": initialType === "wechat-article" ? 1 : 0,
+      "short-video": initialType === "short-video" ? 1 : 0,
+      "live-clip": initialType === "live-clip" ? 1 : 0,
       "quote-card": initialType === "quote-card" ? 1 : 0,
       "ai-video": initialType === "ai-video" ? 1 : 0,
       "social-post": initialType === "social-post" ? 1 : 0,
       "carousel": 0,
     });
     setPlatformsByType({
-      "long-form": new Set(),
-      "short-clip": new Set(),
-      "highlight-reel": new Set(),
+      "wechat-article": new Set(),
+      "short-video": new Set(),
+      "live-clip": new Set(),
       "quote-card": new Set(),
       "ai-video": new Set(),
       "social-post": new Set(),
@@ -617,7 +617,7 @@ export function SmartContentCreationModal({
     }
 
     if (initialType) {
-      setWordCount(initialType === "long-form" ? [1200, 1700] : [200, 300]);
+      setWordCount(initialType === "wechat-article" ? [1200, 1700] : [200, 300]);
     }
 
     // Pre-attach the dropped file into the Sources step
@@ -635,16 +635,16 @@ export function SmartContentCreationModal({
     if (step === 3) {
       if (grandTotal < 1) return false;
       for (const t of CONTENT_TYPES) {
-        if (t.id === "long-form") continue;
+        if (t.id === "wechat-article") continue;
         if (quantities[t.id] > 0 && platformsByType[t.id].size === 0) return false;
       }
       return true;
     }
-    if (step === 4) return topic.trim().length > 0;
+    // Step 4 is the final review & configure step — always allow proceeding
     return true;
   };
 
-  const handleBack = () => setStep((s) => Math.max(1, s - 1) as 1 | 2 | 3 | 4 | 5);
+  const handleBack = () => setStep((s) => Math.max(1, s - 1) as 1 | 2 | 3 | 4);
   const handleNext = () => {
     if (step === 1) {
       if (originMode === "campaign" && selectedCampaignId) applyPreset(selectedCampaignId);
@@ -653,18 +653,17 @@ export function SmartContentCreationModal({
     } else if (step === 2) {
       setStep(3);
     } else if (step === 3) {
-      if (selectedType === "long-form") setWordCount([1200, 1700]);
+      if (selectedType === "wechat-article") setWordCount([1200, 1700]);
       else setWordCount([200, 300]);
       setStep(4);
-    } else if (step < 5) {
-      setStep((s) => (s + 1) as 1 | 2 | 3 | 4 | 5);
     } else {
+      // Step 4 — final step: create content
       // Compute scheduled dates based on schedule mode
       let scheduledDates: string[] | null = null;
       if (scheduleMode === "range" && scheduleStart && scheduleEnd) {
         const allPlatforms = new Set<string>();
         CONTENT_TYPES.forEach(t => {
-          if (quantities[t.id] > 0 && t.id !== "long-form") {
+if (quantities[t.id] > 0 && t.id !== "wechat-article") {
             platformsByType[t.id].forEach(p => allPlatforms.add(p));
           }
         });
@@ -1110,12 +1109,12 @@ export function SmartContentCreationModal({
                     const qty = quantities[type.id];
                     const Icon = type.Icon;
                     const itemCount = getTypeItemCount(type.id);
-                    const hasPlatforms = type.id !== "long-form";
+                    const hasPlatforms = type.id !== "wechat-article";
                     const platforms = platformsByType[type.id];
                     const rowBorder = idx < CONTENT_TYPES.length - 1 ? "border-b border-white/[0.05]" : "";
 
-                    const showBadge = type.id === "long-form" || type.id === "carousel";
-                    const badgeLabel = type.id === "long-form" ? type.sublabel : type.id === "carousel" ? "CAROUSEL" : "";
+                    const showBadge = type.id === "wechat-article" || type.id === "carousel";
+                    const badgeLabel = type.id === "wechat-article" ? type.sublabel : type.id === "carousel" ? "CAROUSEL" : "";
                     const badgeStyle = type.id === "carousel"
                       ? { borderColor: `${type.color}80`, backgroundColor: `${type.color}40`, color: type.color }
                       : { borderColor: `${type.color}4D`, backgroundColor: "rgba(10,10,10,0.5)", color: "var(--muted-foreground)" };
@@ -1149,7 +1148,7 @@ export function SmartContentCreationModal({
                                 )}
                               </div>
                               <span className="text-xs text-muted-foreground truncate">
-                                {type.id === "long-form"
+                                {type.id === "wechat-article"
                                   ? `${qty > 0 ? type.description + " · " + wordCount[0] + "–" + wordCount[1] + " words" : type.description}`
                                   : type.description}
                               </span>
@@ -1235,16 +1234,25 @@ export function SmartContentCreationModal({
             </div>
           )}
 
-          {/* ═══ Step 4: Configuration ═══ */}
+          {/* ═══ Step 4: Review & Configure ═══ */}
           {step === 4 && (() => {
-            const hasTextTypes = quantities["long-form"] > 0 || quantities["social-post"] > 0 || quantities["quote-card"] > 0 || quantities["carousel"] > 0;
+            const hasTextTypes = quantities["wechat-article"] > 0 || quantities["social-post"] > 0 || quantities["quote-card"] > 0 || quantities["carousel"] > 0;
+            const batchTypes = CONTENT_TYPES.filter(t => quantities[t.id] > 0);
+            const totalCost = CONTENT_TYPES.reduce((sum, t) => {
+              const q = quantities[t.id] ?? 0;
+              if (t.id === "wechat-article") return sum + t.credits * q;
+              const platforms = platformsByType[t.id];
+              const platformCount = Math.max(1, platforms.size);
+              return sum + t.credits * q * platformCount;
+            }, 0);
+
             return (
-            <div className="p-6 space-y-4">
+            <div className="p-6 space-y-5 overflow-y-auto">
+              {/* ── Header ── */}
               <div>
-                <h3 className="text-base font-bold text-foreground mb-1">Configure your content batch</h3>
+                <h3 className="text-base font-bold text-foreground mb-1">Review & configure your batch</h3>
                 <p className="text-sm text-muted-foreground">
-                  Shared settings apply to all {grandTotal} item{grandTotal !== 1 ? "s" : ""}.{" "}
-                  Type-specific options appear in each section below.
+                  Shared settings apply to all {grandTotal} item{grandTotal !== 1 ? "s" : ""}. Review everything below before creating.
                 </p>
               </div>
 
@@ -1351,9 +1359,9 @@ export function SmartContentCreationModal({
                 </div>
               </div>
 
-              {/* ── Long Form ─────────────────────────────────────── */}
-              {quantities["long-form"] > 0 && (() => {
-                const t = CONTENT_TYPES.find(x => x.id === "long-form")!;
+              {/* ── WeChat Article ─────────────────────────────────────── */}
+              {quantities["wechat-article"] > 0 && (() => {
+                const t = CONTENT_TYPES.find(x => x.id === "wechat-article")!;
                 return (
                   <div className="rounded-xl border border-border overflow-hidden">
                     <div className="flex items-center gap-3 px-4 py-3 bg-secondary/40 border-b border-border">
@@ -1361,7 +1369,7 @@ export function SmartContentCreationModal({
                         <t.Icon className="w-3.5 h-3.5" style={{ color: t.color }} />
                       </div>
                       <span className="text-xs font-black uppercase tracking-wider text-muted-foreground/70">{t.label}</span>
-                      <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-md" style={{ backgroundColor: `${t.color}18`, color: t.color }}>×{quantities["long-form"]}</span>
+                      <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-md" style={{ backgroundColor: `${t.color}18`, color: t.color }}>×{quantities["wechat-article"]}</span>
                     </div>
                     <div className="p-4 space-y-4">
                       <div>
@@ -1374,15 +1382,15 @@ export function SmartContentCreationModal({
                           className="w-full px-4 py-3 bg-secondary border border-border rounded-xl text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 transition-all"
                         />
                       </div>
-                      <WordCountRangeSelector contentForm="long-form" value={wordCount} onChange={setWordCount} />
+                      <WordCountRangeSelector contentForm="wechat-article" value={wordCount} onChange={setWordCount} />
                     </div>
                   </div>
                 );
               })()}
 
-              {/* ── Short Clip ──────────────────────────────────────── */}
-              {quantities["short-clip"] > 0 && (() => {
-                const t = CONTENT_TYPES.find(x => x.id === "short-clip")!;
+              {/* ── Short Video ──────────────────────────────────────── */}
+              {quantities["short-video"] > 0 && (() => {
+                const t = CONTENT_TYPES.find(x => x.id === "short-video")!;
                 return (
                   <div className="rounded-xl border border-border overflow-hidden">
                     <div className="flex items-center gap-3 px-4 py-3 bg-secondary/40 border-b border-border">
@@ -1390,7 +1398,7 @@ export function SmartContentCreationModal({
                         <t.Icon className="w-3.5 h-3.5" style={{ color: t.color }} />
                       </div>
                       <span className="text-xs font-black uppercase tracking-wider text-muted-foreground/70">{t.label}</span>
-                      <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-md" style={{ backgroundColor: `${t.color}18`, color: t.color }}>×{quantities["short-clip"]}</span>
+                      <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-md" style={{ backgroundColor: `${t.color}18`, color: t.color }}>×{quantities["short-video"]}</span>
                     </div>
                     <div className="p-4 space-y-4">
                       <div>
@@ -1542,20 +1550,20 @@ export function SmartContentCreationModal({
               })()}
 
               {/* ── Auto-resolved types (no extra config needed) ─────── */}
-              {(quantities["highlight-reel"] > 0 || quantities["ai-video"] > 0) && (
+              {(quantities["live-clip"] > 0 || quantities["ai-video"] > 0) && (
                 <div className="rounded-xl border border-border overflow-hidden">
                   <div className="px-4 py-3 bg-secondary/40 border-b border-border">
                     <span className="text-xs font-black uppercase tracking-wider text-muted-foreground/60">Auto-Resolved</span>
                   </div>
                   <div className="p-4 space-y-2">
-                    {quantities["highlight-reel"] > 0 && (() => {
-                      const t = CONTENT_TYPES.find(x => x.id === "highlight-reel")!;
+                    {quantities["live-clip"] > 0 && (() => {
+                      const t = CONTENT_TYPES.find(x => x.id === "live-clip")!;
                       return (
                         <div className="flex items-center gap-3 py-1">
                           <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${t.color}1A`, border: `1px solid ${t.color}30` }}>
                             <t.Icon className="w-3.5 h-3.5" style={{ color: t.color }} />
                           </div>
-                          <span className="text-sm font-semibold text-foreground flex-1">{t.label} <span className="text-muted-foreground font-normal">×{quantities["highlight-reel"]}</span></span>
+                          <span className="text-sm font-semibold text-foreground flex-1">{t.label} <span className="text-muted-foreground font-normal">×{quantities["live-clip"]}</span></span>
                           <span className="text-xs text-muted-foreground/60">Curated from sources automatically</span>
                         </div>
                       );
@@ -1575,29 +1583,8 @@ export function SmartContentCreationModal({
                   </div>
                 </div>
               )}
-            </div>
-            );
-          })()}
 
-          {/* ═══ Step 5: Review ═══ */}
-          {step === 5 && (() => {
-            const batchTypes = CONTENT_TYPES.filter(t => quantities[t.id] > 0);
-            const totalCost = CONTENT_TYPES.reduce((sum, t) => {
-              const q = quantities[t.id] ?? 0;
-              if (t.id === "long-form") return sum + t.credits * q;
-              const platforms = platformsByType[t.id];
-              const platformCount = Math.max(1, platforms.size);
-              return sum + t.credits * q * platformCount;
-            }, 0);
-
-            return (
-            <div className="p-6 space-y-5">
-              <div>
-                <h3 className="text-base font-bold text-foreground mb-1">Review your content batch</h3>
-                <p className="text-sm text-muted-foreground">
-                  {grandTotal} item{grandTotal !== 1 ? "s" : ""} will be generated immediately after you click Create Content.
-                </p>
-              </div>
+              <div className="border-t border-border/60" />
 
               {/* ── Batch manifest ─────────────────────────────────── */}
               <div className="rounded-xl border border-border overflow-hidden bg-background/30">
@@ -1641,14 +1628,14 @@ export function SmartContentCreationModal({
                           </div>
 
                           {/* Type-specific detail summary */}
-                          {t.id === "long-form" && (
+                          {t.id === "wechat-article" && (
                             <div className="flex items-center gap-3 flex-wrap">
                               <span className="text-[11px] text-muted-foreground flex items-center gap-1"><Hash className="w-3 h-3" />{wordCount[0]}–{wordCount[1]} words</span>
                               <span className="text-[11px] text-muted-foreground flex items-center gap-1"><Feather className="w-3 h-3" />{voiceLabel || "Default voice"}</span>
                               {title && <span className="text-[11px] text-muted-foreground/60 truncate max-w-[200px]">"{title}"</span>}
                             </div>
                           )}
-                          {t.id === "short-clip" && (
+                          {t.id === "short-video" && (
                             <div className="flex items-center gap-3 flex-wrap">
                               <span className="text-[11px] text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" />{clipDuration}s per clip</span>
                               {sourceVideoRef && <span className="text-[11px] text-muted-foreground/60 truncate max-w-[200px]">{sourceVideoRef}</span>}
@@ -1674,7 +1661,7 @@ export function SmartContentCreationModal({
                               })}
                             </div>
                           )}
-                          {t.id === "highlight-reel" && (
+                          {t.id === "live-clip" && (
                             <span className="text-[11px] text-muted-foreground flex items-center gap-1"><Star className="w-3 h-3" />60–90s compilation, auto-curated</span>
                           )}
                           {t.id === "ai-video" && (
@@ -1712,7 +1699,7 @@ export function SmartContentCreationModal({
                     value: (() => {
                       const mins = batchTypes.reduce((sum, t) => {
                         const q = getTypeItemCount(t.id);
-                        const perItem = t.id === "long-form" ? 3 : t.id === "short-clip" ? 5 : t.id === "social-post" ? 1 : 1;
+                        const perItem = t.id === "wechat-article" ? 3 : t.id === "short-video" ? 5 : t.id === "live-clip" ? 2 : t.id === "social-post" ? 1 : 1;
                         return sum + q * perItem;
                       }, 0);
                       return `~${mins} min`;
@@ -1793,7 +1780,7 @@ export function SmartContentCreationModal({
                           onChange={(e) => {
                             const val = e.target.value;
                             setScheduleStart(val);
-                            // Auto-set end to start + 7 days if not set
+// Auto-set end to start + 7 days if not set
                             if (!scheduleEnd && val) {
                               setScheduleEnd(addDays(val, 7));
                             }
@@ -1818,7 +1805,7 @@ export function SmartContentCreationModal({
                   {scheduleMode === "range" && scheduleStart && scheduleEnd && (() => {
                     const allPlatforms = new Set<string>();
                     CONTENT_TYPES.forEach(t => {
-                      if (quantities[t.id] > 0 && t.id !== "long-form") {
+if (quantities[t.id] > 0 && t.id !== "wechat-article") {
                         platformsByType[t.id].forEach(p => allPlatforms.add(p));
                       }
                     });
@@ -1838,13 +1825,13 @@ export function SmartContentCreationModal({
                         {dates.length > 0 && (
                           <div className="flex flex-wrap gap-1.5">
                             {(() => {
-                              // Group by date
+// Group by date
                               const grouped: Record<string, number> = {};
                               dates.forEach(d => {
                                 const key = d.split("T")[0];
                                 grouped[key] = (grouped[key] || 0) + 1;
                               });
-                              // Show a subset if too many days
+// Show a subset if too many days
                               const entries = Object.entries(grouped);
                               const maxVisible = 10;
                               const visible = entries.slice(0, maxVisible);
@@ -1898,7 +1885,7 @@ export function SmartContentCreationModal({
 
           {/* Progress dots */}
           <div className="flex items-center gap-1.5">
-            {([1, 2, 3, 4, 5] as const).map((s) => (
+            {([1, 2, 3, 4] as const).map((s) => (
               <div
                 key={s}
                 className={clsx(
@@ -1918,13 +1905,13 @@ export function SmartContentCreationModal({
             disabled={!canProceed()}
             className={clsx(
               "flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold transition-all",
-              step === 5
+              step === 4
                 ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_0_4px_rgba(75,86,242,0.12)]"
                 : "bg-primary text-primary-foreground hover:bg-primary/90",
               !canProceed() && "opacity-40 cursor-not-allowed pointer-events-none"
             )}
           >
-            {step === 5 ? (
+            {step === 4 ? (
               <>
                 <Sparkles className="w-4 h-4" />
                 Create Content

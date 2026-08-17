@@ -4,15 +4,15 @@ import {
   FileText, Scissors, Star, Wand2, Quote, ChevronDown, X, RefreshCw,
   Trash2, Send, Copy, Check, ChevronLeft, ChevronRight, Loader2,
   AlertCircle, Upload, Paperclip, Tag, Share2, Link2,
-  Instagram, Facebook, Linkedin, Twitter, Youtube, Music2,
+  MessageCircle, LayoutGrid, Music2, Play, Youtube, Film,
 } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
 import { PostDetailModal } from './post-detail-modal';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-type ContentType = 'long-form' | 'short-clip' | 'highlight-reel' | 'ai-video' | 'quote-card' | 'social-post';
-type Platform = 'instagram' | 'facebook' | 'linkedin' | 'x' | 'tiktok' | 'youtube';
+type ContentType = 'wechat-article' | 'short-video' | 'social-post' | 'carousel' | 'quote-card' | 'ai-video' | 'live-clip';
+type Platform = 'wechat' | 'xiaohongshu' | 'douyin' | 'weibo' | 'bilibili' | 'youtube';
 type FunnelStage = 'top' | 'middle' | 'bottom';
 type Status = 'draft' | 'generating' | 'review' | 'approved' | 'published' | 'rejected';
 
@@ -74,41 +74,43 @@ function getBatchColor(batchId: string) {
 // ─── Platform icon map ───────────────────────────────────────────────────────
 
 const PLATFORM_ICONS: Record<Platform, React.ReactElement> = {
-  instagram: <Instagram className="w-3 h-3" />,
-  facebook:  <Facebook  className="w-3 h-3" />,
-  linkedin:  <Linkedin  className="w-3 h-3" />,
-  x:         <Twitter   className="w-3 h-3" />,
-  tiktok:    <Music2    className="w-3 h-3" />,
-  youtube:   <Youtube   className="w-3 h-3" />,
+  wechat:      <MessageCircle className="w-3 h-3" />,
+  xiaohongshu: <LayoutGrid   className="w-3 h-3" />,
+  douyin:      <Music2       className="w-3 h-3" />,
+  weibo:       <Share2       className="w-3 h-3" />,
+  bilibili:    <Play         className="w-3 h-3" />,
+  youtube:     <Youtube      className="w-3 h-3" />,
 };
 
 const PLATFORM_LABEL: Record<Platform, string> = {
-  instagram: 'Instagram',
-  facebook:  'Facebook',
-  linkedin:  'LinkedIn',
-  x:         'X (Twitter)',
-  tiktok:    'TikTok',
-  youtube:   'YouTube',
+  wechat:      'WeChat',
+  xiaohongshu: 'Xiaohongshu',
+  douyin:      'Douyin',
+  weibo:       'Weibo',
+  bilibili:    'Bilibili',
+  youtube:     'YouTube',
 };
 
 // ─── Content type maps ───────────────────────────────────────────────────────
 
 const CONTENT_TYPE_ICON_MAP: Record<ContentType, React.ReactElement> = {
-  'long-form':      <FileText  className="w-3.5 h-3.5" />,
-  'short-clip':     <Scissors  className="w-3.5 h-3.5" />,
-  'highlight-reel': <Star      className="w-3.5 h-3.5" />,
-  'ai-video':       <Wand2     className="w-3.5 h-3.5" />,
-  'quote-card':     <Quote     className="w-3.5 h-3.5" />,
-  'social-post':    <Share2    className="w-3.5 h-3.5" />,
+  'wechat-article': <FileText    className="w-3.5 h-3.5" />,
+  'short-video':    <Film        className="w-3.5 h-3.5" />,
+  'social-post':    <Share2      className="w-3.5 h-3.5" />,
+  'carousel':       <LayoutGrid  className="w-3.5 h-3.5" />,
+  'quote-card':     <Quote       className="w-3.5 h-3.5" />,
+  'ai-video':       <Wand2       className="w-3.5 h-3.5" />,
+  'live-clip':      <Scissors    className="w-3.5 h-3.5" />,
 };
 
 const CONTENT_TYPE_LABEL: Record<ContentType, string> = {
-  'long-form':      'Long Form',
-  'short-clip':     'Short Clip',
-  'highlight-reel': 'Highlight Reel',
-  'ai-video':       'AI Video',
-  'quote-card':     'Quote Card',
+  'wechat-article': 'WeChat Article',
+  'short-video':    'Short Video',
   'social-post':    'Social Post',
+  'carousel':       'Carousel',
+  'quote-card':     'Quote Card',
+  'ai-video':       'AI Video',
+  'live-clip':      'Live Stream Clip',
 };
 
 // ─── Mock outputs ─────────────────────────────────────────────────────────────
@@ -493,14 +495,14 @@ export function CalendarView() {
   const [calendarItems, setCalendarItems] = useState<CalendarItem[]>([
 
     // ── May 5 — Batch: article + highlight reel from same production session ──
-    { id: 'w1-lf',  title: 'Summer Drop: Full Story',       date: new Date(2026, 4, 5),  contentType: 'long-form',      funnelStage: 'top',    status: 'published',  campaign: 'Velocity Summer Drop', batchId: 'batch-launch-may5' },
-    { id: 'w1-hr',  title: 'Summer Drop Highlight Reel',    date: new Date(2026, 4, 5),  contentType: 'highlight-reel', funnelStage: 'top',    status: 'published',  campaign: 'Velocity Summer Drop', batchId: 'batch-launch-may5' },
+    { id: 'w1-lf',  title: 'Summer Drop: Full Story',       date: new Date(2026, 4, 5),  contentType: 'wechat-article',      funnelStage: 'top',    status: 'published',  campaign: 'Velocity Summer Drop', batchId: 'batch-launch-may5' },
+    { id: 'w1-hr',  title: 'Summer Drop Highlight Reel',    date: new Date(2026, 4, 5),  contentType: 'carousel', funnelStage: 'top',    status: 'published',  campaign: 'Velocity Summer Drop', batchId: 'batch-launch-may5' },
 
     // ── May 7 — Batch: 5-platform social blast (Velocity Air Max reveal) ──
-    { id: 'am-ig',  title: 'Velocity Air Max Reveal',                date: new Date(2026, 4, 7),  contentType: 'social-post', platform: 'instagram', funnelStage: 'top', status: 'published',  campaign: 'Velocity Summer Drop', batchId: 'batch-airmax-may7' },
-    { id: 'am-fb',  title: 'Velocity Air Max Reveal',                date: new Date(2026, 4, 7),  contentType: 'social-post', platform: 'facebook',  funnelStage: 'top', status: 'published',  campaign: 'Velocity Summer Drop', batchId: 'batch-airmax-may7' },
-    { id: 'am-tk',  title: 'Velocity Air Max Reveal',                date: new Date(2026, 4, 7),  contentType: 'social-post', platform: 'tiktok',    funnelStage: 'top', status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'batch-airmax-may7' },
-    { id: 'am-x',   title: 'Velocity Air Max Reveal',                date: new Date(2026, 4, 7),  contentType: 'social-post', platform: 'x',         funnelStage: 'top', status: 'published',  campaign: 'Velocity Summer Drop', batchId: 'batch-airmax-may7' },
+    { id: 'am-ig',  title: 'Velocity Air Max Reveal',                date: new Date(2026, 4, 7),  contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top', status: 'published',  campaign: 'Velocity Summer Drop', batchId: 'batch-airmax-may7' },
+    { id: 'am-fb',  title: 'Velocity Air Max Reveal',                date: new Date(2026, 4, 7),  contentType: 'social-post', platform: 'weibo',  funnelStage: 'top', status: 'published',  campaign: 'Velocity Summer Drop', batchId: 'batch-airmax-may7' },
+    { id: 'am-tk',  title: 'Velocity Air Max Reveal',                date: new Date(2026, 4, 7),  contentType: 'social-post', platform: 'douyin',    funnelStage: 'top', status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'batch-airmax-may7' },
+    { id: 'am-x',   title: 'Velocity Air Max Reveal',                date: new Date(2026, 4, 7),  contentType: 'social-post', platform: 'weibo',         funnelStage: 'top', status: 'published',  campaign: 'Velocity Summer Drop', batchId: 'batch-airmax-may7' },
     { id: 'am-yt',  title: 'Velocity Air Max Reveal',                date: new Date(2026, 4, 7),  contentType: 'social-post', platform: 'youtube',   funnelStage: 'top', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'batch-airmax-may7' },
 
     // ── May 8 — singleton ──
@@ -508,593 +510,593 @@ export function CalendarView() {
 
     // ── May 12 — Batch: brand film AI video + two social teasers ──
     { id: 'bf-av',  title: 'Brand Story Film',              date: new Date(2026, 4, 12), contentType: 'ai-video',    funnelStage: 'top', status: 'generating', campaign: 'Brand Awareness Q2', batchId: 'batch-brandfim-may12' },
-    { id: 'bf-ig',  title: 'Brand Story Teaser',            date: new Date(2026, 4, 12), contentType: 'social-post', platform: 'instagram', funnelStage: 'top', status: 'draft',   campaign: 'Brand Awareness Q2', batchId: 'batch-brandfim-may12' },
-    { id: 'bf-li',  title: 'Brand Story Teaser',            date: new Date(2026, 4, 12), contentType: 'social-post', platform: 'linkedin',  funnelStage: 'top', status: 'draft',   campaign: 'Brand Awareness Q2', batchId: 'batch-brandfim-may12' },
+    { id: 'bf-ig',  title: 'Brand Story Teaser',            date: new Date(2026, 4, 12), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top', status: 'draft',   campaign: 'Brand Awareness Q2', batchId: 'batch-brandfim-may12' },
+    { id: 'bf-li',  title: 'Brand Story Teaser',            date: new Date(2026, 4, 12), contentType: 'social-post', platform: 'wechat',  funnelStage: 'top', status: 'draft',   campaign: 'Brand Awareness Q2', batchId: 'batch-brandfim-may12' },
 
     // ── May 14 — Batch: 4-platform social blast (Summer Collection) ──
-    { id: 'sl-ig',  title: 'Summer Collection',             date: new Date(2026, 4, 14), contentType: 'social-post', platform: 'instagram', funnelStage: 'top', status: 'approved',  campaign: 'Velocity Summer Drop', batchId: 'batch-social-may14' },
-    { id: 'sl-fb',  title: 'Summer Collection',             date: new Date(2026, 4, 14), contentType: 'social-post', platform: 'facebook',  funnelStage: 'top', status: 'approved',  campaign: 'Velocity Summer Drop', batchId: 'batch-social-may14' },
-    { id: 'sl-tk',  title: 'Summer Collection',             date: new Date(2026, 4, 14), contentType: 'social-post', platform: 'tiktok',    funnelStage: 'top', status: 'review',    campaign: 'Velocity Summer Drop', batchId: 'batch-social-may14' },
-    { id: 'sl-x',   title: 'Summer Collection',             date: new Date(2026, 4, 14), contentType: 'social-post', platform: 'x',         funnelStage: 'top', status: 'draft',     campaign: 'Velocity Summer Drop', batchId: 'batch-social-may14' },
+    { id: 'sl-ig',  title: 'Summer Collection',             date: new Date(2026, 4, 14), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top', status: 'approved',  campaign: 'Velocity Summer Drop', batchId: 'batch-social-may14' },
+    { id: 'sl-fb',  title: 'Summer Collection',             date: new Date(2026, 4, 14), contentType: 'social-post', platform: 'weibo',  funnelStage: 'top', status: 'approved',  campaign: 'Velocity Summer Drop', batchId: 'batch-social-may14' },
+    { id: 'sl-tk',  title: 'Summer Collection',             date: new Date(2026, 4, 14), contentType: 'social-post', platform: 'douyin',    funnelStage: 'top', status: 'review',    campaign: 'Velocity Summer Drop', batchId: 'batch-social-may14' },
+    { id: 'sl-x',   title: 'Summer Collection',             date: new Date(2026, 4, 14), contentType: 'social-post', platform: 'weibo',         funnelStage: 'top', status: 'draft',     campaign: 'Velocity Summer Drop', batchId: 'batch-social-may14' },
 
     // ── May 15 — singleton ──
-    { id: 'c5',     title: 'Case Study: Rise of Q2',        date: new Date(2026, 4, 15), contentType: 'long-form',      funnelStage: 'bottom', status: 'draft',      campaign: 'Brand Awareness Q2' },
+    { id: 'c5',     title: 'Case Study: Rise of Q2',        date: new Date(2026, 4, 15), contentType: 'wechat-article',      funnelStage: 'bottom', status: 'draft',      campaign: 'Brand Awareness Q2' },
 
     // ── May 19 — Batch: athlete interview repurposed into 3 formats ──
-    { id: 'ai-lf',  title: 'Athlete Interview: Training Secrets', date: new Date(2026, 4, 19), contentType: 'long-form',  funnelStage: 'middle', status: 'approved', campaign: 'Velocity Summer Drop', batchId: 'batch-interview-may19' },
-    { id: 'ai-sc',  title: 'Training Secrets Clip',         date: new Date(2026, 4, 19), contentType: 'short-clip',     funnelStage: 'middle', status: 'approved', campaign: 'Velocity Summer Drop', batchId: 'batch-interview-may19' },
+    { id: 'ai-lf',  title: 'Athlete Interview: Training Secrets', date: new Date(2026, 4, 19), contentType: 'wechat-article',  funnelStage: 'middle', status: 'approved', campaign: 'Velocity Summer Drop', batchId: 'batch-interview-may19' },
+    { id: 'ai-sc',  title: 'Training Secrets Clip',         date: new Date(2026, 4, 19), contentType: 'short-video',     funnelStage: 'middle', status: 'approved', campaign: 'Velocity Summer Drop', batchId: 'batch-interview-may19' },
     { id: 'ai-qc',  title: '"Push Beyond Limits"',          date: new Date(2026, 4, 19), contentType: 'quote-card',     funnelStage: 'middle', status: 'review',   campaign: 'Velocity Summer Drop', batchId: 'batch-interview-may19' },
 
     // ── May 21 — Batch: 3-platform retention social ──
-    { id: 'rt-ig',  title: 'Member Exclusive Drop',         date: new Date(2026, 4, 21), contentType: 'social-post', platform: 'instagram', funnelStage: 'bottom', status: 'approved', campaign: 'Retention Drive', batchId: 'batch-retention-may21' },
-    { id: 'rt-fb',  title: 'Member Exclusive Drop',         date: new Date(2026, 4, 21), contentType: 'social-post', platform: 'facebook',  funnelStage: 'bottom', status: 'review',   campaign: 'Retention Drive', batchId: 'batch-retention-may21' },
-    { id: 'rt-li',  title: 'Member Exclusive Drop',         date: new Date(2026, 4, 21), contentType: 'social-post', platform: 'linkedin',  funnelStage: 'bottom', status: 'draft',    campaign: 'Retention Drive', batchId: 'batch-retention-may21' },
+    { id: 'rt-ig',  title: 'Member Exclusive Drop',         date: new Date(2026, 4, 21), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'bottom', status: 'approved', campaign: 'Retention Drive', batchId: 'batch-retention-may21' },
+    { id: 'rt-fb',  title: 'Member Exclusive Drop',         date: new Date(2026, 4, 21), contentType: 'social-post', platform: 'weibo',  funnelStage: 'bottom', status: 'review',   campaign: 'Retention Drive', batchId: 'batch-retention-may21' },
+    { id: 'rt-li',  title: 'Member Exclusive Drop',         date: new Date(2026, 4, 21), contentType: 'social-post', platform: 'wechat',  funnelStage: 'bottom', status: 'draft',    campaign: 'Retention Drive', batchId: 'batch-retention-may21' },
 
     // ── May 22 — singleton ──
-    { id: 'c8',     title: 'Customer Testimonial Video',    date: new Date(2026, 4, 22), contentType: 'short-clip',     funnelStage: 'bottom', status: 'review',     campaign: 'Retention Drive' },
+    { id: 'c8',     title: 'Customer Testimonial Video',    date: new Date(2026, 4, 22), contentType: 'short-video',     funnelStage: 'bottom', status: 'review',     campaign: 'Retention Drive' },
 
     // ── May 25 — Batch: long-form article + two social adaptations ──
-    { id: 'rp-lf',  title: 'Loyalty Program Deep Dive',    date: new Date(2026, 4, 25), contentType: 'long-form',      funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive', batchId: 'batch-loyalty-may25' },
-    { id: 'rp-li',  title: 'Loyalty Program',              date: new Date(2026, 4, 25), contentType: 'social-post', platform: 'linkedin',  funnelStage: 'bottom', status: 'draft', campaign: 'Retention Drive', batchId: 'batch-loyalty-may25' },
-    { id: 'rp-ig',  title: 'Loyalty Program',              date: new Date(2026, 4, 25), contentType: 'social-post', platform: 'instagram', funnelStage: 'bottom', status: 'draft', campaign: 'Retention Drive', batchId: 'batch-loyalty-may25' },
+    { id: 'rp-lf',  title: 'Loyalty Program Deep Dive',    date: new Date(2026, 4, 25), contentType: 'wechat-article',      funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive', batchId: 'batch-loyalty-may25' },
+    { id: 'rp-li',  title: 'Loyalty Program',              date: new Date(2026, 4, 25), contentType: 'social-post', platform: 'wechat',  funnelStage: 'bottom', status: 'draft', campaign: 'Retention Drive', batchId: 'batch-loyalty-may25' },
+    { id: 'rp-ig',  title: 'Loyalty Program',              date: new Date(2026, 4, 25), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'bottom', status: 'draft', campaign: 'Retention Drive', batchId: 'batch-loyalty-may25' },
 
     // ── May 28 — singleton ──
     { id: 'c10',    title: 'Product Launch AI Video',       date: new Date(2026, 4, 28), contentType: 'ai-video',       funnelStage: 'bottom', status: 'rejected',   campaign: 'Brand Awareness Q2' },
 
     // ── May 30 — singleton ──
-    { id: 'c11',    title: 'Best Moments Compilation',      date: new Date(2026, 4, 30), contentType: 'highlight-reel', funnelStage: 'top',    status: 'approved',   campaign: 'Retention Drive' },
+    { id: 'c11',    title: 'Best Moments Compilation',      date: new Date(2026, 4, 30), contentType: 'carousel', funnelStage: 'top',    status: 'approved',   campaign: 'Retention Drive' },
 
     // ════════════════ JUNE 2026 — dense content calendar ════════════════
 
     // Jun 1
-    { id: 'j601a', title: 'Summer Drop: The Full Story',     date: new Date(2026, 5, 1),  contentType: 'long-form',      funnelStage: 'top',    status: 'published',  campaign: 'Velocity Summer Drop' },
-    { id: 'j601b', title: 'Summer Drop',                     date: new Date(2026, 5, 1),  contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'published',  campaign: 'Velocity Summer Drop', batchId: 'bj601' },
-    { id: 'j601c', title: 'Summer Drop',                     date: new Date(2026, 5, 1),  contentType: 'social-post', platform: 'facebook',  funnelStage: 'top',    status: 'published',  campaign: 'Velocity Summer Drop', batchId: 'bj601' },
-    { id: 'j601d', title: 'Summer Drop',                     date: new Date(2026, 5, 1),  contentType: 'social-post', platform: 'tiktok',    funnelStage: 'top',    status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj601' },
-    { id: 'j601e', title: 'Brand Intro Clip',                date: new Date(2026, 5, 1),  contentType: 'short-clip',     funnelStage: 'top',    status: 'approved',   campaign: 'Brand Awareness Q2' },
+    { id: 'j601a', title: 'Summer Drop: The Full Story',     date: new Date(2026, 5, 1),  contentType: 'wechat-article',      funnelStage: 'top',    status: 'published',  campaign: 'Velocity Summer Drop' },
+    { id: 'j601b', title: 'Summer Drop',                     date: new Date(2026, 5, 1),  contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'published',  campaign: 'Velocity Summer Drop', batchId: 'bj601' },
+    { id: 'j601c', title: 'Summer Drop',                     date: new Date(2026, 5, 1),  contentType: 'social-post', platform: 'weibo',  funnelStage: 'top',    status: 'published',  campaign: 'Velocity Summer Drop', batchId: 'bj601' },
+    { id: 'j601d', title: 'Summer Drop',                     date: new Date(2026, 5, 1),  contentType: 'social-post', platform: 'douyin',    funnelStage: 'top',    status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj601' },
+    { id: 'j601e', title: 'Brand Intro Clip',                date: new Date(2026, 5, 1),  contentType: 'short-video',     funnelStage: 'top',    status: 'approved',   campaign: 'Brand Awareness Q2' },
 
     // Jun 2
-    { id: 'j602a', title: 'Recovery Science Guide',          date: new Date(2026, 5, 2),  contentType: 'long-form',      funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop' },
-    { id: 'j602b', title: 'Recovery Tips',                   date: new Date(2026, 5, 2),  contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj602' },
-    { id: 'j602c', title: 'Recovery Tips',                   date: new Date(2026, 5, 2),  contentType: 'social-post', platform: 'x',         funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj602' },
+    { id: 'j602a', title: 'Recovery Science Guide',          date: new Date(2026, 5, 2),  contentType: 'wechat-article',      funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop' },
+    { id: 'j602b', title: 'Recovery Tips',                   date: new Date(2026, 5, 2),  contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj602' },
+    { id: 'j602c', title: 'Recovery Tips',                   date: new Date(2026, 5, 2),  contentType: 'social-post', platform: 'weibo',         funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj602' },
     { id: 'j602d', title: '"Rest is Part of the Work"',      date: new Date(2026, 5, 2),  contentType: 'quote-card',     funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop' },
 
     // Jun 3
-    { id: 'j603a', title: 'Brand Story: Our Heritage',       date: new Date(2026, 5, 3),  contentType: 'long-form',      funnelStage: 'top',    status: 'approved',   campaign: 'Brand Awareness Q2' },
-    { id: 'j603b', title: 'Heritage Series',                 date: new Date(2026, 5, 3),  contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'approved',   campaign: 'Brand Awareness Q2', batchId: 'bj603' },
-    { id: 'j603c', title: 'Heritage Series',                 date: new Date(2026, 5, 3),  contentType: 'social-post', platform: 'linkedin',  funnelStage: 'top',    status: 'review',     campaign: 'Brand Awareness Q2', batchId: 'bj603' },
-    { id: 'j603d', title: 'Heritage Series',                 date: new Date(2026, 5, 3),  contentType: 'social-post', platform: 'facebook',  funnelStage: 'top',    status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj603' },
-    { id: 'j603e', title: 'Heritage Highlight Reel',         date: new Date(2026, 5, 3),  contentType: 'highlight-reel', funnelStage: 'top',    status: 'review',     campaign: 'Brand Awareness Q2' },
+    { id: 'j603a', title: 'Brand Story: Our Heritage',       date: new Date(2026, 5, 3),  contentType: 'wechat-article',      funnelStage: 'top',    status: 'approved',   campaign: 'Brand Awareness Q2' },
+    { id: 'j603b', title: 'Heritage Series',                 date: new Date(2026, 5, 3),  contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'approved',   campaign: 'Brand Awareness Q2', batchId: 'bj603' },
+    { id: 'j603c', title: 'Heritage Series',                 date: new Date(2026, 5, 3),  contentType: 'social-post', platform: 'wechat',  funnelStage: 'top',    status: 'review',     campaign: 'Brand Awareness Q2', batchId: 'bj603' },
+    { id: 'j603d', title: 'Heritage Series',                 date: new Date(2026, 5, 3),  contentType: 'social-post', platform: 'weibo',  funnelStage: 'top',    status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj603' },
+    { id: 'j603e', title: 'Heritage Highlight Reel',         date: new Date(2026, 5, 3),  contentType: 'carousel', funnelStage: 'top',    status: 'review',     campaign: 'Brand Awareness Q2' },
 
     // Jun 4
-    { id: 'j604a', title: 'Community Challenge Launch',      date: new Date(2026, 5, 4),  contentType: 'long-form',      funnelStage: 'top',    status: 'published',  campaign: 'Retention Drive' },
-    { id: 'j604b', title: '30-Day Challenge',                date: new Date(2026, 5, 4),  contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'published',  campaign: 'Retention Drive', batchId: 'bj604' },
-    { id: 'j604c', title: '30-Day Challenge',                date: new Date(2026, 5, 4),  contentType: 'social-post', platform: 'tiktok',    funnelStage: 'top',    status: 'review',     campaign: 'Retention Drive', batchId: 'bj604' },
-    { id: 'j604d', title: 'Challenge Kick-off Clip',         date: new Date(2026, 5, 4),  contentType: 'short-clip',     funnelStage: 'top',    status: 'approved',   campaign: 'Retention Drive' },
+    { id: 'j604a', title: 'Community Challenge Launch',      date: new Date(2026, 5, 4),  contentType: 'wechat-article',      funnelStage: 'top',    status: 'published',  campaign: 'Retention Drive' },
+    { id: 'j604b', title: '30-Day Challenge',                date: new Date(2026, 5, 4),  contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'published',  campaign: 'Retention Drive', batchId: 'bj604' },
+    { id: 'j604c', title: '30-Day Challenge',                date: new Date(2026, 5, 4),  contentType: 'social-post', platform: 'douyin',    funnelStage: 'top',    status: 'review',     campaign: 'Retention Drive', batchId: 'bj604' },
+    { id: 'j604d', title: 'Challenge Kick-off Clip',         date: new Date(2026, 5, 4),  contentType: 'short-video',     funnelStage: 'top',    status: 'approved',   campaign: 'Retention Drive' },
 
     // Jun 5
-    { id: 'j605a', title: 'Footwear Innovation Deep Dive',   date: new Date(2026, 5, 5),  contentType: 'long-form',      funnelStage: 'middle', status: 'approved',   campaign: 'Brand Awareness Q2', batchId: 'bj605' },
-    { id: 'j605b', title: 'Footwear Innovation Clip',        date: new Date(2026, 5, 5),  contentType: 'short-clip',     funnelStage: 'middle', status: 'review',     campaign: 'Brand Awareness Q2', batchId: 'bj605' },
+    { id: 'j605a', title: 'Footwear Innovation Deep Dive',   date: new Date(2026, 5, 5),  contentType: 'wechat-article',      funnelStage: 'middle', status: 'approved',   campaign: 'Brand Awareness Q2', batchId: 'bj605' },
+    { id: 'j605b', title: 'Footwear Innovation Clip',        date: new Date(2026, 5, 5),  contentType: 'short-video',     funnelStage: 'middle', status: 'review',     campaign: 'Brand Awareness Q2', batchId: 'bj605' },
     { id: 'j605c', title: '"Built for the Future"',          date: new Date(2026, 5, 5),  contentType: 'quote-card',     funnelStage: 'middle', status: 'approved',   campaign: 'Brand Awareness Q2', batchId: 'bj605' },
-    { id: 'j605d', title: 'Footwear Tech',                   date: new Date(2026, 5, 5),  contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj605' },
+    { id: 'j605d', title: 'Footwear Tech',                   date: new Date(2026, 5, 5),  contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj605' },
     { id: 'j605e', title: 'Footwear Tech',                   date: new Date(2026, 5, 5),  contentType: 'social-post', platform: 'youtube',   funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj605' },
 
     // Jun 6
-    { id: 'j606a', title: 'Hydration Guide for Runners',     date: new Date(2026, 5, 6),  contentType: 'long-form',      funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop' },
-    { id: 'j606b', title: 'Hydration Tips',                  date: new Date(2026, 5, 6),  contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj606' },
-    { id: 'j606c', title: 'Hydration Tips',                  date: new Date(2026, 5, 6),  contentType: 'social-post', platform: 'facebook',  funnelStage: 'middle', status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj606' },
+    { id: 'j606a', title: 'Hydration Guide for Runners',     date: new Date(2026, 5, 6),  contentType: 'wechat-article',      funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop' },
+    { id: 'j606b', title: 'Hydration Tips',                  date: new Date(2026, 5, 6),  contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj606' },
+    { id: 'j606c', title: 'Hydration Tips',                  date: new Date(2026, 5, 6),  contentType: 'social-post', platform: 'weibo',  funnelStage: 'middle', status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj606' },
 
     // Jun 7
-    { id: 'j607a', title: 'Weekend Run Club Recap',          date: new Date(2026, 5, 7),  contentType: 'highlight-reel', funnelStage: 'top',    status: 'published',  campaign: 'Retention Drive' },
-    { id: 'j607b', title: 'Run Club',                        date: new Date(2026, 5, 7),  contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'published',  campaign: 'Retention Drive', batchId: 'bj607' },
-    { id: 'j607c', title: 'Run Club',                        date: new Date(2026, 5, 7),  contentType: 'social-post', platform: 'tiktok',    funnelStage: 'top',    status: 'approved',   campaign: 'Retention Drive', batchId: 'bj607' },
+    { id: 'j607a', title: 'Weekend Run Club Recap',          date: new Date(2026, 5, 7),  contentType: 'carousel', funnelStage: 'top',    status: 'published',  campaign: 'Retention Drive' },
+    { id: 'j607b', title: 'Run Club',                        date: new Date(2026, 5, 7),  contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'published',  campaign: 'Retention Drive', batchId: 'bj607' },
+    { id: 'j607c', title: 'Run Club',                        date: new Date(2026, 5, 7),  contentType: 'social-post', platform: 'douyin',    funnelStage: 'top',    status: 'approved',   campaign: 'Retention Drive', batchId: 'bj607' },
 
     // Jun 8
-    { id: 'j608a', title: 'Athlete Spotlight: Maya Torres', date: new Date(2026, 5, 8),  contentType: 'long-form',      funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop' },
-    { id: 'j608b', title: 'Athlete Spotlight',               date: new Date(2026, 5, 8),  contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj608' },
+    { id: 'j608a', title: 'Athlete Spotlight: Maya Torres', date: new Date(2026, 5, 8),  contentType: 'wechat-article',      funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop' },
+    { id: 'j608b', title: 'Athlete Spotlight',               date: new Date(2026, 5, 8),  contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj608' },
     { id: 'j608c', title: 'Athlete Spotlight',               date: new Date(2026, 5, 8),  contentType: 'social-post', platform: 'youtube',   funnelStage: 'top',    status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj608' },
-    { id: 'j608d', title: 'Athlete Spotlight',               date: new Date(2026, 5, 8),  contentType: 'social-post', platform: 'tiktok',    funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj608' },
+    { id: 'j608d', title: 'Athlete Spotlight',               date: new Date(2026, 5, 8),  contentType: 'social-post', platform: 'douyin',    funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj608' },
     { id: 'j608e', title: '"Champions Never Quit"',          date: new Date(2026, 5, 8),  contentType: 'quote-card',     funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop' },
 
     // Jun 9
-    { id: 'j609a', title: 'Loyalty Week Kick-off',           date: new Date(2026, 5, 9),  contentType: 'long-form',      funnelStage: 'bottom', status: 'published',  campaign: 'Retention Drive' },
-    { id: 'j609b', title: 'Loyalty Week',                    date: new Date(2026, 5, 9),  contentType: 'social-post', platform: 'instagram', funnelStage: 'bottom', status: 'published',  campaign: 'Retention Drive', batchId: 'bj609' },
-    { id: 'j609c', title: 'Loyalty Week',                    date: new Date(2026, 5, 9),  contentType: 'social-post', platform: 'facebook',  funnelStage: 'bottom', status: 'approved',   campaign: 'Retention Drive', batchId: 'bj609' },
-    { id: 'j609d', title: 'Loyalty Week',                    date: new Date(2026, 5, 9),  contentType: 'social-post', platform: 'x',         funnelStage: 'bottom', status: 'review',     campaign: 'Retention Drive', batchId: 'bj609' },
-    { id: 'j609e', title: 'Member Exclusive Clip',           date: new Date(2026, 5, 9),  contentType: 'short-clip',     funnelStage: 'bottom', status: 'approved',   campaign: 'Retention Drive' },
+    { id: 'j609a', title: 'Loyalty Week Kick-off',           date: new Date(2026, 5, 9),  contentType: 'wechat-article',      funnelStage: 'bottom', status: 'published',  campaign: 'Retention Drive' },
+    { id: 'j609b', title: 'Loyalty Week',                    date: new Date(2026, 5, 9),  contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'bottom', status: 'published',  campaign: 'Retention Drive', batchId: 'bj609' },
+    { id: 'j609c', title: 'Loyalty Week',                    date: new Date(2026, 5, 9),  contentType: 'social-post', platform: 'weibo',  funnelStage: 'bottom', status: 'approved',   campaign: 'Retention Drive', batchId: 'bj609' },
+    { id: 'j609d', title: 'Loyalty Week',                    date: new Date(2026, 5, 9),  contentType: 'social-post', platform: 'weibo',         funnelStage: 'bottom', status: 'review',     campaign: 'Retention Drive', batchId: 'bj609' },
+    { id: 'j609e', title: 'Member Exclusive Clip',           date: new Date(2026, 5, 9),  contentType: 'short-video',     funnelStage: 'bottom', status: 'approved',   campaign: 'Retention Drive' },
 
     // Jun 10
-    { id: 'j610a', title: 'Nutrition for Peak Performance',  date: new Date(2026, 5, 10), contentType: 'long-form',      funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop' },
-    { id: 'j610b', title: 'Nutrition Guide',                 date: new Date(2026, 5, 10), contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj610' },
-    { id: 'j610c', title: 'Nutrition Guide',                 date: new Date(2026, 5, 10), contentType: 'social-post', platform: 'linkedin',  funnelStage: 'middle', status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj610' },
-    { id: 'j610d', title: 'Nutrition Guide',                 date: new Date(2026, 5, 10), contentType: 'social-post', platform: 'facebook',  funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj610' },
+    { id: 'j610a', title: 'Nutrition for Peak Performance',  date: new Date(2026, 5, 10), contentType: 'wechat-article',      funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop' },
+    { id: 'j610b', title: 'Nutrition Guide',                 date: new Date(2026, 5, 10), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj610' },
+    { id: 'j610c', title: 'Nutrition Guide',                 date: new Date(2026, 5, 10), contentType: 'social-post', platform: 'wechat',  funnelStage: 'middle', status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj610' },
+    { id: 'j610d', title: 'Nutrition Guide',                 date: new Date(2026, 5, 10), contentType: 'social-post', platform: 'weibo',  funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj610' },
     { id: 'j610e', title: '"Fuel Your Potential"',           date: new Date(2026, 5, 10), contentType: 'quote-card',     funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop' },
     { id: 'j610f', title: 'Nutrition Science Video',         date: new Date(2026, 5, 10), contentType: 'ai-video',       funnelStage: 'middle', status: 'generating', campaign: 'Velocity Summer Drop' },
 
     // Jun 11
-    { id: 'j611a', title: 'Heritage Brand Story',            date: new Date(2026, 5, 11), contentType: 'long-form',      funnelStage: 'top',    status: 'approved',   campaign: 'Brand Awareness Q2' },
-    { id: 'j611b', title: 'Brand Heritage',                  date: new Date(2026, 5, 11), contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'approved',   campaign: 'Brand Awareness Q2', batchId: 'bj611' },
-    { id: 'j611c', title: 'Brand Heritage',                  date: new Date(2026, 5, 11), contentType: 'social-post', platform: 'linkedin',  funnelStage: 'top',    status: 'review',     campaign: 'Brand Awareness Q2', batchId: 'bj611' },
-    { id: 'j611d', title: 'Heritage Highlights',             date: new Date(2026, 5, 11), contentType: 'highlight-reel', funnelStage: 'top',    status: 'draft',      campaign: 'Brand Awareness Q2' },
+    { id: 'j611a', title: 'Heritage Brand Story',            date: new Date(2026, 5, 11), contentType: 'wechat-article',      funnelStage: 'top',    status: 'approved',   campaign: 'Brand Awareness Q2' },
+    { id: 'j611b', title: 'Brand Heritage',                  date: new Date(2026, 5, 11), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'approved',   campaign: 'Brand Awareness Q2', batchId: 'bj611' },
+    { id: 'j611c', title: 'Brand Heritage',                  date: new Date(2026, 5, 11), contentType: 'social-post', platform: 'wechat',  funnelStage: 'top',    status: 'review',     campaign: 'Brand Awareness Q2', batchId: 'bj611' },
+    { id: 'j611d', title: 'Heritage Highlights',             date: new Date(2026, 5, 11), contentType: 'carousel', funnelStage: 'top',    status: 'draft',      campaign: 'Brand Awareness Q2' },
 
     // Jun 12
-    { id: 'j612a', title: 'Running Form Fundamentals',       date: new Date(2026, 5, 12), contentType: 'long-form',      funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop' },
-    { id: 'j612b', title: 'Form Check Friday',               date: new Date(2026, 5, 12), contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj612' },
-    { id: 'j612c', title: 'Form Check Friday',               date: new Date(2026, 5, 12), contentType: 'social-post', platform: 'tiktok',    funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj612' },
+    { id: 'j612a', title: 'Running Form Fundamentals',       date: new Date(2026, 5, 12), contentType: 'wechat-article',      funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop' },
+    { id: 'j612b', title: 'Form Check Friday',               date: new Date(2026, 5, 12), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj612' },
+    { id: 'j612c', title: 'Form Check Friday',               date: new Date(2026, 5, 12), contentType: 'social-post', platform: 'douyin',    funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj612' },
     { id: 'j612d', title: 'Form Check Friday',               date: new Date(2026, 5, 12), contentType: 'social-post', platform: 'youtube',   funnelStage: 'middle', status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj612' },
-    { id: 'j612e', title: 'Quick Form Tip Clip',             date: new Date(2026, 5, 12), contentType: 'short-clip',     funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop' },
+    { id: 'j612e', title: 'Quick Form Tip Clip',             date: new Date(2026, 5, 12), contentType: 'short-video',     funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop' },
 
     // Jun 13
     { id: 'j613a', title: 'Training Day Documentary',        date: new Date(2026, 5, 13), contentType: 'ai-video',       funnelStage: 'top',    status: 'generating', campaign: 'Velocity Summer Drop', batchId: 'bj613' },
-    { id: 'j613b', title: 'Training Day Teaser',             date: new Date(2026, 5, 13), contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj613' },
+    { id: 'j613b', title: 'Training Day Teaser',             date: new Date(2026, 5, 13), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj613' },
     { id: 'j613c', title: 'Training Day Teaser',             date: new Date(2026, 5, 13), contentType: 'social-post', platform: 'youtube',   funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj613' },
     { id: 'j613d', title: '"Every Rep Counts"',              date: new Date(2026, 5, 13), contentType: 'quote-card',     funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop' },
 
     // Jun 14
-    { id: 'j614a', title: 'Sustainability in Sports',        date: new Date(2026, 5, 14), contentType: 'long-form',      funnelStage: 'top',    status: 'draft',      campaign: 'Brand Awareness Q2' },
-    { id: 'j614b', title: 'Sustainability Story',            date: new Date(2026, 5, 14), contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj614' },
-    { id: 'j614c', title: 'Sustainability Story',            date: new Date(2026, 5, 14), contentType: 'social-post', platform: 'linkedin',  funnelStage: 'top',    status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj614' },
+    { id: 'j614a', title: 'Sustainability in Sports',        date: new Date(2026, 5, 14), contentType: 'wechat-article',      funnelStage: 'top',    status: 'draft',      campaign: 'Brand Awareness Q2' },
+    { id: 'j614b', title: 'Sustainability Story',            date: new Date(2026, 5, 14), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj614' },
+    { id: 'j614c', title: 'Sustainability Story',            date: new Date(2026, 5, 14), contentType: 'social-post', platform: 'wechat',  funnelStage: 'top',    status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj614' },
 
     // Jun 15
-    { id: 'j615a', title: "Father's Day Gear Guide",         date: new Date(2026, 5, 15), contentType: 'long-form',      funnelStage: 'bottom', status: 'approved',   campaign: 'Velocity Summer Drop' },
-    { id: 'j615b', title: "Father's Day",                    date: new Date(2026, 5, 15), contentType: 'social-post', platform: 'instagram', funnelStage: 'bottom', status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj615' },
-    { id: 'j615c', title: "Father's Day",                    date: new Date(2026, 5, 15), contentType: 'social-post', platform: 'facebook',  funnelStage: 'bottom', status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj615' },
-    { id: 'j615d', title: "Father's Day",                    date: new Date(2026, 5, 15), contentType: 'social-post', platform: 'x',         funnelStage: 'bottom', status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj615' },
-    { id: 'j615e', title: "Father's Day Gift Clip",          date: new Date(2026, 5, 15), contentType: 'short-clip',     funnelStage: 'bottom', status: 'review',     campaign: 'Velocity Summer Drop' },
+    { id: 'j615a', title: "Father's Day Gear Guide",         date: new Date(2026, 5, 15), contentType: 'wechat-article',      funnelStage: 'bottom', status: 'approved',   campaign: 'Velocity Summer Drop' },
+    { id: 'j615b', title: "Father's Day",                    date: new Date(2026, 5, 15), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'bottom', status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj615' },
+    { id: 'j615c', title: "Father's Day",                    date: new Date(2026, 5, 15), contentType: 'social-post', platform: 'weibo',  funnelStage: 'bottom', status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj615' },
+    { id: 'j615d', title: "Father's Day",                    date: new Date(2026, 5, 15), contentType: 'social-post', platform: 'weibo',         funnelStage: 'bottom', status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj615' },
+    { id: 'j615e', title: "Father's Day Gift Clip",          date: new Date(2026, 5, 15), contentType: 'short-video',     funnelStage: 'bottom', status: 'review',     campaign: 'Velocity Summer Drop' },
 
     // Jun 16
-    { id: 'j616a', title: 'Community Focus Story',           date: new Date(2026, 5, 16), contentType: 'long-form',      funnelStage: 'middle', status: 'approved',   campaign: 'Retention Drive' },
-    { id: 'j616b', title: 'Community Focus',                 date: new Date(2026, 5, 16), contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'review',     campaign: 'Retention Drive', batchId: 'bj616' },
-    { id: 'j616c', title: 'Community Focus',                 date: new Date(2026, 5, 16), contentType: 'social-post', platform: 'linkedin',  funnelStage: 'middle', status: 'draft',      campaign: 'Retention Drive', batchId: 'bj616' },
-    { id: 'j616d', title: 'Community Focus',                 date: new Date(2026, 5, 16), contentType: 'social-post', platform: 'facebook',  funnelStage: 'middle', status: 'draft',      campaign: 'Retention Drive', batchId: 'bj616' },
-    { id: 'j616e', title: 'Community Highlights',            date: new Date(2026, 5, 16), contentType: 'highlight-reel', funnelStage: 'middle', status: 'draft',      campaign: 'Retention Drive' },
+    { id: 'j616a', title: 'Community Focus Story',           date: new Date(2026, 5, 16), contentType: 'wechat-article',      funnelStage: 'middle', status: 'approved',   campaign: 'Retention Drive' },
+    { id: 'j616b', title: 'Community Focus',                 date: new Date(2026, 5, 16), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'review',     campaign: 'Retention Drive', batchId: 'bj616' },
+    { id: 'j616c', title: 'Community Focus',                 date: new Date(2026, 5, 16), contentType: 'social-post', platform: 'wechat',  funnelStage: 'middle', status: 'draft',      campaign: 'Retention Drive', batchId: 'bj616' },
+    { id: 'j616d', title: 'Community Focus',                 date: new Date(2026, 5, 16), contentType: 'social-post', platform: 'weibo',  funnelStage: 'middle', status: 'draft',      campaign: 'Retention Drive', batchId: 'bj616' },
+    { id: 'j616e', title: 'Community Highlights',            date: new Date(2026, 5, 16), contentType: 'carousel', funnelStage: 'middle', status: 'draft',      campaign: 'Retention Drive' },
 
     // Jun 17 — 10 items
-    { id: 'j17-1',  title: 'Summer Campaign Launch',         date: new Date(2026, 5, 17), contentType: 'long-form',      funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj617' },
-    { id: 'j17-2',  title: 'Summer Campaign Launch',         date: new Date(2026, 5, 17), contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj617' },
-    { id: 'j17-3',  title: 'Summer Campaign Launch',         date: new Date(2026, 5, 17), contentType: 'social-post', platform: 'facebook',  funnelStage: 'top',    status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj617' },
-    { id: 'j17-4',  title: 'Summer Campaign Launch',         date: new Date(2026, 5, 17), contentType: 'social-post', platform: 'tiktok',    funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj617' },
-    { id: 'j17-5',  title: 'Summer Campaign Launch',         date: new Date(2026, 5, 17), contentType: 'social-post', platform: 'x',         funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj617' },
-    { id: 'j17-6',  title: 'Summer Campaign Launch',         date: new Date(2026, 5, 17), contentType: 'social-post', platform: 'linkedin',  funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj617' },
-    { id: 'j17-7',  title: 'Summer Highlight Reel',          date: new Date(2026, 5, 17), contentType: 'highlight-reel', funnelStage: 'top',  status: 'generating',  campaign: 'Velocity Summer Drop' },
-    { id: 'j17-8',  title: 'Summer Short Clip',              date: new Date(2026, 5, 17), contentType: 'short-clip',     funnelStage: 'top',  status: 'draft',       campaign: 'Velocity Summer Drop' },
+    { id: 'j17-1',  title: 'Summer Campaign Launch',         date: new Date(2026, 5, 17), contentType: 'wechat-article',      funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj617' },
+    { id: 'j17-2',  title: 'Summer Campaign Launch',         date: new Date(2026, 5, 17), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj617' },
+    { id: 'j17-3',  title: 'Summer Campaign Launch',         date: new Date(2026, 5, 17), contentType: 'social-post', platform: 'weibo',  funnelStage: 'top',    status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj617' },
+    { id: 'j17-4',  title: 'Summer Campaign Launch',         date: new Date(2026, 5, 17), contentType: 'social-post', platform: 'douyin',    funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj617' },
+    { id: 'j17-5',  title: 'Summer Campaign Launch',         date: new Date(2026, 5, 17), contentType: 'social-post', platform: 'weibo',         funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj617' },
+    { id: 'j17-6',  title: 'Summer Campaign Launch',         date: new Date(2026, 5, 17), contentType: 'social-post', platform: 'wechat',  funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj617' },
+    { id: 'j17-7',  title: 'Summer Highlight Reel',          date: new Date(2026, 5, 17), contentType: 'carousel', funnelStage: 'top',  status: 'generating',  campaign: 'Velocity Summer Drop' },
+    { id: 'j17-8',  title: 'Summer Short Clip',              date: new Date(2026, 5, 17), contentType: 'short-video',     funnelStage: 'top',  status: 'draft',       campaign: 'Velocity Summer Drop' },
     { id: 'j17-9',  title: '"Train Like a Champion"',        date: new Date(2026, 5, 17), contentType: 'quote-card',     funnelStage: 'middle', status: 'approved',  campaign: 'Velocity Summer Drop' },
-    { id: 'j17-10', title: 'Member-Only Early Access',       date: new Date(2026, 5, 17), contentType: 'social-post', platform: 'instagram', funnelStage: 'bottom', status: 'approved',   campaign: 'Retention Drive' },
+    { id: 'j17-10', title: 'Member-Only Early Access',       date: new Date(2026, 5, 17), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'bottom', status: 'approved',   campaign: 'Retention Drive' },
 
     // Jun 18
-    { id: 'j618a', title: 'Post-Launch Performance Review',  date: new Date(2026, 5, 18), contentType: 'long-form',      funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop' },
+    { id: 'j618a', title: 'Post-Launch Performance Review',  date: new Date(2026, 5, 18), contentType: 'wechat-article',      funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop' },
     { id: 'j618b', title: 'Weekly Training Tips',            date: new Date(2026, 5, 18), contentType: 'quote-card',     funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop' },
-    { id: 'j618c', title: 'Post-Launch Recap',               date: new Date(2026, 5, 18), contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj618' },
-    { id: 'j618d', title: 'Post-Launch Recap',               date: new Date(2026, 5, 18), contentType: 'social-post', platform: 'linkedin',  funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj618' },
-    { id: 'j618e', title: 'Behind the Scenes Clip',          date: new Date(2026, 5, 18), contentType: 'short-clip',     funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop' },
+    { id: 'j618c', title: 'Post-Launch Recap',               date: new Date(2026, 5, 18), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj618' },
+    { id: 'j618d', title: 'Post-Launch Recap',               date: new Date(2026, 5, 18), contentType: 'social-post', platform: 'wechat',  funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj618' },
+    { id: 'j618e', title: 'Behind the Scenes Clip',          date: new Date(2026, 5, 18), contentType: 'short-video',     funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop' },
 
     // Jun 19
-    { id: 'j619a', title: 'Trail Running Essentials',        date: new Date(2026, 5, 19), contentType: 'long-form',      funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop' },
-    { id: 'j619b', title: 'Trail Running',                   date: new Date(2026, 5, 19), contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj619' },
-    { id: 'j619c', title: 'Trail Running',                   date: new Date(2026, 5, 19), contentType: 'social-post', platform: 'tiktok',    funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj619' },
+    { id: 'j619a', title: 'Trail Running Essentials',        date: new Date(2026, 5, 19), contentType: 'wechat-article',      funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop' },
+    { id: 'j619b', title: 'Trail Running',                   date: new Date(2026, 5, 19), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj619' },
+    { id: 'j619c', title: 'Trail Running',                   date: new Date(2026, 5, 19), contentType: 'social-post', platform: 'douyin',    funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj619' },
     { id: 'j619d', title: '"The Trail Calls"',               date: new Date(2026, 5, 19), contentType: 'quote-card',     funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop' },
 
     // Jun 20
-    { id: 'j620a', title: 'End of Season Highlights',        date: new Date(2026, 5, 20), contentType: 'highlight-reel', funnelStage: 'top',    status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj620' },
-    { id: 'j620b', title: 'Best Moments Cut',                date: new Date(2026, 5, 20), contentType: 'short-clip',     funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj620' },
-    { id: 'j620c', title: 'End of Season',                   date: new Date(2026, 5, 20), contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj620' },
-    { id: 'j620d', title: 'End of Season',                   date: new Date(2026, 5, 20), contentType: 'social-post', platform: 'tiktok',    funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj620' },
-    { id: 'j620e', title: 'End of Season',                   date: new Date(2026, 5, 20), contentType: 'social-post', platform: 'x',         funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj620' },
+    { id: 'j620a', title: 'End of Season Highlights',        date: new Date(2026, 5, 20), contentType: 'carousel', funnelStage: 'top',    status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj620' },
+    { id: 'j620b', title: 'Best Moments Cut',                date: new Date(2026, 5, 20), contentType: 'short-video',     funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj620' },
+    { id: 'j620c', title: 'End of Season',                   date: new Date(2026, 5, 20), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj620' },
+    { id: 'j620d', title: 'End of Season',                   date: new Date(2026, 5, 20), contentType: 'social-post', platform: 'douyin',    funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj620' },
+    { id: 'j620e', title: 'End of Season',                   date: new Date(2026, 5, 20), contentType: 'social-post', platform: 'weibo',         funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj620' },
 
     // Jun 21
-    { id: 'j621a', title: 'Summer Solstice Run Guide',       date: new Date(2026, 5, 21), contentType: 'long-form',      funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop' },
-    { id: 'j621b', title: 'Solstice Run',                    date: new Date(2026, 5, 21), contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj621' },
-    { id: 'j621c', title: 'Solstice Run',                    date: new Date(2026, 5, 21), contentType: 'social-post', platform: 'facebook',  funnelStage: 'top',    status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj621' },
+    { id: 'j621a', title: 'Summer Solstice Run Guide',       date: new Date(2026, 5, 21), contentType: 'wechat-article',      funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop' },
+    { id: 'j621b', title: 'Solstice Run',                    date: new Date(2026, 5, 21), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj621' },
+    { id: 'j621c', title: 'Solstice Run',                    date: new Date(2026, 5, 21), contentType: 'social-post', platform: 'weibo',  funnelStage: 'top',    status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj621' },
 
     // Jun 22
-    { id: 'j622a', title: 'Loyalty Program Deep Dive',       date: new Date(2026, 5, 22), contentType: 'long-form',      funnelStage: 'bottom', status: 'approved',   campaign: 'Retention Drive' },
-    { id: 'j622b', title: 'Loyalty Rewards',                 date: new Date(2026, 5, 22), contentType: 'social-post', platform: 'instagram', funnelStage: 'bottom', status: 'approved',   campaign: 'Retention Drive', batchId: 'bj622' },
-    { id: 'j622c', title: 'Loyalty Rewards',                 date: new Date(2026, 5, 22), contentType: 'social-post', platform: 'facebook',  funnelStage: 'bottom', status: 'review',     campaign: 'Retention Drive', batchId: 'bj622' },
-    { id: 'j622d', title: 'Loyalty Rewards',                 date: new Date(2026, 5, 22), contentType: 'social-post', platform: 'linkedin',  funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive', batchId: 'bj622' },
+    { id: 'j622a', title: 'Loyalty Program Deep Dive',       date: new Date(2026, 5, 22), contentType: 'wechat-article',      funnelStage: 'bottom', status: 'approved',   campaign: 'Retention Drive' },
+    { id: 'j622b', title: 'Loyalty Rewards',                 date: new Date(2026, 5, 22), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'bottom', status: 'approved',   campaign: 'Retention Drive', batchId: 'bj622' },
+    { id: 'j622c', title: 'Loyalty Rewards',                 date: new Date(2026, 5, 22), contentType: 'social-post', platform: 'weibo',  funnelStage: 'bottom', status: 'review',     campaign: 'Retention Drive', batchId: 'bj622' },
+    { id: 'j622d', title: 'Loyalty Rewards',                 date: new Date(2026, 5, 22), contentType: 'social-post', platform: 'wechat',  funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive', batchId: 'bj622' },
     { id: 'j622e', title: '"Members Get More"',              date: new Date(2026, 5, 22), contentType: 'quote-card',     funnelStage: 'bottom', status: 'approved',   campaign: 'Retention Drive' },
 
     // Jun 23
-    { id: 'j623a', title: 'Q3 Brand Vision',                 date: new Date(2026, 5, 23), contentType: 'long-form',      funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj623' },
-    { id: 'j623b', title: 'Q3 Brand Vision',                 date: new Date(2026, 5, 23), contentType: 'social-post', platform: 'linkedin',  funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj623' },
-    { id: 'j623c', title: 'Sprint Training Guide',           date: new Date(2026, 5, 23), contentType: 'long-form',      funnelStage: 'middle', status: 'review',     campaign: 'Velocity Summer Drop' },
-    { id: 'j623d', title: 'Sprint Tips',                     date: new Date(2026, 5, 23), contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj623b' },
-    { id: 'j623e', title: 'Sprint Tips',                     date: new Date(2026, 5, 23), contentType: 'social-post', platform: 'tiktok',    funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj623b' },
+    { id: 'j623a', title: 'Q3 Brand Vision',                 date: new Date(2026, 5, 23), contentType: 'wechat-article',      funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj623' },
+    { id: 'j623b', title: 'Q3 Brand Vision',                 date: new Date(2026, 5, 23), contentType: 'social-post', platform: 'wechat',  funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj623' },
+    { id: 'j623c', title: 'Sprint Training Guide',           date: new Date(2026, 5, 23), contentType: 'wechat-article',      funnelStage: 'middle', status: 'review',     campaign: 'Velocity Summer Drop' },
+    { id: 'j623d', title: 'Sprint Tips',                     date: new Date(2026, 5, 23), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj623b' },
+    { id: 'j623e', title: 'Sprint Tips',                     date: new Date(2026, 5, 23), contentType: 'social-post', platform: 'douyin',    funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj623b' },
 
     // Jun 24
-    { id: 'j624a', title: 'Performance Tech Explained',      date: new Date(2026, 5, 24), contentType: 'long-form',      funnelStage: 'middle', status: 'review',     campaign: 'Brand Awareness Q2' },
-    { id: 'j624b', title: 'Performance Tech',                date: new Date(2026, 5, 24), contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'review',     campaign: 'Brand Awareness Q2', batchId: 'bj624' },
+    { id: 'j624a', title: 'Performance Tech Explained',      date: new Date(2026, 5, 24), contentType: 'wechat-article',      funnelStage: 'middle', status: 'review',     campaign: 'Brand Awareness Q2' },
+    { id: 'j624b', title: 'Performance Tech',                date: new Date(2026, 5, 24), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'review',     campaign: 'Brand Awareness Q2', batchId: 'bj624' },
     { id: 'j624c', title: 'Performance Tech',                date: new Date(2026, 5, 24), contentType: 'social-post', platform: 'youtube',   funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj624' },
-    { id: 'j624d', title: 'Tech Showcase Clip',              date: new Date(2026, 5, 24), contentType: 'short-clip',     funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2' },
+    { id: 'j624d', title: 'Tech Showcase Clip',              date: new Date(2026, 5, 24), contentType: 'short-video',     funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2' },
     { id: 'j624e', title: 'AI Product Showcase',             date: new Date(2026, 5, 24), contentType: 'ai-video',       funnelStage: 'middle', status: 'generating', campaign: 'Brand Awareness Q2' },
 
     // Jun 25
-    { id: 'j625a', title: 'Back to School Fitness Guide',    date: new Date(2026, 5, 25), contentType: 'long-form',      funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop' },
-    { id: 'j625b', title: 'Back to School Preview',          date: new Date(2026, 5, 25), contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj625' },
-    { id: 'j625c', title: 'Back to School Preview',          date: new Date(2026, 5, 25), contentType: 'social-post', platform: 'tiktok',    funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj625' },
-    { id: 'j625d', title: 'Member Milestone Story',          date: new Date(2026, 5, 25), contentType: 'long-form',      funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive' },
+    { id: 'j625a', title: 'Back to School Fitness Guide',    date: new Date(2026, 5, 25), contentType: 'wechat-article',      funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop' },
+    { id: 'j625b', title: 'Back to School Preview',          date: new Date(2026, 5, 25), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj625' },
+    { id: 'j625c', title: 'Back to School Preview',          date: new Date(2026, 5, 25), contentType: 'social-post', platform: 'douyin',    funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj625' },
+    { id: 'j625d', title: 'Member Milestone Story',          date: new Date(2026, 5, 25), contentType: 'wechat-article',      funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive' },
     { id: 'j625e', title: '"Your Journey Inspires Us"',      date: new Date(2026, 5, 25), contentType: 'quote-card',     funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive' },
 
     // Jun 26
-    { id: 'j626a', title: 'Mid-Year Gear Review',            date: new Date(2026, 5, 26), contentType: 'long-form',      funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop' },
-    { id: 'j626b', title: 'Gear Review Friday',              date: new Date(2026, 5, 26), contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj626' },
+    { id: 'j626a', title: 'Mid-Year Gear Review',            date: new Date(2026, 5, 26), contentType: 'wechat-article',      funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop' },
+    { id: 'j626b', title: 'Gear Review Friday',              date: new Date(2026, 5, 26), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj626' },
     { id: 'j626c', title: 'Gear Review Friday',              date: new Date(2026, 5, 26), contentType: 'social-post', platform: 'youtube',   funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj626' },
-    { id: 'j626d', title: 'Gear Unboxing Clip',              date: new Date(2026, 5, 26), contentType: 'short-clip',     funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop' },
+    { id: 'j626d', title: 'Gear Unboxing Clip',              date: new Date(2026, 5, 26), contentType: 'short-video',     funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop' },
 
     // Jun 27
-    { id: 'j627a', title: 'Month-End Flash Sale',            date: new Date(2026, 5, 27), contentType: 'social-post', platform: 'instagram', funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive', batchId: 'bj627' },
-    { id: 'j627b', title: 'Month-End Flash Sale',            date: new Date(2026, 5, 27), contentType: 'social-post', platform: 'facebook',  funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive', batchId: 'bj627' },
-    { id: 'j627c', title: 'Month-End Flash Sale',            date: new Date(2026, 5, 27), contentType: 'social-post', platform: 'x',         funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive', batchId: 'bj627' },
-    { id: 'j627d', title: 'Month-End Flash Sale',            date: new Date(2026, 5, 27), contentType: 'social-post', platform: 'tiktok',    funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive', batchId: 'bj627' },
+    { id: 'j627a', title: 'Month-End Flash Sale',            date: new Date(2026, 5, 27), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive', batchId: 'bj627' },
+    { id: 'j627b', title: 'Month-End Flash Sale',            date: new Date(2026, 5, 27), contentType: 'social-post', platform: 'weibo',  funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive', batchId: 'bj627' },
+    { id: 'j627c', title: 'Month-End Flash Sale',            date: new Date(2026, 5, 27), contentType: 'social-post', platform: 'weibo',         funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive', batchId: 'bj627' },
+    { id: 'j627d', title: 'Month-End Flash Sale',            date: new Date(2026, 5, 27), contentType: 'social-post', platform: 'douyin',    funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive', batchId: 'bj627' },
 
     // Jun 28
     { id: 'j628a', title: 'Sunday Mindset Reset',            date: new Date(2026, 5, 28), contentType: 'quote-card',     funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop' },
-    { id: 'j628b', title: 'Week Ahead Preview',              date: new Date(2026, 5, 28), contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop' },
+    { id: 'j628b', title: 'Week Ahead Preview',              date: new Date(2026, 5, 28), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop' },
 
     // Jun 29
-    { id: 'j629a', title: 'June Performance Recap',          date: new Date(2026, 5, 29), contentType: 'long-form',      funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop' },
-    { id: 'j629b', title: 'Monthly Recap',                   date: new Date(2026, 5, 29), contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj629' },
-    { id: 'j629c', title: 'Monthly Recap',                   date: new Date(2026, 5, 29), contentType: 'social-post', platform: 'linkedin',  funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj629' },
-    { id: 'j629d', title: 'Monthly Recap',                   date: new Date(2026, 5, 29), contentType: 'social-post', platform: 'facebook',  funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj629' },
-    { id: 'j629e', title: 'June Highlights Reel',            date: new Date(2026, 5, 29), contentType: 'highlight-reel', funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop' },
+    { id: 'j629a', title: 'June Performance Recap',          date: new Date(2026, 5, 29), contentType: 'wechat-article',      funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop' },
+    { id: 'j629b', title: 'Monthly Recap',                   date: new Date(2026, 5, 29), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj629' },
+    { id: 'j629c', title: 'Monthly Recap',                   date: new Date(2026, 5, 29), contentType: 'social-post', platform: 'wechat',  funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj629' },
+    { id: 'j629d', title: 'Monthly Recap',                   date: new Date(2026, 5, 29), contentType: 'social-post', platform: 'weibo',  funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj629' },
+    { id: 'j629e', title: 'June Highlights Reel',            date: new Date(2026, 5, 29), contentType: 'carousel', funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop' },
 
     // Jun 30
-    { id: 'j630a', title: 'Half-Year Review',                date: new Date(2026, 5, 30), contentType: 'long-form',      funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2' },
-    { id: 'j630b', title: 'Half-Year Recap',                 date: new Date(2026, 5, 30), contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj630' },
-    { id: 'j630c', title: 'Half-Year Recap',                 date: new Date(2026, 5, 30), contentType: 'social-post', platform: 'linkedin',  funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj630' },
-    { id: 'j630d', title: 'Half-Year Recap Video',           date: new Date(2026, 5, 30), contentType: 'highlight-reel', funnelStage: 'top',    status: 'draft',      campaign: 'Brand Awareness Q2' },
+    { id: 'j630a', title: 'Half-Year Review',                date: new Date(2026, 5, 30), contentType: 'wechat-article',      funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2' },
+    { id: 'j630b', title: 'Half-Year Recap',                 date: new Date(2026, 5, 30), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj630' },
+    { id: 'j630c', title: 'Half-Year Recap',                 date: new Date(2026, 5, 30), contentType: 'social-post', platform: 'wechat',  funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj630' },
+    { id: 'j630d', title: 'Half-Year Recap Video',           date: new Date(2026, 5, 30), contentType: 'carousel', funnelStage: 'top',    status: 'draft',      campaign: 'Brand Awareness Q2' },
 
     // ════════════════ JULY 2026 — dense content calendar ════════════════
 
     // Jul 1
-    { id: 'j701a', title: 'Q3 Kick-off: New Goals',         date: new Date(2026, 6, 1),  contentType: 'long-form',      funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop' },
-    { id: 'j701b', title: 'Q3 Launch',                      date: new Date(2026, 6, 1),  contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj701' },
-    { id: 'j701c', title: 'Q3 Launch',                      date: new Date(2026, 6, 1),  contentType: 'social-post', platform: 'facebook',  funnelStage: 'top',    status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj701' },
-    { id: 'j701d', title: 'Q3 Launch',                      date: new Date(2026, 6, 1),  contentType: 'social-post', platform: 'tiktok',    funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj701' },
+    { id: 'j701a', title: 'Q3 Kick-off: New Goals',         date: new Date(2026, 6, 1),  contentType: 'wechat-article',      funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop' },
+    { id: 'j701b', title: 'Q3 Launch',                      date: new Date(2026, 6, 1),  contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj701' },
+    { id: 'j701c', title: 'Q3 Launch',                      date: new Date(2026, 6, 1),  contentType: 'social-post', platform: 'weibo',  funnelStage: 'top',    status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj701' },
+    { id: 'j701d', title: 'Q3 Launch',                      date: new Date(2026, 6, 1),  contentType: 'social-post', platform: 'douyin',    funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj701' },
     { id: 'j701e', title: '"New Month, New Goals"',         date: new Date(2026, 6, 1),  contentType: 'quote-card',     funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop' },
 
     // Jul 2
-    { id: 'j702a', title: 'Summer Sprint Program',          date: new Date(2026, 6, 2),  contentType: 'long-form',      funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop' },
-    { id: 'j702b', title: 'Sprint Program',                 date: new Date(2026, 6, 2),  contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj702' },
-    { id: 'j702c', title: 'Sprint Program',                 date: new Date(2026, 6, 2),  contentType: 'social-post', platform: 'tiktok',    funnelStage: 'middle', status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj702' },
-    { id: 'j702d', title: 'Sprint Technique Clip',         date: new Date(2026, 6, 2),  contentType: 'short-clip',     funnelStage: 'middle', status: 'review',     campaign: 'Velocity Summer Drop' },
+    { id: 'j702a', title: 'Summer Sprint Program',          date: new Date(2026, 6, 2),  contentType: 'wechat-article',      funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop' },
+    { id: 'j702b', title: 'Sprint Program',                 date: new Date(2026, 6, 2),  contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj702' },
+    { id: 'j702c', title: 'Sprint Program',                 date: new Date(2026, 6, 2),  contentType: 'social-post', platform: 'douyin',    funnelStage: 'middle', status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj702' },
+    { id: 'j702d', title: 'Sprint Technique Clip',         date: new Date(2026, 6, 2),  contentType: 'short-video',     funnelStage: 'middle', status: 'review',     campaign: 'Velocity Summer Drop' },
 
     // Jul 3
-    { id: 'j703a', title: 'Brand Values Deep Dive',         date: new Date(2026, 6, 3),  contentType: 'long-form',      funnelStage: 'top',    status: 'approved',   campaign: 'Brand Awareness Q2' },
-    { id: 'j703b', title: 'Brand Values',                   date: new Date(2026, 6, 3),  contentType: 'social-post', platform: 'linkedin',  funnelStage: 'top',    status: 'approved',   campaign: 'Brand Awareness Q2', batchId: 'bj703' },
-    { id: 'j703c', title: 'Brand Values',                   date: new Date(2026, 6, 3),  contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'review',     campaign: 'Brand Awareness Q2', batchId: 'bj703' },
-    { id: 'j703d', title: 'Brand Story Highlights',         date: new Date(2026, 6, 3),  contentType: 'highlight-reel', funnelStage: 'top',    status: 'draft',      campaign: 'Brand Awareness Q2' },
+    { id: 'j703a', title: 'Brand Values Deep Dive',         date: new Date(2026, 6, 3),  contentType: 'wechat-article',      funnelStage: 'top',    status: 'approved',   campaign: 'Brand Awareness Q2' },
+    { id: 'j703b', title: 'Brand Values',                   date: new Date(2026, 6, 3),  contentType: 'social-post', platform: 'wechat',  funnelStage: 'top',    status: 'approved',   campaign: 'Brand Awareness Q2', batchId: 'bj703' },
+    { id: 'j703c', title: 'Brand Values',                   date: new Date(2026, 6, 3),  contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'review',     campaign: 'Brand Awareness Q2', batchId: 'bj703' },
+    { id: 'j703d', title: 'Brand Story Highlights',         date: new Date(2026, 6, 3),  contentType: 'carousel', funnelStage: 'top',    status: 'draft',      campaign: 'Brand Awareness Q2' },
 
     // Jul 4
-    { id: 'j704a', title: 'Independence Day Run',           date: new Date(2026, 6, 4),  contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj704' },
-    { id: 'j704b', title: 'Independence Day Run',           date: new Date(2026, 6, 4),  contentType: 'social-post', platform: 'facebook',  funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj704' },
+    { id: 'j704a', title: 'Independence Day Run',           date: new Date(2026, 6, 4),  contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj704' },
+    { id: 'j704b', title: 'Independence Day Run',           date: new Date(2026, 6, 4),  contentType: 'social-post', platform: 'weibo',  funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj704' },
     { id: 'j704c', title: '"Run Free"',                     date: new Date(2026, 6, 4),  contentType: 'quote-card',     funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop' },
 
     // Jul 5
-    { id: 'j705a', title: 'Post-Holiday Recovery Guide',    date: new Date(2026, 6, 5),  contentType: 'long-form',      funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop' },
-    { id: 'j705b', title: 'Recovery Sunday',                date: new Date(2026, 6, 5),  contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj705' },
-    { id: 'j705c', title: 'Recovery Sunday',                date: new Date(2026, 6, 5),  contentType: 'social-post', platform: 'tiktok',    funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj705' },
+    { id: 'j705a', title: 'Post-Holiday Recovery Guide',    date: new Date(2026, 6, 5),  contentType: 'wechat-article',      funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop' },
+    { id: 'j705b', title: 'Recovery Sunday',                date: new Date(2026, 6, 5),  contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj705' },
+    { id: 'j705c', title: 'Recovery Sunday',                date: new Date(2026, 6, 5),  contentType: 'social-post', platform: 'douyin',    funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj705' },
 
     // Jul 6
-    { id: 'j706a', title: 'New Velocity Air Max Colorway Drop',      date: new Date(2026, 6, 6),  contentType: 'long-form',      funnelStage: 'bottom', status: 'approved',   campaign: 'Velocity Summer Drop' },
-    { id: 'j706b', title: 'New Colorway Drop',              date: new Date(2026, 6, 6),  contentType: 'social-post', platform: 'instagram', funnelStage: 'bottom', status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj706' },
-    { id: 'j706c', title: 'New Colorway Drop',              date: new Date(2026, 6, 6),  contentType: 'social-post', platform: 'facebook',  funnelStage: 'bottom', status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj706' },
-    { id: 'j706d', title: 'New Colorway Drop',              date: new Date(2026, 6, 6),  contentType: 'social-post', platform: 'tiktok',    funnelStage: 'bottom', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj706' },
-    { id: 'j706e', title: 'Colorway Reveal Clip',           date: new Date(2026, 6, 6),  contentType: 'short-clip',     funnelStage: 'bottom', status: 'approved',   campaign: 'Velocity Summer Drop' },
+    { id: 'j706a', title: 'New Velocity Air Max Colorway Drop',      date: new Date(2026, 6, 6),  contentType: 'wechat-article',      funnelStage: 'bottom', status: 'approved',   campaign: 'Velocity Summer Drop' },
+    { id: 'j706b', title: 'New Colorway Drop',              date: new Date(2026, 6, 6),  contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'bottom', status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj706' },
+    { id: 'j706c', title: 'New Colorway Drop',              date: new Date(2026, 6, 6),  contentType: 'social-post', platform: 'weibo',  funnelStage: 'bottom', status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj706' },
+    { id: 'j706d', title: 'New Colorway Drop',              date: new Date(2026, 6, 6),  contentType: 'social-post', platform: 'douyin',    funnelStage: 'bottom', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj706' },
+    { id: 'j706e', title: 'Colorway Reveal Clip',           date: new Date(2026, 6, 6),  contentType: 'short-video',     funnelStage: 'bottom', status: 'approved',   campaign: 'Velocity Summer Drop' },
 
     // Jul 7
-    { id: 'j707a', title: 'Mental Performance Guide',       date: new Date(2026, 6, 7),  contentType: 'long-form',      funnelStage: 'middle', status: 'review',     campaign: 'Velocity Summer Drop' },
-    { id: 'j707b', title: 'Mindset Tuesday',                date: new Date(2026, 6, 7),  contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj707' },
-    { id: 'j707c', title: 'Mindset Tuesday',                date: new Date(2026, 6, 7),  contentType: 'social-post', platform: 'linkedin',  funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj707' },
+    { id: 'j707a', title: 'Mental Performance Guide',       date: new Date(2026, 6, 7),  contentType: 'wechat-article',      funnelStage: 'middle', status: 'review',     campaign: 'Velocity Summer Drop' },
+    { id: 'j707b', title: 'Mindset Tuesday',                date: new Date(2026, 6, 7),  contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj707' },
+    { id: 'j707c', title: 'Mindset Tuesday',                date: new Date(2026, 6, 7),  contentType: 'social-post', platform: 'wechat',  funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj707' },
     { id: 'j707d', title: '"Mind Over Miles"',              date: new Date(2026, 6, 7),  contentType: 'quote-card',     funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop' },
 
     // Jul 8
-    { id: 'j708a', title: 'Athlete Interview: Jake Chen',   date: new Date(2026, 6, 8),  contentType: 'long-form',      funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj708' },
-    { id: 'j708b', title: 'Jake Chen Interview Clip',       date: new Date(2026, 6, 8),  contentType: 'short-clip',     funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj708' },
-    { id: 'j708c', title: 'Athlete Spotlight',              date: new Date(2026, 6, 8),  contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj708' },
+    { id: 'j708a', title: 'Athlete Interview: Jake Chen',   date: new Date(2026, 6, 8),  contentType: 'wechat-article',      funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj708' },
+    { id: 'j708b', title: 'Jake Chen Interview Clip',       date: new Date(2026, 6, 8),  contentType: 'short-video',     funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj708' },
+    { id: 'j708c', title: 'Athlete Spotlight',              date: new Date(2026, 6, 8),  contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj708' },
     { id: 'j708d', title: 'Athlete Spotlight',              date: new Date(2026, 6, 8),  contentType: 'social-post', platform: 'youtube',   funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj708' },
     { id: 'j708e', title: 'AI Athlete Documentary',         date: new Date(2026, 6, 8),  contentType: 'ai-video',       funnelStage: 'top',    status: 'generating', campaign: 'Velocity Summer Drop' },
 
     // Jul 9
-    { id: 'j709a', title: 'Member Exclusive: July Drop',    date: new Date(2026, 6, 9),  contentType: 'long-form',      funnelStage: 'bottom', status: 'approved',   campaign: 'Retention Drive' },
-    { id: 'j709b', title: 'July Member Drop',               date: new Date(2026, 6, 9),  contentType: 'social-post', platform: 'instagram', funnelStage: 'bottom', status: 'approved',   campaign: 'Retention Drive', batchId: 'bj709' },
-    { id: 'j709c', title: 'July Member Drop',               date: new Date(2026, 6, 9),  contentType: 'social-post', platform: 'facebook',  funnelStage: 'bottom', status: 'review',     campaign: 'Retention Drive', batchId: 'bj709' },
-    { id: 'j709d', title: 'July Member Drop',               date: new Date(2026, 6, 9),  contentType: 'social-post', platform: 'x',         funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive', batchId: 'bj709' },
+    { id: 'j709a', title: 'Member Exclusive: July Drop',    date: new Date(2026, 6, 9),  contentType: 'wechat-article',      funnelStage: 'bottom', status: 'approved',   campaign: 'Retention Drive' },
+    { id: 'j709b', title: 'July Member Drop',               date: new Date(2026, 6, 9),  contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'bottom', status: 'approved',   campaign: 'Retention Drive', batchId: 'bj709' },
+    { id: 'j709c', title: 'July Member Drop',               date: new Date(2026, 6, 9),  contentType: 'social-post', platform: 'weibo',  funnelStage: 'bottom', status: 'review',     campaign: 'Retention Drive', batchId: 'bj709' },
+    { id: 'j709d', title: 'July Member Drop',               date: new Date(2026, 6, 9),  contentType: 'social-post', platform: 'weibo',         funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive', batchId: 'bj709' },
 
     // Jul 10
-    { id: 'j710a', title: 'Marathon Month Prep Guide',      date: new Date(2026, 6, 10), contentType: 'long-form',      funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop' },
-    { id: 'j710b', title: 'Marathon Prep',                  date: new Date(2026, 6, 10), contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj710' },
-    { id: 'j710c', title: 'Marathon Prep',                  date: new Date(2026, 6, 10), contentType: 'social-post', platform: 'facebook',  funnelStage: 'middle', status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj710' },
-    { id: 'j710d', title: 'Marathon Prep',                  date: new Date(2026, 6, 10), contentType: 'social-post', platform: 'tiktok',    funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj710' },
+    { id: 'j710a', title: 'Marathon Month Prep Guide',      date: new Date(2026, 6, 10), contentType: 'wechat-article',      funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop' },
+    { id: 'j710b', title: 'Marathon Prep',                  date: new Date(2026, 6, 10), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj710' },
+    { id: 'j710c', title: 'Marathon Prep',                  date: new Date(2026, 6, 10), contentType: 'social-post', platform: 'weibo',  funnelStage: 'middle', status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj710' },
+    { id: 'j710d', title: 'Marathon Prep',                  date: new Date(2026, 6, 10), contentType: 'social-post', platform: 'douyin',    funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj710' },
     { id: 'j710e', title: '"26.2 Miles of Grit"',           date: new Date(2026, 6, 10), contentType: 'quote-card',     funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop' },
     { id: 'j710f', title: 'Marathon Training Plan Video',   date: new Date(2026, 6, 10), contentType: 'ai-video',       funnelStage: 'middle', status: 'generating', campaign: 'Velocity Summer Drop' },
 
     // Jul 11
-    { id: 'j711a', title: 'Yoga & Flexibility for Runners', date: new Date(2026, 6, 11), contentType: 'long-form',      funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop' },
-    { id: 'j711b', title: 'Flexibility Friday',             date: new Date(2026, 6, 11), contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj711' },
-    { id: 'j711c', title: 'Flexibility Friday',             date: new Date(2026, 6, 11), contentType: 'social-post', platform: 'tiktok',    funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj711' },
+    { id: 'j711a', title: 'Yoga & Flexibility for Runners', date: new Date(2026, 6, 11), contentType: 'wechat-article',      funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop' },
+    { id: 'j711b', title: 'Flexibility Friday',             date: new Date(2026, 6, 11), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj711' },
+    { id: 'j711c', title: 'Flexibility Friday',             date: new Date(2026, 6, 11), contentType: 'social-post', platform: 'douyin',    funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj711' },
 
     // Jul 12
-    { id: 'j712a', title: 'Weekend Challenge Round-up',     date: new Date(2026, 6, 12), contentType: 'highlight-reel', funnelStage: 'top',    status: 'approved',   campaign: 'Retention Drive' },
-    { id: 'j712b', title: 'Weekend Challenge',              date: new Date(2026, 6, 12), contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'approved',   campaign: 'Retention Drive', batchId: 'bj712' },
-    { id: 'j712c', title: 'Weekend Challenge',              date: new Date(2026, 6, 12), contentType: 'social-post', platform: 'tiktok',    funnelStage: 'top',    status: 'review',     campaign: 'Retention Drive', batchId: 'bj712' },
+    { id: 'j712a', title: 'Weekend Challenge Round-up',     date: new Date(2026, 6, 12), contentType: 'carousel', funnelStage: 'top',    status: 'approved',   campaign: 'Retention Drive' },
+    { id: 'j712b', title: 'Weekend Challenge',              date: new Date(2026, 6, 12), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'approved',   campaign: 'Retention Drive', batchId: 'bj712' },
+    { id: 'j712c', title: 'Weekend Challenge',              date: new Date(2026, 6, 12), contentType: 'social-post', platform: 'douyin',    funnelStage: 'top',    status: 'review',     campaign: 'Retention Drive', batchId: 'bj712' },
 
     // Jul 13
-    { id: 'j713a', title: 'Youth Sports Initiative',        date: new Date(2026, 6, 13), contentType: 'long-form',      funnelStage: 'top',    status: 'approved',   campaign: 'Brand Awareness Q2' },
-    { id: 'j713b', title: 'Youth Sports',                   date: new Date(2026, 6, 13), contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'approved',   campaign: 'Brand Awareness Q2', batchId: 'bj713' },
-    { id: 'j713c', title: 'Youth Sports',                   date: new Date(2026, 6, 13), contentType: 'social-post', platform: 'tiktok',    funnelStage: 'top',    status: 'review',     campaign: 'Brand Awareness Q2', batchId: 'bj713' },
-    { id: 'j713d', title: 'Youth Sports',                   date: new Date(2026, 6, 13), contentType: 'social-post', platform: 'facebook',  funnelStage: 'top',    status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj713' },
+    { id: 'j713a', title: 'Youth Sports Initiative',        date: new Date(2026, 6, 13), contentType: 'wechat-article',      funnelStage: 'top',    status: 'approved',   campaign: 'Brand Awareness Q2' },
+    { id: 'j713b', title: 'Youth Sports',                   date: new Date(2026, 6, 13), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'approved',   campaign: 'Brand Awareness Q2', batchId: 'bj713' },
+    { id: 'j713c', title: 'Youth Sports',                   date: new Date(2026, 6, 13), contentType: 'social-post', platform: 'douyin',    funnelStage: 'top',    status: 'review',     campaign: 'Brand Awareness Q2', batchId: 'bj713' },
+    { id: 'j713d', title: 'Youth Sports',                   date: new Date(2026, 6, 13), contentType: 'social-post', platform: 'weibo',  funnelStage: 'top',    status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj713' },
     { id: 'j713e', title: '"Play, Grow, Repeat"',           date: new Date(2026, 6, 13), contentType: 'quote-card',     funnelStage: 'top',    status: 'approved',   campaign: 'Brand Awareness Q2' },
 
     // Jul 14
-    { id: 'j714a', title: 'Mid-Summer Gear Drop',           date: new Date(2026, 6, 14), contentType: 'long-form',      funnelStage: 'bottom', status: 'approved',   campaign: 'Velocity Summer Drop' },
-    { id: 'j714b', title: 'Gear Drop Tuesday',              date: new Date(2026, 6, 14), contentType: 'social-post', platform: 'instagram', funnelStage: 'bottom', status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj714' },
-    { id: 'j714c', title: 'Gear Drop Tuesday',              date: new Date(2026, 6, 14), contentType: 'social-post', platform: 'facebook',  funnelStage: 'bottom', status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj714' },
-    { id: 'j714d', title: 'Gear Unboxing',                  date: new Date(2026, 6, 14), contentType: 'short-clip',     funnelStage: 'bottom', status: 'approved',   campaign: 'Velocity Summer Drop' },
+    { id: 'j714a', title: 'Mid-Summer Gear Drop',           date: new Date(2026, 6, 14), contentType: 'wechat-article',      funnelStage: 'bottom', status: 'approved',   campaign: 'Velocity Summer Drop' },
+    { id: 'j714b', title: 'Gear Drop Tuesday',              date: new Date(2026, 6, 14), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'bottom', status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj714' },
+    { id: 'j714c', title: 'Gear Drop Tuesday',              date: new Date(2026, 6, 14), contentType: 'social-post', platform: 'weibo',  funnelStage: 'bottom', status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj714' },
+    { id: 'j714d', title: 'Gear Unboxing',                  date: new Date(2026, 6, 14), contentType: 'short-video',     funnelStage: 'bottom', status: 'approved',   campaign: 'Velocity Summer Drop' },
 
     // Jul 15
-    { id: 'j715a', title: 'Brand Innovation Story',         date: new Date(2026, 6, 15), contentType: 'long-form',      funnelStage: 'top',    status: 'approved',   campaign: 'Brand Awareness Q2', batchId: 'bj715' },
-    { id: 'j715b', title: 'Innovation Clip',                date: new Date(2026, 6, 15), contentType: 'short-clip',     funnelStage: 'top',    status: 'review',     campaign: 'Brand Awareness Q2', batchId: 'bj715' },
-    { id: 'j715c', title: 'Innovation Story',               date: new Date(2026, 6, 15), contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'review',     campaign: 'Brand Awareness Q2', batchId: 'bj715' },
-    { id: 'j715d', title: 'Innovation Story',               date: new Date(2026, 6, 15), contentType: 'social-post', platform: 'linkedin',  funnelStage: 'top',    status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj715' },
+    { id: 'j715a', title: 'Brand Innovation Story',         date: new Date(2026, 6, 15), contentType: 'wechat-article',      funnelStage: 'top',    status: 'approved',   campaign: 'Brand Awareness Q2', batchId: 'bj715' },
+    { id: 'j715b', title: 'Innovation Clip',                date: new Date(2026, 6, 15), contentType: 'short-video',     funnelStage: 'top',    status: 'review',     campaign: 'Brand Awareness Q2', batchId: 'bj715' },
+    { id: 'j715c', title: 'Innovation Story',               date: new Date(2026, 6, 15), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'review',     campaign: 'Brand Awareness Q2', batchId: 'bj715' },
+    { id: 'j715d', title: 'Innovation Story',               date: new Date(2026, 6, 15), contentType: 'social-post', platform: 'wechat',  funnelStage: 'top',    status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj715' },
     { id: 'j715e', title: 'Innovation Story',               date: new Date(2026, 6, 15), contentType: 'social-post', platform: 'youtube',   funnelStage: 'top',    status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj715' },
     { id: 'j715f', title: 'AI Brand Documentary',           date: new Date(2026, 6, 15), contentType: 'ai-video',       funnelStage: 'top',    status: 'generating', campaign: 'Brand Awareness Q2' },
 
     // Jul 16
-    { id: 'j716a', title: 'Race Day Prep Guide',            date: new Date(2026, 6, 16), contentType: 'long-form',      funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop' },
-    { id: 'j716b', title: 'Race Day Tips',                  date: new Date(2026, 6, 16), contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj716' },
-    { id: 'j716c', title: 'Race Day Tips',                  date: new Date(2026, 6, 16), contentType: 'social-post', platform: 'tiktok',    funnelStage: 'middle', status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj716' },
+    { id: 'j716a', title: 'Race Day Prep Guide',            date: new Date(2026, 6, 16), contentType: 'wechat-article',      funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop' },
+    { id: 'j716b', title: 'Race Day Tips',                  date: new Date(2026, 6, 16), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj716' },
+    { id: 'j716c', title: 'Race Day Tips',                  date: new Date(2026, 6, 16), contentType: 'social-post', platform: 'douyin',    funnelStage: 'middle', status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj716' },
     { id: 'j716d', title: '"Race Day is Payday"',           date: new Date(2026, 6, 16), contentType: 'quote-card',     funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop' },
 
     // Jul 17
-    { id: 'j717a', title: 'Community Challenge Week 3',     date: new Date(2026, 6, 17), contentType: 'long-form',      funnelStage: 'middle', status: 'review',     campaign: 'Retention Drive' },
-    { id: 'j717b', title: 'Challenge Update',               date: new Date(2026, 6, 17), contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'review',     campaign: 'Retention Drive', batchId: 'bj717' },
-    { id: 'j717c', title: 'Challenge Update',               date: new Date(2026, 6, 17), contentType: 'social-post', platform: 'facebook',  funnelStage: 'middle', status: 'draft',      campaign: 'Retention Drive', batchId: 'bj717' },
-    { id: 'j717d', title: 'Challenge Highlights',           date: new Date(2026, 6, 17), contentType: 'highlight-reel', funnelStage: 'middle', status: 'draft',      campaign: 'Retention Drive' },
-    { id: 'j717e', title: 'Challenge Clip',                 date: new Date(2026, 6, 17), contentType: 'short-clip',     funnelStage: 'middle', status: 'draft',      campaign: 'Retention Drive' },
+    { id: 'j717a', title: 'Community Challenge Week 3',     date: new Date(2026, 6, 17), contentType: 'wechat-article',      funnelStage: 'middle', status: 'review',     campaign: 'Retention Drive' },
+    { id: 'j717b', title: 'Challenge Update',               date: new Date(2026, 6, 17), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'review',     campaign: 'Retention Drive', batchId: 'bj717' },
+    { id: 'j717c', title: 'Challenge Update',               date: new Date(2026, 6, 17), contentType: 'social-post', platform: 'weibo',  funnelStage: 'middle', status: 'draft',      campaign: 'Retention Drive', batchId: 'bj717' },
+    { id: 'j717d', title: 'Challenge Highlights',           date: new Date(2026, 6, 17), contentType: 'carousel', funnelStage: 'middle', status: 'draft',      campaign: 'Retention Drive' },
+    { id: 'j717e', title: 'Challenge Clip',                 date: new Date(2026, 6, 17), contentType: 'short-video',     funnelStage: 'middle', status: 'draft',      campaign: 'Retention Drive' },
 
     // Jul 18
-    { id: 'j718a', title: 'Trail Running Weekend',          date: new Date(2026, 6, 18), contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj718' },
-    { id: 'j718b', title: 'Trail Running Weekend',          date: new Date(2026, 6, 18), contentType: 'social-post', platform: 'tiktok',    funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj718' },
+    { id: 'j718a', title: 'Trail Running Weekend',          date: new Date(2026, 6, 18), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj718' },
+    { id: 'j718b', title: 'Trail Running Weekend',          date: new Date(2026, 6, 18), contentType: 'social-post', platform: 'douyin',    funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj718' },
     { id: 'j718c', title: '"The Trails are Calling"',       date: new Date(2026, 6, 18), contentType: 'quote-card',     funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop' },
 
     // Jul 19
-    { id: 'j719a', title: 'Mindset & Motivation Guide',     date: new Date(2026, 6, 19), contentType: 'long-form',      funnelStage: 'top',    status: 'draft',      campaign: 'Brand Awareness Q2' },
-    { id: 'j719b', title: 'Motivation Sunday',              date: new Date(2026, 6, 19), contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj719' },
-    { id: 'j719c', title: 'Motivation Sunday',              date: new Date(2026, 6, 19), contentType: 'social-post', platform: 'linkedin',  funnelStage: 'top',    status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj719' },
+    { id: 'j719a', title: 'Mindset & Motivation Guide',     date: new Date(2026, 6, 19), contentType: 'wechat-article',      funnelStage: 'top',    status: 'draft',      campaign: 'Brand Awareness Q2' },
+    { id: 'j719b', title: 'Motivation Sunday',              date: new Date(2026, 6, 19), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj719' },
+    { id: 'j719c', title: 'Motivation Sunday',              date: new Date(2026, 6, 19), contentType: 'social-post', platform: 'wechat',  funnelStage: 'top',    status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj719' },
 
     // Jul 20
-    { id: 'j720a', title: 'Back to School Campaign Launch', date: new Date(2026, 6, 20), contentType: 'long-form',      funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop' },
-    { id: 'j720b', title: 'Back to School',                 date: new Date(2026, 6, 20), contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj720' },
-    { id: 'j720c', title: 'Back to School',                 date: new Date(2026, 6, 20), contentType: 'social-post', platform: 'facebook',  funnelStage: 'top',    status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj720' },
-    { id: 'j720d', title: 'Back to School',                 date: new Date(2026, 6, 20), contentType: 'social-post', platform: 'tiktok',    funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj720' },
-    { id: 'j720e', title: 'Back to School',                 date: new Date(2026, 6, 20), contentType: 'social-post', platform: 'x',         funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj720' },
+    { id: 'j720a', title: 'Back to School Campaign Launch', date: new Date(2026, 6, 20), contentType: 'wechat-article',      funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop' },
+    { id: 'j720b', title: 'Back to School',                 date: new Date(2026, 6, 20), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj720' },
+    { id: 'j720c', title: 'Back to School',                 date: new Date(2026, 6, 20), contentType: 'social-post', platform: 'weibo',  funnelStage: 'top',    status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj720' },
+    { id: 'j720d', title: 'Back to School',                 date: new Date(2026, 6, 20), contentType: 'social-post', platform: 'douyin',    funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj720' },
+    { id: 'j720e', title: 'Back to School',                 date: new Date(2026, 6, 20), contentType: 'social-post', platform: 'weibo',         funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj720' },
 
     // Jul 21
-    { id: 'j721a', title: 'Strength Training Guide',        date: new Date(2026, 6, 21), contentType: 'long-form',      funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop' },
-    { id: 'j721b', title: 'Strength Tuesday',               date: new Date(2026, 6, 21), contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj721' },
-    { id: 'j721c', title: 'Strength Tuesday',               date: new Date(2026, 6, 21), contentType: 'social-post', platform: 'tiktok',    funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj721' },
-    { id: 'j721d', title: 'Strength Clip',                  date: new Date(2026, 6, 21), contentType: 'short-clip',     funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop' },
+    { id: 'j721a', title: 'Strength Training Guide',        date: new Date(2026, 6, 21), contentType: 'wechat-article',      funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop' },
+    { id: 'j721b', title: 'Strength Tuesday',               date: new Date(2026, 6, 21), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj721' },
+    { id: 'j721c', title: 'Strength Tuesday',               date: new Date(2026, 6, 21), contentType: 'social-post', platform: 'douyin',    funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj721' },
+    { id: 'j721d', title: 'Strength Clip',                  date: new Date(2026, 6, 21), contentType: 'short-video',     funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop' },
 
     // Jul 22
-    { id: 'j722a', title: 'Sustainability Report Feature',  date: new Date(2026, 6, 22), contentType: 'long-form',      funnelStage: 'top',    status: 'review',     campaign: 'Brand Awareness Q2' },
-    { id: 'j722b', title: 'Sustainability Feature',         date: new Date(2026, 6, 22), contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'review',     campaign: 'Brand Awareness Q2', batchId: 'bj722' },
-    { id: 'j722c', title: 'Sustainability Feature',         date: new Date(2026, 6, 22), contentType: 'social-post', platform: 'linkedin',  funnelStage: 'top',    status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj722' },
+    { id: 'j722a', title: 'Sustainability Report Feature',  date: new Date(2026, 6, 22), contentType: 'wechat-article',      funnelStage: 'top',    status: 'review',     campaign: 'Brand Awareness Q2' },
+    { id: 'j722b', title: 'Sustainability Feature',         date: new Date(2026, 6, 22), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'review',     campaign: 'Brand Awareness Q2', batchId: 'bj722' },
+    { id: 'j722c', title: 'Sustainability Feature',         date: new Date(2026, 6, 22), contentType: 'social-post', platform: 'wechat',  funnelStage: 'top',    status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj722' },
     { id: 'j722d', title: '"Move Forward, Tread Lightly"',  date: new Date(2026, 6, 22), contentType: 'quote-card',     funnelStage: 'top',    status: 'approved',   campaign: 'Brand Awareness Q2' },
     { id: 'j722e', title: 'Sustainability AI Video',        date: new Date(2026, 6, 22), contentType: 'ai-video',       funnelStage: 'top',    status: 'generating', campaign: 'Brand Awareness Q2' },
 
     // Jul 23
-    { id: 'j723a', title: 'Member Loyalty Rewards Drop',    date: new Date(2026, 6, 23), contentType: 'long-form',      funnelStage: 'bottom', status: 'approved',   campaign: 'Retention Drive' },
-    { id: 'j723b', title: 'Loyalty Drop',                   date: new Date(2026, 6, 23), contentType: 'social-post', platform: 'instagram', funnelStage: 'bottom', status: 'approved',   campaign: 'Retention Drive', batchId: 'bj723' },
-    { id: 'j723c', title: 'Loyalty Drop',                   date: new Date(2026, 6, 23), contentType: 'social-post', platform: 'facebook',  funnelStage: 'bottom', status: 'review',     campaign: 'Retention Drive', batchId: 'bj723' },
-    { id: 'j723d', title: 'Loyalty Drop',                   date: new Date(2026, 6, 23), contentType: 'social-post', platform: 'x',         funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive', batchId: 'bj723' },
+    { id: 'j723a', title: 'Member Loyalty Rewards Drop',    date: new Date(2026, 6, 23), contentType: 'wechat-article',      funnelStage: 'bottom', status: 'approved',   campaign: 'Retention Drive' },
+    { id: 'j723b', title: 'Loyalty Drop',                   date: new Date(2026, 6, 23), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'bottom', status: 'approved',   campaign: 'Retention Drive', batchId: 'bj723' },
+    { id: 'j723c', title: 'Loyalty Drop',                   date: new Date(2026, 6, 23), contentType: 'social-post', platform: 'weibo',  funnelStage: 'bottom', status: 'review',     campaign: 'Retention Drive', batchId: 'bj723' },
+    { id: 'j723d', title: 'Loyalty Drop',                   date: new Date(2026, 6, 23), contentType: 'social-post', platform: 'weibo',         funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive', batchId: 'bj723' },
 
     // Jul 24
-    { id: 'j724a', title: 'Product Innovation Preview',     date: new Date(2026, 6, 24), contentType: 'long-form',      funnelStage: 'bottom', status: 'approved',   campaign: 'Velocity Summer Drop' },
-    { id: 'j724b', title: 'New Drop Preview',               date: new Date(2026, 6, 24), contentType: 'social-post', platform: 'instagram', funnelStage: 'bottom', status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj724' },
-    { id: 'j724c', title: 'New Drop Preview',               date: new Date(2026, 6, 24), contentType: 'social-post', platform: 'tiktok',    funnelStage: 'bottom', status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj724' },
+    { id: 'j724a', title: 'Product Innovation Preview',     date: new Date(2026, 6, 24), contentType: 'wechat-article',      funnelStage: 'bottom', status: 'approved',   campaign: 'Velocity Summer Drop' },
+    { id: 'j724b', title: 'New Drop Preview',               date: new Date(2026, 6, 24), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'bottom', status: 'approved',   campaign: 'Velocity Summer Drop', batchId: 'bj724' },
+    { id: 'j724c', title: 'New Drop Preview',               date: new Date(2026, 6, 24), contentType: 'social-post', platform: 'douyin',    funnelStage: 'bottom', status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj724' },
     { id: 'j724d', title: 'New Drop Preview',               date: new Date(2026, 6, 24), contentType: 'social-post', platform: 'youtube',   funnelStage: 'bottom', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj724' },
-    { id: 'j724e', title: 'Product Teaser Clip',            date: new Date(2026, 6, 24), contentType: 'short-clip',     funnelStage: 'bottom', status: 'approved',   campaign: 'Velocity Summer Drop' },
+    { id: 'j724e', title: 'Product Teaser Clip',            date: new Date(2026, 6, 24), contentType: 'short-video',     funnelStage: 'bottom', status: 'approved',   campaign: 'Velocity Summer Drop' },
 
     // Jul 25
-    { id: 'j725a', title: 'Weekend Warriors Guide',         date: new Date(2026, 6, 25), contentType: 'long-form',      funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop' },
-    { id: 'j725b', title: 'Weekend Warriors',               date: new Date(2026, 6, 25), contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj725' },
-    { id: 'j725c', title: 'Weekend Warriors',               date: new Date(2026, 6, 25), contentType: 'social-post', platform: 'facebook',  funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj725' },
+    { id: 'j725a', title: 'Weekend Warriors Guide',         date: new Date(2026, 6, 25), contentType: 'wechat-article',      funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop' },
+    { id: 'j725b', title: 'Weekend Warriors',               date: new Date(2026, 6, 25), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj725' },
+    { id: 'j725c', title: 'Weekend Warriors',               date: new Date(2026, 6, 25), contentType: 'social-post', platform: 'weibo',  funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj725' },
 
     // Jul 26
-    { id: 'j726a', title: 'Community Story: Local Heroes',  date: new Date(2026, 6, 26), contentType: 'long-form',      funnelStage: 'top',    status: 'draft',      campaign: 'Retention Drive' },
-    { id: 'j726b', title: 'Local Heroes',                   date: new Date(2026, 6, 26), contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'draft',      campaign: 'Retention Drive', batchId: 'bj726' },
-    { id: 'j726c', title: 'Local Heroes',                   date: new Date(2026, 6, 26), contentType: 'social-post', platform: 'tiktok',    funnelStage: 'top',    status: 'draft',      campaign: 'Retention Drive', batchId: 'bj726' },
+    { id: 'j726a', title: 'Community Story: Local Heroes',  date: new Date(2026, 6, 26), contentType: 'wechat-article',      funnelStage: 'top',    status: 'draft',      campaign: 'Retention Drive' },
+    { id: 'j726b', title: 'Local Heroes',                   date: new Date(2026, 6, 26), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'draft',      campaign: 'Retention Drive', batchId: 'bj726' },
+    { id: 'j726c', title: 'Local Heroes',                   date: new Date(2026, 6, 26), contentType: 'social-post', platform: 'douyin',    funnelStage: 'top',    status: 'draft',      campaign: 'Retention Drive', batchId: 'bj726' },
 
     // Jul 27
-    { id: 'j727a', title: 'August Preview Campaign',        date: new Date(2026, 6, 27), contentType: 'long-form',      funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop' },
-    { id: 'j727b', title: 'August Preview',                 date: new Date(2026, 6, 27), contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj727' },
-    { id: 'j727c', title: 'August Preview',                 date: new Date(2026, 6, 27), contentType: 'social-post', platform: 'facebook',  funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj727' },
-    { id: 'j727d', title: 'August Preview',                 date: new Date(2026, 6, 27), contentType: 'social-post', platform: 'x',         funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj727' },
+    { id: 'j727a', title: 'August Preview Campaign',        date: new Date(2026, 6, 27), contentType: 'wechat-article',      funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop' },
+    { id: 'j727b', title: 'August Preview',                 date: new Date(2026, 6, 27), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj727' },
+    { id: 'j727c', title: 'August Preview',                 date: new Date(2026, 6, 27), contentType: 'social-post', platform: 'weibo',  funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj727' },
+    { id: 'j727d', title: 'August Preview',                 date: new Date(2026, 6, 27), contentType: 'social-post', platform: 'weibo',         funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj727' },
     { id: 'j727e', title: '"What\'s Coming in August"',    date: new Date(2026, 6, 27), contentType: 'quote-card',     funnelStage: 'top',    status: 'draft',      campaign: 'Velocity Summer Drop' },
 
     // Jul 28
-    { id: 'j728a', title: 'Recovery & Sleep Science',       date: new Date(2026, 6, 28), contentType: 'long-form',      funnelStage: 'middle', status: 'review',     campaign: 'Velocity Summer Drop' },
-    { id: 'j728b', title: 'Sleep Science',                  date: new Date(2026, 6, 28), contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj728' },
-    { id: 'j728c', title: 'Sleep Science',                  date: new Date(2026, 6, 28), contentType: 'social-post', platform: 'linkedin',  funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj728' },
+    { id: 'j728a', title: 'Recovery & Sleep Science',       date: new Date(2026, 6, 28), contentType: 'wechat-article',      funnelStage: 'middle', status: 'review',     campaign: 'Velocity Summer Drop' },
+    { id: 'j728b', title: 'Sleep Science',                  date: new Date(2026, 6, 28), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'review',     campaign: 'Velocity Summer Drop', batchId: 'bj728' },
+    { id: 'j728c', title: 'Sleep Science',                  date: new Date(2026, 6, 28), contentType: 'social-post', platform: 'wechat',  funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj728' },
     { id: 'j728d', title: '"Sleep is the Secret Weapon"',   date: new Date(2026, 6, 28), contentType: 'quote-card',     funnelStage: 'middle', status: 'approved',   campaign: 'Velocity Summer Drop' },
     { id: 'j728e', title: 'Recovery Science Video',         date: new Date(2026, 6, 28), contentType: 'ai-video',       funnelStage: 'middle', status: 'generating', campaign: 'Velocity Summer Drop' },
 
     // Jul 29
-    { id: 'j729a', title: 'Month-End Campaign Recap',       date: new Date(2026, 6, 29), contentType: 'long-form',      funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop' },
-    { id: 'j729b', title: 'July Recap',                     date: new Date(2026, 6, 29), contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj729' },
-    { id: 'j729c', title: 'July Recap',                     date: new Date(2026, 6, 29), contentType: 'social-post', platform: 'facebook',  funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj729' },
-    { id: 'j729d', title: 'July Highlights',                date: new Date(2026, 6, 29), contentType: 'highlight-reel', funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop' },
+    { id: 'j729a', title: 'Month-End Campaign Recap',       date: new Date(2026, 6, 29), contentType: 'wechat-article',      funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop' },
+    { id: 'j729b', title: 'July Recap',                     date: new Date(2026, 6, 29), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj729' },
+    { id: 'j729c', title: 'July Recap',                     date: new Date(2026, 6, 29), contentType: 'social-post', platform: 'weibo',  funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop', batchId: 'bj729' },
+    { id: 'j729d', title: 'July Highlights',                date: new Date(2026, 6, 29), contentType: 'carousel', funnelStage: 'middle', status: 'draft',      campaign: 'Velocity Summer Drop' },
 
     // Jul 30
-    { id: 'j730a', title: 'Flash Sale: End of Summer',      date: new Date(2026, 6, 30), contentType: 'social-post', platform: 'instagram', funnelStage: 'bottom', status: 'approved',   campaign: 'Retention Drive', batchId: 'bj730' },
-    { id: 'j730b', title: 'Flash Sale: End of Summer',      date: new Date(2026, 6, 30), contentType: 'social-post', platform: 'facebook',  funnelStage: 'bottom', status: 'approved',   campaign: 'Retention Drive', batchId: 'bj730' },
-    { id: 'j730c', title: 'Flash Sale: End of Summer',      date: new Date(2026, 6, 30), contentType: 'social-post', platform: 'tiktok',    funnelStage: 'bottom', status: 'review',     campaign: 'Retention Drive', batchId: 'bj730' },
-    { id: 'j730d', title: 'Flash Sale: End of Summer',      date: new Date(2026, 6, 30), contentType: 'social-post', platform: 'x',         funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive', batchId: 'bj730' },
-    { id: 'j730e', title: 'Last Chance Clip',               date: new Date(2026, 6, 30), contentType: 'short-clip',     funnelStage: 'bottom', status: 'approved',   campaign: 'Retention Drive' },
+    { id: 'j730a', title: 'Flash Sale: End of Summer',      date: new Date(2026, 6, 30), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'bottom', status: 'approved',   campaign: 'Retention Drive', batchId: 'bj730' },
+    { id: 'j730b', title: 'Flash Sale: End of Summer',      date: new Date(2026, 6, 30), contentType: 'social-post', platform: 'weibo',  funnelStage: 'bottom', status: 'approved',   campaign: 'Retention Drive', batchId: 'bj730' },
+    { id: 'j730c', title: 'Flash Sale: End of Summer',      date: new Date(2026, 6, 30), contentType: 'social-post', platform: 'douyin',    funnelStage: 'bottom', status: 'review',     campaign: 'Retention Drive', batchId: 'bj730' },
+    { id: 'j730d', title: 'Flash Sale: End of Summer',      date: new Date(2026, 6, 30), contentType: 'social-post', platform: 'weibo',         funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive', batchId: 'bj730' },
+    { id: 'j730e', title: 'Last Chance Clip',               date: new Date(2026, 6, 30), contentType: 'short-video',     funnelStage: 'bottom', status: 'approved',   campaign: 'Retention Drive' },
 
     // Jul 31
-    { id: 'j731a', title: 'July Wins: Monthly Roundup',     date: new Date(2026, 6, 31), contentType: 'long-form',      funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2' },
-    { id: 'j731b', title: 'July Roundup',                   date: new Date(2026, 6, 31), contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj731' },
-    { id: 'j731c', title: 'July Roundup',                   date: new Date(2026, 6, 31), contentType: 'social-post', platform: 'linkedin',  funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj731' },
+    { id: 'j731a', title: 'July Wins: Monthly Roundup',     date: new Date(2026, 6, 31), contentType: 'wechat-article',      funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2' },
+    { id: 'j731b', title: 'July Roundup',                   date: new Date(2026, 6, 31), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj731' },
+    { id: 'j731c', title: 'July Roundup',                   date: new Date(2026, 6, 31), contentType: 'social-post', platform: 'wechat',  funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bj731' },
     { id: 'j731d', title: '"End Strong, Start Stronger"',   date: new Date(2026, 6, 31), contentType: 'quote-card',     funnelStage: 'top',    status: 'approved',   campaign: 'Velocity Summer Drop' },
 
     // ════════════════ AUGUST 2026 — upcoming content ═══════════════
 
     // Aug 1
-    { id: 'a801a', title: 'Back to School: Gear Guide',     date: new Date(2026, 7, 1),  contentType: 'long-form',      funnelStage: 'top',    status: 'draft',      campaign: 'Back to School 2026' },
-    { id: 'a801b', title: 'Back to School',                 date: new Date(2026, 7, 1),  contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'draft',      campaign: 'Back to School 2026', batchId: 'ba801' },
-    { id: 'a801c', title: 'Back to School',                 date: new Date(2026, 7, 1),  contentType: 'social-post', platform: 'facebook',  funnelStage: 'top',    status: 'draft',      campaign: 'Back to School 2026', batchId: 'ba801' },
-    { id: 'a801d', title: 'Back to School',                 date: new Date(2026, 7, 1),  contentType: 'social-post', platform: 'tiktok',    funnelStage: 'top',    status: 'draft',      campaign: 'Back to School 2026', batchId: 'ba801' },
-    { id: 'a801e', title: 'Gear Up Clip',                   date: new Date(2026, 7, 1),  contentType: 'short-clip',     funnelStage: 'top',    status: 'draft',      campaign: 'Back to School 2026' },
+    { id: 'a801a', title: 'Back to School: Gear Guide',     date: new Date(2026, 7, 1),  contentType: 'wechat-article',      funnelStage: 'top',    status: 'draft',      campaign: 'Back to School 2026' },
+    { id: 'a801b', title: 'Back to School',                 date: new Date(2026, 7, 1),  contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'draft',      campaign: 'Back to School 2026', batchId: 'ba801' },
+    { id: 'a801c', title: 'Back to School',                 date: new Date(2026, 7, 1),  contentType: 'social-post', platform: 'weibo',  funnelStage: 'top',    status: 'draft',      campaign: 'Back to School 2026', batchId: 'ba801' },
+    { id: 'a801d', title: 'Back to School',                 date: new Date(2026, 7, 1),  contentType: 'social-post', platform: 'douyin',    funnelStage: 'top',    status: 'draft',      campaign: 'Back to School 2026', batchId: 'ba801' },
+    { id: 'a801e', title: 'Gear Up Clip',                   date: new Date(2026, 7, 1),  contentType: 'short-video',     funnelStage: 'top',    status: 'draft',      campaign: 'Back to School 2026' },
 
     // Aug 3
     { id: 'a803a', title: 'Fall Collection Teaser',         date: new Date(2026, 7, 3),  contentType: 'ai-video',       funnelStage: 'top',    status: 'generating', campaign: 'Fall Collection Launch' },
-    { id: 'a803b', title: 'Fall Collection',                date: new Date(2026, 7, 3),  contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'draft',      campaign: 'Fall Collection Launch', batchId: 'ba803' },
-    { id: 'a803c', title: 'Fall Collection',                date: new Date(2026, 7, 3),  contentType: 'social-post', platform: 'linkedin',  funnelStage: 'top',    status: 'draft',      campaign: 'Fall Collection Launch', batchId: 'ba803' },
+    { id: 'a803b', title: 'Fall Collection',                date: new Date(2026, 7, 3),  contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'draft',      campaign: 'Fall Collection Launch', batchId: 'ba803' },
+    { id: 'a803c', title: 'Fall Collection',                date: new Date(2026, 7, 3),  contentType: 'social-post', platform: 'wechat',  funnelStage: 'top',    status: 'draft',      campaign: 'Fall Collection Launch', batchId: 'ba803' },
 
     // Aug 5
-    { id: 'a805a', title: 'Training for Marathon Season',   date: new Date(2026, 7, 5),  contentType: 'long-form',      funnelStage: 'middle', status: 'review',     campaign: 'Marathon Prep 2026' },
-    { id: 'a805b', title: 'Marathon Tips',                  date: new Date(2026, 7, 5),  contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'review',     campaign: 'Marathon Prep 2026', batchId: 'ba805' },
-    { id: 'a805c', title: 'Marathon Tips',                  date: new Date(2026, 7, 5),  contentType: 'social-post', platform: 'x',         funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026', batchId: 'ba805' },
+    { id: 'a805a', title: 'Training for Marathon Season',   date: new Date(2026, 7, 5),  contentType: 'wechat-article',      funnelStage: 'middle', status: 'review',     campaign: 'Marathon Prep 2026' },
+    { id: 'a805b', title: 'Marathon Tips',                  date: new Date(2026, 7, 5),  contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'review',     campaign: 'Marathon Prep 2026', batchId: 'ba805' },
+    { id: 'a805c', title: 'Marathon Tips',                  date: new Date(2026, 7, 5),  contentType: 'social-post', platform: 'weibo',         funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026', batchId: 'ba805' },
     { id: 'a805d', title: '"Miles Make Champions"',          date: new Date(2026, 7, 5),  contentType: 'quote-card',     funnelStage: 'middle', status: 'approved',   campaign: 'Marathon Prep 2026' },
 
     // Aug 8
-    { id: 'a808a', title: 'Community Run Recap',            date: new Date(2026, 7, 8),  contentType: 'highlight-reel', funnelStage: 'top',    status: 'review',     campaign: 'Community Engagement' },
-    { id: 'a808b', title: 'Community Run',                  date: new Date(2026, 7, 8),  contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'review',     campaign: 'Community Engagement', batchId: 'ba808' },
-    { id: 'a808c', title: 'Community Run',                  date: new Date(2026, 7, 8),  contentType: 'social-post', platform: 'tiktok',    funnelStage: 'top',    status: 'draft',      campaign: 'Community Engagement', batchId: 'ba808' },
+    { id: 'a808a', title: 'Community Run Recap',            date: new Date(2026, 7, 8),  contentType: 'carousel', funnelStage: 'top',    status: 'review',     campaign: 'Community Engagement' },
+    { id: 'a808b', title: 'Community Run',                  date: new Date(2026, 7, 8),  contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'review',     campaign: 'Community Engagement', batchId: 'ba808' },
+    { id: 'a808c', title: 'Community Run',                  date: new Date(2026, 7, 8),  contentType: 'social-post', platform: 'douyin',    funnelStage: 'top',    status: 'draft',      campaign: 'Community Engagement', batchId: 'ba808' },
 
     // Aug 10
-    { id: 'a810a', title: 'Product Spotlight: Air Zoom',    date: new Date(2026, 7, 10), contentType: 'long-form',      funnelStage: 'middle', status: 'approved',   campaign: 'Fall Collection Launch' },
-    { id: 'a810b', title: 'Air Zoom Feature',               date: new Date(2026, 7, 10), contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'approved',   campaign: 'Fall Collection Launch', batchId: 'ba810' },
+    { id: 'a810a', title: 'Product Spotlight: Air Zoom',    date: new Date(2026, 7, 10), contentType: 'wechat-article',      funnelStage: 'middle', status: 'approved',   campaign: 'Fall Collection Launch' },
+    { id: 'a810b', title: 'Air Zoom Feature',               date: new Date(2026, 7, 10), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'approved',   campaign: 'Fall Collection Launch', batchId: 'ba810' },
     { id: 'a810c', title: 'Air Zoom Feature',               date: new Date(2026, 7, 10), contentType: 'social-post', platform: 'youtube',   funnelStage: 'middle', status: 'review',     campaign: 'Fall Collection Launch', batchId: 'ba810' },
     { id: 'a810d', title: 'Air Zoom Tech Video',            date: new Date(2026, 7, 10), contentType: 'ai-video',       funnelStage: 'middle', status: 'generating', campaign: 'Fall Collection Launch' },
 
     // Aug 12
-    { id: 'a812a', title: 'Athlete Interview: Race Day',    date: new Date(2026, 7, 12), contentType: 'long-form',      funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026', batchId: 'ba812' },
-    { id: 'a812b', title: 'Race Day Clip',                  date: new Date(2026, 7, 12), contentType: 'short-clip',     funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026', batchId: 'ba812' },
+    { id: 'a812a', title: 'Athlete Interview: Race Day',    date: new Date(2026, 7, 12), contentType: 'wechat-article',      funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026', batchId: 'ba812' },
+    { id: 'a812b', title: 'Race Day Clip',                  date: new Date(2026, 7, 12), contentType: 'short-video',     funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026', batchId: 'ba812' },
     { id: 'a812c', title: '"Every Mile Matters"',            date: new Date(2026, 7, 12), contentType: 'quote-card',     funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026', batchId: 'ba812' },
 
     // Aug 15
-    { id: 'a815a', title: 'Mid-August Member Exclusive',    date: new Date(2026, 7, 15), contentType: 'long-form',      funnelStage: 'bottom', status: 'approved',   campaign: 'Retention Drive' },
-    { id: 'a815b', title: 'Member Exclusive',               date: new Date(2026, 7, 15), contentType: 'social-post', platform: 'instagram', funnelStage: 'bottom', status: 'approved',   campaign: 'Retention Drive', batchId: 'ba815' },
-    { id: 'a815c', title: 'Member Exclusive',               date: new Date(2026, 7, 15), contentType: 'social-post', platform: 'facebook',  funnelStage: 'bottom', status: 'review',     campaign: 'Retention Drive', batchId: 'ba815' },
-    { id: 'a815d', title: 'Member Exclusive',               date: new Date(2026, 7, 15), contentType: 'social-post', platform: 'linkedin',  funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive', batchId: 'ba815' },
+    { id: 'a815a', title: 'Mid-August Member Exclusive',    date: new Date(2026, 7, 15), contentType: 'wechat-article',      funnelStage: 'bottom', status: 'approved',   campaign: 'Retention Drive' },
+    { id: 'a815b', title: 'Member Exclusive',               date: new Date(2026, 7, 15), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'bottom', status: 'approved',   campaign: 'Retention Drive', batchId: 'ba815' },
+    { id: 'a815c', title: 'Member Exclusive',               date: new Date(2026, 7, 15), contentType: 'social-post', platform: 'weibo',  funnelStage: 'bottom', status: 'review',     campaign: 'Retention Drive', batchId: 'ba815' },
+    { id: 'a815d', title: 'Member Exclusive',               date: new Date(2026, 7, 15), contentType: 'social-post', platform: 'wechat',  funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive', batchId: 'ba815' },
 
     // Aug 18
-    { id: 'a818a', title: 'Fall Fashion Lookbook',          date: new Date(2026, 7, 18), contentType: 'highlight-reel', funnelStage: 'top',    status: 'draft',      campaign: 'Fall Collection Launch' },
-    { id: 'a818b', title: 'Lookbook Sneak Peek',            date: new Date(2026, 7, 18), contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'draft',      campaign: 'Fall Collection Launch', batchId: 'ba818' },
-    { id: 'a818c', title: 'Lookbook Sneak Peek',            date: new Date(2026, 7, 18), contentType: 'social-post', platform: 'tiktok',    funnelStage: 'top',    status: 'draft',      campaign: 'Fall Collection Launch', batchId: 'ba818' },
+    { id: 'a818a', title: 'Fall Fashion Lookbook',          date: new Date(2026, 7, 18), contentType: 'carousel', funnelStage: 'top',    status: 'draft',      campaign: 'Fall Collection Launch' },
+    { id: 'a818b', title: 'Lookbook Sneak Peek',            date: new Date(2026, 7, 18), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'draft',      campaign: 'Fall Collection Launch', batchId: 'ba818' },
+    { id: 'a818c', title: 'Lookbook Sneak Peek',            date: new Date(2026, 7, 18), contentType: 'social-post', platform: 'douyin',    funnelStage: 'top',    status: 'draft',      campaign: 'Fall Collection Launch', batchId: 'ba818' },
 
     // Aug 20
-    { id: 'a820a', title: 'Nutrition for Endurance',        date: new Date(2026, 7, 20), contentType: 'long-form',      funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026' },
-    { id: 'a820b', title: 'Endurance Tips',                 date: new Date(2026, 7, 20), contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026', batchId: 'ba820' },
-    { id: 'a820c', title: 'Endurance Tips',                 date: new Date(2026, 7, 20), contentType: 'social-post', platform: 'x',         funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026', batchId: 'ba820' },
+    { id: 'a820a', title: 'Nutrition for Endurance',        date: new Date(2026, 7, 20), contentType: 'wechat-article',      funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026' },
+    { id: 'a820b', title: 'Endurance Tips',                 date: new Date(2026, 7, 20), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026', batchId: 'ba820' },
+    { id: 'a820c', title: 'Endurance Tips',                 date: new Date(2026, 7, 20), contentType: 'social-post', platform: 'weibo',         funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026', batchId: 'ba820' },
     { id: 'a820d', title: '"Fuel the Long Run"',             date: new Date(2026, 7, 20), contentType: 'quote-card',     funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026' },
 
     // Aug 22
-    { id: 'a822a', title: 'Back to School Flash Sale',      date: new Date(2026, 7, 22), contentType: 'social-post', platform: 'instagram', funnelStage: 'bottom', status: 'review',     campaign: 'Back to School 2026', batchId: 'ba822' },
-    { id: 'a822b', title: 'Back to School Flash Sale',      date: new Date(2026, 7, 22), contentType: 'social-post', platform: 'facebook',  funnelStage: 'bottom', status: 'review',     campaign: 'Back to School 2026', batchId: 'ba822' },
-    { id: 'a822c', title: 'Back to School Flash Sale',      date: new Date(2026, 7, 22), contentType: 'social-post', platform: 'tiktok',    funnelStage: 'bottom', status: 'draft',      campaign: 'Back to School 2026', batchId: 'ba822' },
-    { id: 'a822d', title: 'Back to School Flash Sale',      date: new Date(2026, 7, 22), contentType: 'social-post', platform: 'x',         funnelStage: 'bottom', status: 'draft',      campaign: 'Back to School 2026', batchId: 'ba822' },
-    { id: 'a822e', title: 'Flash Sale Clip',                date: new Date(2026, 7, 22), contentType: 'short-clip',     funnelStage: 'bottom', status: 'approved',   campaign: 'Back to School 2026' },
+    { id: 'a822a', title: 'Back to School Flash Sale',      date: new Date(2026, 7, 22), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'bottom', status: 'review',     campaign: 'Back to School 2026', batchId: 'ba822' },
+    { id: 'a822b', title: 'Back to School Flash Sale',      date: new Date(2026, 7, 22), contentType: 'social-post', platform: 'weibo',  funnelStage: 'bottom', status: 'review',     campaign: 'Back to School 2026', batchId: 'ba822' },
+    { id: 'a822c', title: 'Back to School Flash Sale',      date: new Date(2026, 7, 22), contentType: 'social-post', platform: 'douyin',    funnelStage: 'bottom', status: 'draft',      campaign: 'Back to School 2026', batchId: 'ba822' },
+    { id: 'a822d', title: 'Back to School Flash Sale',      date: new Date(2026, 7, 22), contentType: 'social-post', platform: 'weibo',         funnelStage: 'bottom', status: 'draft',      campaign: 'Back to School 2026', batchId: 'ba822' },
+    { id: 'a822e', title: 'Flash Sale Clip',                date: new Date(2026, 7, 22), contentType: 'short-video',     funnelStage: 'bottom', status: 'approved',   campaign: 'Back to School 2026' },
 
     // Aug 25
-    { id: 'a825a', title: 'End of Summer Celebration',      date: new Date(2026, 7, 25), contentType: 'long-form',      funnelStage: 'top',    status: 'draft',      campaign: 'Community Engagement' },
-    { id: 'a825b', title: 'Summer Celebration',             date: new Date(2026, 7, 25), contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'draft',      campaign: 'Community Engagement', batchId: 'ba825' },
-    { id: 'a825c', title: 'Summer Celebration',             date: new Date(2026, 7, 25), contentType: 'social-post', platform: 'facebook',  funnelStage: 'top',    status: 'draft',      campaign: 'Community Engagement', batchId: 'ba825' },
-    { id: 'a825d', title: 'Summer Highlights Reel',         date: new Date(2026, 7, 25), contentType: 'highlight-reel', funnelStage: 'top',    status: 'draft',      campaign: 'Community Engagement' },
+    { id: 'a825a', title: 'End of Summer Celebration',      date: new Date(2026, 7, 25), contentType: 'wechat-article',      funnelStage: 'top',    status: 'draft',      campaign: 'Community Engagement' },
+    { id: 'a825b', title: 'Summer Celebration',             date: new Date(2026, 7, 25), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'draft',      campaign: 'Community Engagement', batchId: 'ba825' },
+    { id: 'a825c', title: 'Summer Celebration',             date: new Date(2026, 7, 25), contentType: 'social-post', platform: 'weibo',  funnelStage: 'top',    status: 'draft',      campaign: 'Community Engagement', batchId: 'ba825' },
+    { id: 'a825d', title: 'Summer Highlights Reel',         date: new Date(2026, 7, 25), contentType: 'carousel', funnelStage: 'top',    status: 'draft',      campaign: 'Community Engagement' },
 
     // Aug 28
-    { id: 'a828a', title: 'September Training Plan Launch', date: new Date(2026, 7, 28), contentType: 'long-form',      funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026' },
-    { id: 'a828b', title: 'Training Plan',                  date: new Date(2026, 7, 28), contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026', batchId: 'ba828' },
-    { id: 'a828c', title: 'Training Plan',                  date: new Date(2026, 7, 28), contentType: 'social-post', platform: 'linkedin',  funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026', batchId: 'ba828' },
+    { id: 'a828a', title: 'September Training Plan Launch', date: new Date(2026, 7, 28), contentType: 'wechat-article',      funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026' },
+    { id: 'a828b', title: 'Training Plan',                  date: new Date(2026, 7, 28), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026', batchId: 'ba828' },
+    { id: 'a828c', title: 'Training Plan',                  date: new Date(2026, 7, 28), contentType: 'social-post', platform: 'wechat',  funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026', batchId: 'ba828' },
     { id: 'a828d', title: '"Plan Your Victory"',             date: new Date(2026, 7, 28), contentType: 'quote-card',     funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026' },
 
     // Aug 30
-    { id: 'a830a', title: 'August Wins Roundup',            date: new Date(2026, 7, 30), contentType: 'long-form',      funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2' },
-    { id: 'a830b', title: 'August Roundup',                 date: new Date(2026, 7, 30), contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'ba830' },
-    { id: 'a830c', title: 'August Roundup',                 date: new Date(2026, 7, 30), contentType: 'social-post', platform: 'facebook',  funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'ba830' },
+    { id: 'a830a', title: 'August Wins Roundup',            date: new Date(2026, 7, 30), contentType: 'wechat-article',      funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2' },
+    { id: 'a830b', title: 'August Roundup',                 date: new Date(2026, 7, 30), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'ba830' },
+    { id: 'a830c', title: 'August Roundup',                 date: new Date(2026, 7, 30), contentType: 'social-post', platform: 'weibo',  funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'ba830' },
 
     // ════════════════ SEPTEMBER 2026 — upcoming content ════════════════
 
     // Sep 1
-    { id: 's901a', title: 'Fall Collection Official Launch', date: new Date(2026, 8, 1), contentType: 'long-form',      funnelStage: 'top',    status: 'draft',      campaign: 'Fall Collection Launch' },
-    { id: 's901b', title: 'Fall Collection Launch',         date: new Date(2026, 8, 1),  contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'draft',      campaign: 'Fall Collection Launch', batchId: 'bs901' },
-    { id: 's901c', title: 'Fall Collection Launch',         date: new Date(2026, 8, 1),  contentType: 'social-post', platform: 'facebook',  funnelStage: 'top',    status: 'draft',      campaign: 'Fall Collection Launch', batchId: 'bs901' },
-    { id: 's901d', title: 'Fall Collection Launch',         date: new Date(2026, 8, 1),  contentType: 'social-post', platform: 'tiktok',    funnelStage: 'top',    status: 'draft',      campaign: 'Fall Collection Launch', batchId: 'bs901' },
-    { id: 's901e', title: 'Fall Collection Launch',         date: new Date(2026, 8, 1),  contentType: 'social-post', platform: 'linkedin',  funnelStage: 'top',    status: 'draft',      campaign: 'Fall Collection Launch', batchId: 'bs901' },
+    { id: 's901a', title: 'Fall Collection Official Launch', date: new Date(2026, 8, 1), contentType: 'wechat-article',      funnelStage: 'top',    status: 'draft',      campaign: 'Fall Collection Launch' },
+    { id: 's901b', title: 'Fall Collection Launch',         date: new Date(2026, 8, 1),  contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'draft',      campaign: 'Fall Collection Launch', batchId: 'bs901' },
+    { id: 's901c', title: 'Fall Collection Launch',         date: new Date(2026, 8, 1),  contentType: 'social-post', platform: 'weibo',  funnelStage: 'top',    status: 'draft',      campaign: 'Fall Collection Launch', batchId: 'bs901' },
+    { id: 's901d', title: 'Fall Collection Launch',         date: new Date(2026, 8, 1),  contentType: 'social-post', platform: 'douyin',    funnelStage: 'top',    status: 'draft',      campaign: 'Fall Collection Launch', batchId: 'bs901' },
+    { id: 's901e', title: 'Fall Collection Launch',         date: new Date(2026, 8, 1),  contentType: 'social-post', platform: 'wechat',  funnelStage: 'top',    status: 'draft',      campaign: 'Fall Collection Launch', batchId: 'bs901' },
     { id: 's901f', title: 'Fall Launch Video',              date: new Date(2026, 8, 1),  contentType: 'ai-video',       funnelStage: 'top',    status: 'generating', campaign: 'Fall Collection Launch' },
 
     // Sep 3
-    { id: 's903a', title: 'Marathon Training Week 1',       date: new Date(2026, 8, 3),  contentType: 'long-form',      funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026' },
-    { id: 's903b', title: 'Training Week 1',                date: new Date(2026, 8, 3),  contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026', batchId: 'bs903' },
-    { id: 's903c', title: 'Training Week 1',                date: new Date(2026, 8, 3),  contentType: 'social-post', platform: 'x',         funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026', batchId: 'bs903' },
+    { id: 's903a', title: 'Marathon Training Week 1',       date: new Date(2026, 8, 3),  contentType: 'wechat-article',      funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026' },
+    { id: 's903b', title: 'Training Week 1',                date: new Date(2026, 8, 3),  contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026', batchId: 'bs903' },
+    { id: 's903c', title: 'Training Week 1',                date: new Date(2026, 8, 3),  contentType: 'social-post', platform: 'weibo',         funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026', batchId: 'bs903' },
     { id: 's903d', title: '"Start Strong, Finish Stronger"', date: new Date(2026, 8, 3),  contentType: 'quote-card',     funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026' },
 
     // Sep 5
-    { id: 's905a', title: 'Back to School Success Stories', date: new Date(2026, 8, 5),  contentType: 'long-form',      funnelStage: 'top',    status: 'draft',      campaign: 'Back to School 2026' },
-    { id: 's905b', title: 'Success Stories',                date: new Date(2026, 8, 5),  contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'draft',      campaign: 'Back to School 2026', batchId: 'bs905' },
-    { id: 's905c', title: 'Success Stories',                date: new Date(2026, 8, 5),  contentType: 'social-post', platform: 'facebook',  funnelStage: 'top',    status: 'draft',      campaign: 'Back to School 2026', batchId: 'bs905' },
-    { id: 's905d', title: 'Student Athlete Highlight',      date: new Date(2026, 8, 5),  contentType: 'short-clip',     funnelStage: 'top',    status: 'draft',      campaign: 'Back to School 2026' },
+    { id: 's905a', title: 'Back to School Success Stories', date: new Date(2026, 8, 5),  contentType: 'wechat-article',      funnelStage: 'top',    status: 'draft',      campaign: 'Back to School 2026' },
+    { id: 's905b', title: 'Success Stories',                date: new Date(2026, 8, 5),  contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'draft',      campaign: 'Back to School 2026', batchId: 'bs905' },
+    { id: 's905c', title: 'Success Stories',                date: new Date(2026, 8, 5),  contentType: 'social-post', platform: 'weibo',  funnelStage: 'top',    status: 'draft',      campaign: 'Back to School 2026', batchId: 'bs905' },
+    { id: 's905d', title: 'Student Athlete Highlight',      date: new Date(2026, 8, 5),  contentType: 'short-video',     funnelStage: 'top',    status: 'draft',      campaign: 'Back to School 2026' },
 
     // Sep 8
-    { id: 's908a', title: 'Fall Fashion Week Recap',        date: new Date(2026, 8, 8),  contentType: 'highlight-reel', funnelStage: 'top',    status: 'draft',      campaign: 'Fall Collection Launch' },
-    { id: 's908b', title: 'Fashion Week',                   date: new Date(2026, 8, 8),  contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'draft',      campaign: 'Fall Collection Launch', batchId: 'bs908' },
-    { id: 's908c', title: 'Fashion Week',                   date: new Date(2026, 8, 8),  contentType: 'social-post', platform: 'tiktok',    funnelStage: 'top',    status: 'draft',      campaign: 'Fall Collection Launch', batchId: 'bs908' },
+    { id: 's908a', title: 'Fall Fashion Week Recap',        date: new Date(2026, 8, 8),  contentType: 'carousel', funnelStage: 'top',    status: 'draft',      campaign: 'Fall Collection Launch' },
+    { id: 's908b', title: 'Fashion Week',                   date: new Date(2026, 8, 8),  contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'draft',      campaign: 'Fall Collection Launch', batchId: 'bs908' },
+    { id: 's908c', title: 'Fashion Week',                   date: new Date(2026, 8, 8),  contentType: 'social-post', platform: 'douyin',    funnelStage: 'top',    status: 'draft',      campaign: 'Fall Collection Launch', batchId: 'bs908' },
 
     // Sep 10
-    { id: 's910a', title: 'Mid-September Member Drop',      date: new Date(2026, 8, 10), contentType: 'long-form',      funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive' },
-    { id: 's910b', title: 'Member Drop',                    date: new Date(2026, 8, 10), contentType: 'social-post', platform: 'instagram', funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive', batchId: 'bs910' },
-    { id: 's910c', title: 'Member Drop',                    date: new Date(2026, 8, 10), contentType: 'social-post', platform: 'facebook',  funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive', batchId: 'bs910' },
-    { id: 's910d', title: 'Member Drop',                    date: new Date(2026, 8, 10), contentType: 'social-post', platform: 'linkedin',  funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive', batchId: 'bs910' },
-    { id: 's910e', title: 'Exclusive Access Clip',          date: new Date(2026, 8, 10), contentType: 'short-clip',     funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive' },
+    { id: 's910a', title: 'Mid-September Member Drop',      date: new Date(2026, 8, 10), contentType: 'wechat-article',      funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive' },
+    { id: 's910b', title: 'Member Drop',                    date: new Date(2026, 8, 10), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive', batchId: 'bs910' },
+    { id: 's910c', title: 'Member Drop',                    date: new Date(2026, 8, 10), contentType: 'social-post', platform: 'weibo',  funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive', batchId: 'bs910' },
+    { id: 's910d', title: 'Member Drop',                    date: new Date(2026, 8, 10), contentType: 'social-post', platform: 'wechat',  funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive', batchId: 'bs910' },
+    { id: 's910e', title: 'Exclusive Access Clip',          date: new Date(2026, 8, 10), contentType: 'short-video',     funnelStage: 'bottom', status: 'draft',      campaign: 'Retention Drive' },
 
     // Sep 12
-    { id: 's912a', title: 'Marathon Training Week 2',       date: new Date(2026, 8, 12), contentType: 'long-form',      funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026' },
-    { id: 's912b', title: 'Training Week 2',                date: new Date(2026, 8, 12), contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026', batchId: 'bs912' },
-    { id: 's912c', title: 'Training Week 2',                date: new Date(2026, 8, 12), contentType: 'social-post', platform: 'x',         funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026', batchId: 'bs912' },
+    { id: 's912a', title: 'Marathon Training Week 2',       date: new Date(2026, 8, 12), contentType: 'wechat-article',      funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026' },
+    { id: 's912b', title: 'Training Week 2',                date: new Date(2026, 8, 12), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026', batchId: 'bs912' },
+    { id: 's912c', title: 'Training Week 2',                date: new Date(2026, 8, 12), contentType: 'social-post', platform: 'weibo',         funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026', batchId: 'bs912' },
     { id: 's912d', title: '"Consistency Beats Intensity"',   date: new Date(2026, 8, 12), contentType: 'quote-card',     funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026' },
 
     // Sep 15
-    { id: 's915a', title: 'Fall Product Spotlight',         date: new Date(2026, 8, 15), contentType: 'long-form',      funnelStage: 'middle', status: 'draft',      campaign: 'Fall Collection Launch' },
-    { id: 's915b', title: 'Product Spotlight',              date: new Date(2026, 8, 15), contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'draft',      campaign: 'Fall Collection Launch', batchId: 'bs915' },
+    { id: 's915a', title: 'Fall Product Spotlight',         date: new Date(2026, 8, 15), contentType: 'wechat-article',      funnelStage: 'middle', status: 'draft',      campaign: 'Fall Collection Launch' },
+    { id: 's915b', title: 'Product Spotlight',              date: new Date(2026, 8, 15), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'draft',      campaign: 'Fall Collection Launch', batchId: 'bs915' },
     { id: 's915c', title: 'Product Spotlight',              date: new Date(2026, 8, 15), contentType: 'social-post', platform: 'youtube',   funnelStage: 'middle', status: 'draft',      campaign: 'Fall Collection Launch', batchId: 'bs915' },
     { id: 's915d', title: 'Product Tech Video',             date: new Date(2026, 8, 15), contentType: 'ai-video',       funnelStage: 'middle', status: 'generating', campaign: 'Fall Collection Launch' },
 
     // Sep 18
-    { id: 's918a', title: 'Community Challenge September',  date: new Date(2026, 8, 18), contentType: 'long-form',      funnelStage: 'top',    status: 'draft',      campaign: 'Community Engagement' },
-    { id: 's918b', title: 'September Challenge',            date: new Date(2026, 8, 18), contentType: 'social-post', platform: 'instagram', funnelStage: 'top',    status: 'draft',      campaign: 'Community Engagement', batchId: 'bs918' },
-    { id: 's918c', title: 'September Challenge',            date: new Date(2026, 8, 18), contentType: 'social-post', platform: 'tiktok',    funnelStage: 'top',    status: 'draft',      campaign: 'Community Engagement', batchId: 'bs918' },
-    { id: 's918d', title: 'Challenge Kickoff Clip',         date: new Date(2026, 8, 18), contentType: 'short-clip',     funnelStage: 'top',    status: 'draft',      campaign: 'Community Engagement' },
+    { id: 's918a', title: 'Community Challenge September',  date: new Date(2026, 8, 18), contentType: 'wechat-article',      funnelStage: 'top',    status: 'draft',      campaign: 'Community Engagement' },
+    { id: 's918b', title: 'September Challenge',            date: new Date(2026, 8, 18), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'top',    status: 'draft',      campaign: 'Community Engagement', batchId: 'bs918' },
+    { id: 's918c', title: 'September Challenge',            date: new Date(2026, 8, 18), contentType: 'social-post', platform: 'douyin',    funnelStage: 'top',    status: 'draft',      campaign: 'Community Engagement', batchId: 'bs918' },
+    { id: 's918d', title: 'Challenge Kickoff Clip',         date: new Date(2026, 8, 18), contentType: 'short-video',     funnelStage: 'top',    status: 'draft',      campaign: 'Community Engagement' },
 
     // Sep 20
-    { id: 's920a', title: 'Athlete Interview: Fall Goals',  date: new Date(2026, 8, 20), contentType: 'long-form',      funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026', batchId: 'bs920' },
-    { id: 's920b', title: 'Fall Goals Clip',                date: new Date(2026, 8, 20), contentType: 'short-clip',     funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026', batchId: 'bs920' },
+    { id: 's920a', title: 'Athlete Interview: Fall Goals',  date: new Date(2026, 8, 20), contentType: 'wechat-article',      funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026', batchId: 'bs920' },
+    { id: 's920b', title: 'Fall Goals Clip',                date: new Date(2026, 8, 20), contentType: 'short-video',     funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026', batchId: 'bs920' },
     { id: 's920c', title: '"Set the Bar High"',              date: new Date(2026, 8, 20), contentType: 'quote-card',     funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026', batchId: 'bs920' },
 
     // Sep 22
-    { id: 's922a', title: 'Fall Sale Preview',              date: new Date(2026, 8, 22), contentType: 'social-post', platform: 'instagram', funnelStage: 'bottom', status: 'draft',      campaign: 'Fall Collection Launch', batchId: 'bs922' },
-    { id: 's922b', title: 'Fall Sale Preview',              date: new Date(2026, 8, 22), contentType: 'social-post', platform: 'facebook',  funnelStage: 'bottom', status: 'draft',      campaign: 'Fall Collection Launch', batchId: 'bs922' },
-    { id: 's922c', title: 'Fall Sale Preview',              date: new Date(2026, 8, 22), contentType: 'social-post', platform: 'tiktok',    funnelStage: 'bottom', status: 'draft',      campaign: 'Fall Collection Launch', batchId: 'bs922' },
-    { id: 's922d', title: 'Fall Sale Preview',              date: new Date(2026, 8, 22), contentType: 'social-post', platform: 'x',         funnelStage: 'bottom', status: 'draft',      campaign: 'Fall Collection Launch', batchId: 'bs922' },
-    { id: 's922e', title: 'Sale Teaser Clip',               date: new Date(2026, 8, 22), contentType: 'short-clip',     funnelStage: 'bottom', status: 'draft',      campaign: 'Fall Collection Launch' },
+    { id: 's922a', title: 'Fall Sale Preview',              date: new Date(2026, 8, 22), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'bottom', status: 'draft',      campaign: 'Fall Collection Launch', batchId: 'bs922' },
+    { id: 's922b', title: 'Fall Sale Preview',              date: new Date(2026, 8, 22), contentType: 'social-post', platform: 'weibo',  funnelStage: 'bottom', status: 'draft',      campaign: 'Fall Collection Launch', batchId: 'bs922' },
+    { id: 's922c', title: 'Fall Sale Preview',              date: new Date(2026, 8, 22), contentType: 'social-post', platform: 'douyin',    funnelStage: 'bottom', status: 'draft',      campaign: 'Fall Collection Launch', batchId: 'bs922' },
+    { id: 's922d', title: 'Fall Sale Preview',              date: new Date(2026, 8, 22), contentType: 'social-post', platform: 'weibo',         funnelStage: 'bottom', status: 'draft',      campaign: 'Fall Collection Launch', batchId: 'bs922' },
+    { id: 's922e', title: 'Sale Teaser Clip',               date: new Date(2026, 8, 22), contentType: 'short-video',     funnelStage: 'bottom', status: 'draft',      campaign: 'Fall Collection Launch' },
 
     // Sep 25
-    { id: 's925a', title: 'End of September Recap',         date: new Date(2026, 8, 25), contentType: 'long-form',      funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2' },
-    { id: 's925b', title: 'September Recap',                date: new Date(2026, 8, 25), contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bs925' },
-    { id: 's925c', title: 'September Recap',                date: new Date(2026, 8, 25), contentType: 'social-post', platform: 'facebook',  funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bs925' },
-    { id: 's925d', title: 'September Highlights',           date: new Date(2026, 8, 25), contentType: 'highlight-reel', funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2' },
+    { id: 's925a', title: 'End of September Recap',         date: new Date(2026, 8, 25), contentType: 'wechat-article',      funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2' },
+    { id: 's925b', title: 'September Recap',                date: new Date(2026, 8, 25), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bs925' },
+    { id: 's925c', title: 'September Recap',                date: new Date(2026, 8, 25), contentType: 'social-post', platform: 'weibo',  funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bs925' },
+    { id: 's925d', title: 'September Highlights',           date: new Date(2026, 8, 25), contentType: 'carousel', funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2' },
 
     // Sep 28
-    { id: 's928a', title: 'October Training Plan Preview',  date: new Date(2026, 8, 28), contentType: 'long-form',      funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026' },
-    { id: 's928b', title: 'October Plan',                   date: new Date(2026, 8, 28), contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026', batchId: 'bs928' },
-    { id: 's928c', title: 'October Plan',                   date: new Date(2026, 8, 28), contentType: 'social-post', platform: 'linkedin',  funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026', batchId: 'bs928' },
+    { id: 's928a', title: 'October Training Plan Preview',  date: new Date(2026, 8, 28), contentType: 'wechat-article',      funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026' },
+    { id: 's928b', title: 'October Plan',                   date: new Date(2026, 8, 28), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026', batchId: 'bs928' },
+    { id: 's928c', title: 'October Plan',                   date: new Date(2026, 8, 28), contentType: 'social-post', platform: 'wechat',  funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026', batchId: 'bs928' },
     { id: 's928d', title: '"Next Chapter, Next Mile"',       date: new Date(2026, 8, 28), contentType: 'quote-card',     funnelStage: 'middle', status: 'draft',      campaign: 'Marathon Prep 2026' },
 
     // Sep 30
-    { id: 's930a', title: 'September Wins Roundup',         date: new Date(2026, 8, 30), contentType: 'long-form',      funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2' },
-    { id: 's930b', title: 'September Roundup',              date: new Date(2026, 8, 30), contentType: 'social-post', platform: 'instagram', funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bs930' },
-    { id: 's930c', title: 'September Roundup',              date: new Date(2026, 8, 30), contentType: 'social-post', platform: 'facebook',  funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bs930' },
+    { id: 's930a', title: 'September Wins Roundup',         date: new Date(2026, 8, 30), contentType: 'wechat-article',      funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2' },
+    { id: 's930b', title: 'September Roundup',              date: new Date(2026, 8, 30), contentType: 'social-post', platform: 'xiaohongshu', funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bs930' },
+    { id: 's930c', title: 'September Roundup',              date: new Date(2026, 8, 30), contentType: 'social-post', platform: 'weibo',  funnelStage: 'middle', status: 'draft',      campaign: 'Brand Awareness Q2', batchId: 'bs930' },
   ]);
 
   const toggleContentType = (type: ContentType) => { const s = new Set(selectedContentTypes); s.has(type) ? s.delete(type) : s.add(type); setSelectedContentTypes(s); };
@@ -1157,9 +1159,9 @@ export function CalendarView() {
   const leadingBlanks = monthStart.getDay(); // 0=Sun … 6=Sat — empty slots before day 1
 
   const contentTypeConfig = [
-    { type: 'long-form'      as ContentType, label: 'Long Form' },
-    { type: 'short-clip'     as ContentType, label: 'Short Clip' },
-    { type: 'highlight-reel' as ContentType, label: 'Highlight Reel' },
+    { type: 'wechat-article'      as ContentType, label: 'Long Form' },
+    { type: 'short-video'     as ContentType, label: 'Short Clip' },
+    { type: 'carousel' as ContentType, label: 'Highlight Reel' },
     { type: 'ai-video'       as ContentType, label: 'Text to AI Video' },
     { type: 'quote-card'     as ContentType, label: 'Quote Card' },
     { type: 'social-post'    as ContentType, label: 'Social Post' },
