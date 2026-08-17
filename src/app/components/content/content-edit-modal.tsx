@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { X, ChevronDown, Search, Upload, Sparkles, Palette, User, FileText } from "lucide-react";
 import svgPathsShortClip from "@/imports/PostContentContainer-3/svg-ehzova85ar";
 import svgPathsLongForm from "@/imports/PostContentContainer-6/svg-zh0484zckq";
@@ -1402,6 +1402,13 @@ export function ContentEditModal({
   const setField = (k: string, v: any) => setFieldsRaw((prev) => ({ ...prev, [k]: v }));
 
   const isApproved = currentStatus === "Approved";
+
+  // Reset picker state when content item changes (fixes crash when switching items)
+  useEffect(() => {
+    setSelectedBrandKitName("");
+    setSelectedWriterProfileName("");
+    setFieldsRaw((prev) => ({ ...prev, brandKit: "", writerProfile: "", writerProfileId: "", selectedResources: [] }));
+  }, [contentItem.id]);
 
   const handleStatusChange = (newStatus: string) => {
     if (newStatus === "Rejected") {
