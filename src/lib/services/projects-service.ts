@@ -120,7 +120,7 @@ export async function createTemplateProject(): Promise<Project | null> {
   const sampleContentItems = [
     {
       project_id: project.id,
-      platform: 'instagram',
+      platform: 'xiaohongshu',
       content_type: 'image',
       status: 'draft',
       title: 'Welcome Post',
@@ -129,7 +129,7 @@ export async function createTemplateProject(): Promise<Project | null> {
     },
     {
       project_id: project.id,
-      platform: 'linkedin',
+      platform: 'wechat',
       content_type: 'article',
       status: 'draft',
       title: 'Industry Insights',

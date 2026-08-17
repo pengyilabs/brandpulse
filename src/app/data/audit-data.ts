@@ -1,4 +1,4 @@
-export type Platform = 'youtube' | 'instagram' | 'facebook' | 'tiktok' | 'linkedin' | 'x'
+export type Platform = 'youtube' | 'xiaohongshu' | 'weibo' | 'douyin' | 'wechat' | 'bilibili'
 export type ContentType = 'short-clips' | 'carousels' | 'static-posts' | 'blog-long-form' | 'ai-text-video' | 'quote-cards' | 'social-posts'
 export type FunnelStage = 'top' | 'middle' | 'bottom'
 
@@ -115,8 +115,8 @@ export const MOCK_AUDIT: Audit = {
   dateRange: { start: new Date(2025, 0, 1), end: new Date(2025, 2, 31) },
   platforms: [
     { id: 'p1', platform: 'youtube', name: 'YouTube', handle: '@fashionbrand', postsCount: 64, enabled: true, status: 'complete' },
-    { id: 'p2', platform: 'instagram', name: 'Instagram', handle: '@fashionbrand_official', postsCount: 52, enabled: true, status: 'complete' },
-    { id: 'p3', platform: 'facebook', name: 'Facebook', handle: '/fashionbrand', postsCount: 42, enabled: false, status: 'complete' },
+    { id: 'p2', platform: 'xiaohongshu', name: 'Xiaohongshu', handle: '@fashionbrand_official', postsCount: 52, enabled: true, status: 'complete' },
+    { id: 'p3', platform: 'weibo', name: 'Weibo', handle: '/fashionbrand', postsCount: 42, enabled: false, status: 'complete' },
   ],
   totalPosts: 158,
   avgEngagement: '2.4K',
@@ -195,7 +195,7 @@ export const MOCK_AUDIT: Audit = {
     {
       id: 'top-2',
       title: 'Summer Training Tips',
-      platform: 'instagram',
+      platform: 'xiaohongshu',
       contentType: 'carousels',
       engagement: 8720,
       date: new Date(2025, 2, 10),
@@ -213,7 +213,7 @@ export const MOCK_AUDIT: Audit = {
     {
       id: 'top-4',
       title: 'New Arrivals Showcase',
-      platform: 'instagram',
+      platform: 'xiaohongshu',
       contentType: 'carousels',
       engagement: 6980,
       date: new Date(2025, 1, 20),
@@ -231,7 +231,7 @@ export const MOCK_AUDIT: Audit = {
     {
       id: 'top-6',
       title: 'Brand Announcement',
-      platform: 'facebook',
+      platform: 'weibo',
       contentType: 'static-posts',
       engagement: 5890,
       date: new Date(2025, 0, 8),
