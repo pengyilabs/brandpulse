@@ -70,7 +70,7 @@ export function AuditWizard() {
   }, [isAnalyzing, profiles])
 
   const addProfile = () => {
-    const platforms: Platform[] = ['youtube', 'instagram', 'facebook', 'tiktok', 'linkedin', 'x']
+    const platforms: Platform[] = ['youtube', 'xiaohongshu', 'weibo', 'douyin', 'wechat', 'bilibili']
     const usedPlatforms = new Set(profiles.map((p) => p.platform))
     const nextPlatform = platforms.find((p) => !usedPlatforms.has(p)) || 'youtube'
     setProfiles([
