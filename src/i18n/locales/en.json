@@ -50,7 +50,8 @@
     "settings": "Settings",
     "collapse": "Collapse",
     "expand": "Expand sidebar",
-    "logout": "Logout"
+    "logout": "Logout",
+    "comingSoon": "Coming Soon"
   },
   "dashboard": {
     "tagline": "Quality over quantity",
@@ -97,6 +98,14 @@
     "projectsCount_plural": "{{count}} projects"
   },
   "audits": {
+    "comingSoonTitle": "Profile Audits — Coming Soon",
+    "comingSoonDesc": "Analyze your social media profiles with AI-powered insights to measure brand presence, audience engagement, and content performance across platforms.",
+    "comingSoonFeatures": [
+      "Profile score and benchmarking against competitors",
+      "Audience growth trends and engagement analytics",
+      "Content performance analysis with actionable recommendations",
+      "Cross-platform comparison and unified reporting"
+    ],
     "title": "Saved Audits",
     "description": "Manage and review your historical profile analysis",
     "searchPlaceholder": "Search audits...",
