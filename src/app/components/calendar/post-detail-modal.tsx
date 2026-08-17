@@ -2,15 +2,15 @@ import { useState, useRef } from 'react';
 import {
   X, Upload, Sparkles, ChevronDown, Calendar, Clock, Tag,
   FileText, Scissors, Star, Wand2, Quote, Share2,
-  Instagram, Facebook, Linkedin, Twitter, Youtube, Music2,
+  Youtube, Music2, MessageCircle, LayoutGrid, Play, Film,
   Link2, Search, Library,
 } from 'lucide-react';
 import { format } from 'date-fns';
 
 // ─── Shared types (mirror of calendar-view types) ────────────────────────────
 
-type ContentType = 'long-form' | 'short-clip' | 'highlight-reel' | 'ai-video' | 'quote-card' | 'social-post';
-type Platform = 'instagram' | 'facebook' | 'linkedin' | 'x' | 'tiktok' | 'youtube';
+type ContentType = 'wechat-article' | 'short-video' | 'social-post' | 'carousel' | 'quote-card' | 'ai-video' | 'live-clip';
+type Platform = 'wechat' | 'xiaohongshu' | 'douyin' | 'weibo' | 'bilibili' | 'youtube';
 type Status = 'draft' | 'generating' | 'review' | 'approved' | 'published' | 'rejected';
 
 interface CalendarItem {
@@ -28,39 +28,41 @@ interface CalendarItem {
 // ─── Icon / label maps ───────────────────────────────────────────────────────
 
 const CONTENT_TYPE_ICON_MAP: Record<ContentType, React.ReactElement> = {
-  'long-form':      <FileText  className="w-4 h-4" />,
-  'short-clip':     <Scissors  className="w-4 h-4" />,
-  'highlight-reel': <Star      className="w-4 h-4" />,
-  'ai-video':       <Wand2     className="w-4 h-4" />,
-  'quote-card':     <Quote     className="w-4 h-4" />,
-  'social-post':    <Share2    className="w-4 h-4" />,
+  'wechat-article': <FileText    className="w-4 h-4" />,
+  'short-video':    <Film        className="w-4 h-4" />,
+  'social-post':    <Share2      className="w-4 h-4" />,
+  'carousel':       <LayoutGrid  className="w-4 h-4" />,
+  'quote-card':     <Quote       className="w-4 h-4" />,
+  'ai-video':       <Wand2       className="w-4 h-4" />,
+  'live-clip':      <Scissors    className="w-4 h-4" />,
 };
 
 const CONTENT_TYPE_LABEL: Record<ContentType, string> = {
-  'long-form':      'Long Form',
-  'short-clip':     'Short Clip',
-  'highlight-reel': 'Highlight Reel',
-  'ai-video':       'AI Video',
-  'quote-card':     'Quote Card',
+  'wechat-article': 'WeChat Article',
+  'short-video':    'Short Video',
   'social-post':    'Social Post',
+  'carousel':       'Carousel',
+  'quote-card':     'Quote Card',
+  'ai-video':       'AI Video',
+  'live-clip':      'Live Stream Clip',
 };
 
 const PLATFORM_ICONS: Record<Platform, React.ReactElement> = {
-  instagram: <Instagram className="w-3.5 h-3.5" />,
-  facebook:  <Facebook  className="w-3.5 h-3.5" />,
-  linkedin:  <Linkedin  className="w-3.5 h-3.5" />,
-  x:         <Twitter   className="w-3.5 h-3.5" />,
-  tiktok:    <Music2    className="w-3.5 h-3.5" />,
-  youtube:   <Youtube   className="w-3.5 h-3.5" />,
+  wechat:      <MessageCircle className="w-3.5 h-3.5" />,
+  xiaohongshu: <LayoutGrid    className="w-3.5 h-3.5" />,
+  douyin:      <Music2        className="w-3.5 h-3.5" />,
+  weibo:       <Share2        className="w-3.5 h-3.5" />,
+  bilibili:    <Play          className="w-3.5 h-3.5" />,
+  youtube:     <Youtube       className="w-3.5 h-3.5" />,
 };
 
 const PLATFORM_LABEL: Record<Platform, string> = {
-  instagram: 'Instagram',
-  facebook:  'Facebook',
-  linkedin:  'LinkedIn',
-  x:         'X (Twitter)',
-  tiktok:    'TikTok',
-  youtube:   'YouTube',
+  wechat:      'WeChat',
+  xiaohongshu: 'Xiaohongshu',
+  douyin:      'Douyin',
+  weibo:       'Weibo',
+  bilibili:    'Bilibili',
+  youtube:     'YouTube',
 };
 
 const STATUS_OPTIONS: { value: Status; label: string; dot: string }[] = [
@@ -75,21 +77,87 @@ const STATUS_OPTIONS: { value: Status; label: string; dot: string }[] = [
 // ─── Mock post content per type ──────────────────────────────────────────────
 
 const MOCK_POST_CONTENT: Record<ContentType, string> = {
-  'long-form': `Control rarely identifies itself honestly.\n\nIt arrives as planning, as responsibility.\n\nIt is fear in different clothing.\n\nControl does not arrive announcing itself as fear. It arrives as planning, as preparation, as responsibility, as taking initiative.\n\nSo we let it run, often for years, without recognizing that the underlying engine is the same contraction fear is — only now externalized, given somewhere to put itself.\n\nGurudev Shri Amritji's line on this is quietly devastating, "When you seek the solution by attempting to change, manage, and control forms, your actions become extrovert; you depend on the undependable world of change."\n\n#IAMYoga #LuminaWellness #Fear #Control #Presence #Witnessing #GurudevShriAmritji #ConsciousLiving #InnerFreedom #YogaWisdom #LettingGo`,
-  'short-clip': `5 Essential Training Tips for Summer Running\n\n1. Hydrate before you feel thirsty\n2. Run during cooler hours (early morning or late evening)\n3. Wear light, breathable fabrics\n4. Adjust your pace — heat slows everyone down\n5. Listen to your body and take walk breaks when needed\n\n#RunningTips #SummerTraining #Hydration #RunSmart`,
-  'highlight-reel': `Best moments from this month's community challenge.\n\nFeaturing incredible performances from runners across 12 cities. Every rep, every mile, every moment of grit captured in one powerful reel.\n\n#CommunityChallenge #RunWithUs #MonthlyHighlights #NeverSettle`,
-  'ai-video': `This AI-generated video showcases our summer collection in motion.\n\nScene 1: Athletes training at sunrise\nScene 2: Product close-ups with dynamic transitions\nScene 3: Community run event highlights\nScene 4: Brand message overlay with CTA\n\nDuration: 60 seconds | Style: Cinematic | Music: Upbeat electronic`,
-  'quote-card': `"The body achieves what the mind believes."\n\n— Unknown\n\n#Motivation #Mindset #RunningQuotes #BelieveInYourself #TrainHard`,
-  'social-post': `Summer training demands summer-ready gear. We've spent months testing, refining, and pushing every fabric and seam so you don't have to think about your kit — only your next rep.\n\nThe Summer Collection is here: lighter, faster, and more durable than ever.\n\nTap to explore and gear up for the season that defines your year.\n\n#SummerCollection #AthleticPerformance #TrainLikeYouMeanIt`,
+  'wechat-article': `夏季运动新风尚：如何在这个夏天突破自我
+
+夏天，不只是阳光和汗水，更是突破自我的最佳时机。
+
+对于每一位热爱运动的你来说，夏季意味着更长的日照时间、更多的户外活动机会，以及挑战身体极限的绝佳窗口。
+
+但高温也带来了独特的挑战。如何在炎热天气中保持最佳状态？本文将为你揭秘夏季训练的五大黄金法则。
+
+**1. 补水先行**
+不要等到口渴才喝水。训练前30分钟补充500ml水，训练中每15分钟补充150-200ml。
+
+**2. 选择黄金时段**
+清晨6-7点或傍晚7-9点是最佳训练时间，避开正午高温。
+
+**3. 透气装备**
+选择轻量、透气的专业运动装备，让汗水快速蒸发。
+
+**4. 调整配速**
+高温会降低你的表现，适当降低强度，让身体逐步适应。
+
+**5. 聆听身体**
+当出现头晕、恶心等症状时，立即停止运动，寻找阴凉处休息。
+
+#夏季训练 #运动科学 #跑步技巧 #健身指南`,
+  'short-video': `🔥 5个夏季跑步必备技巧！
+
+1️⃣ 训练前补水：提前30分钟喝500ml
+2️⃣ 选对时间：清晨或傍晚
+3️⃣ 穿透气装备：不要棉质
+4️⃣ 降低配速：高温影响表现
+5️⃣ 听身体的话：不适即停
+
+关注我们，获取更多运动干货！🏃‍♂️💪
+
+#跑步 #夏季训练 #健身 #运动科普`,
+  'social-post': `☀️ 夏天来了，你的运动装备准备好了吗？
+
+我们花了数月时间测试、改进每一件装备的面料和工艺，让你无需操心装备，只需专注每一次训练。
+
+夏季系列现已上市：更轻、更快、更耐用。
+
+点击探索，为你的夏季训练升级装备 🔥
+
+#夏季系列 #运动装备 #训练 #突破自我`,
+  'carousel': `Slide 1: 夏季训练必备指南
+Slide 2: 补水时间表 — 训练前中后
+Slide 3: 最佳训练时段推荐
+Slide 4: 装备选择金字塔
+Slide 5: 夏季饮食搭配建议
+Slide 6: 常见误区与注意事项
+
+#夏季训练 #运动指南 #健身科普`,
+  'quote-card': `"身体能够达到的，取决于你的信念。" 
+
+—— 强者的信条
+
+#激励 #信念 #运动精神 #突破自我`,
+  'ai-video': `【AI生成视频】夏季运动品牌宣传片
+
+场景1: 运动员在日出时训练
+场景2: 产品特写与动态转场
+场景3: 社区跑团活动精彩瞬间
+场景4: 品牌理念与行动号召
+
+时长：60秒 | 风格：电影质感 | 音乐：动感电子`,
+  'live-clip': `直播精彩片段：夏季训练营特别场
+
+主持人分享夏季训练核心要点，现场展示正确跑步姿势和错误示范。
+
+时长：5分钟
+来源：品牌直bō间 2026年7月场`,
 };
 
 const MOCK_TAGS: Record<ContentType, string[]> = {
-  'long-form':      ['IAMYoga', 'Guru', 'YogaWisdom', 'Mindfulness', 'ConsciousLiving'],
-  'short-clip':     ['RunningTips', 'SummerTraining', 'Hydration', 'Fitness'],
-  'highlight-reel': ['CommunityChallenge', 'Highlights', 'RunWithUs'],
-  'ai-video':       ['AIVideo', 'BrandStory', 'Cinematic', 'SummerCollection'],
-  'quote-card':     ['Motivation', 'Mindset', 'RunningQuotes'],
-  'social-post':    ['SummerCollection', 'AthleticPerformance', 'GearUp'],
+  'wechat-article': ['夏季训练', '运动科学', '跑步技巧', '健身指南', '补水'],
+  'short-video':    ['跑步', '夏季训练', '健身', '运动科普', '跑步技巧'],
+  'social-post':    ['夏季系列', '运动装备', '训练', '突破自我', '新品上市'],
+  'carousel':       ['夏季训练', '运动指南', '健身科普', '训练计划', '装备推荐'],
+  'quote-card':     ['激励', '信念', '运动精神', '突破自我', '名言'],
+  'ai-video':       ['AIVideo', '品牌宣传', '电影质感', '夏季系列', '运动品牌'],
+  'live-clip':      ['直播切片', '训练营', '跑步姿势', '夏季训练', '运动教学'],
 };
 
 // ─── PostDetailModal ─────────────────────────────────────────────────────────
@@ -155,8 +223,8 @@ export function PostDetailModal({ item, onClose, onSave, onRegenerate }: PostDet
     setTags(tags.filter(t => t !== tag));
   };
 
-  const filteredTagSuggestions = ['IAMYoga', 'Guru', 'YogaWisdom', 'Mindfulness', 'Fitness', 'Training', 'Motivation', 'SummerCollection']
-    .filter(t => t.toLowerCase().includes(tagSearch.toLowerCase()) && !tags.includes(t));
+  const filteredTagSuggestions = ['夏季训练', '运动科学', '跑步技巧', '健身指南', '运动装备', '激励', '品牌推广', '直播切片', 'AI视频', '训练计划']
+    .filter(t => t.includes(tagSearch) && !tags.includes(t));
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
