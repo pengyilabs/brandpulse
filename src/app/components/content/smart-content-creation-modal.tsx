@@ -73,6 +73,7 @@ interface SmartContentCreationModalProps {
   contentType?: "long-form" | "short-clip" | "highlight-reel" | "ai-video" | "quote-card";
   defaultCampaign?: string;
   defaultFile?: File;
+  campaigns?: { id: string; name: string; description: string | null }[];
 }
 
 type ContentTypeId = "long-form" | "short-clip" | "highlight-reel" | "quote-card" | "ai-video" | "social-post" | "carousel";
@@ -335,11 +336,15 @@ function BriefMeta({ items }: { items: Array<{ Icon: React.ElementType; text: st
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function SmartContentCreationModal({
-  isOpen, onClose, onComplete, contentType: initialType, defaultCampaign, defaultFile,
+  isOpen, onClose, onComplete, contentType: initialType, defaultCampaign, defaultFile, campaigns = [],
 }: SmartContentCreationModalProps) {
   // ── Origin selection (Step 1) ──
   const [originMode, setOriginMode] = useState<"new" | "campaign">("new");
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>("");
+
+  // Use real campaigns from props if available, otherwise fall back to hardcoded presets
+  // If we have real campaigns from the project, use those instead of showing fake presets
+  const availableCampaigns = campaigns.length > 0 ? campaigns : CAMPAIGNS;
 
   // Steps: 1=Origin, 2=Sources & Assets, 3=Content Type, 4=Configuration, 5=Review
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
@@ -444,15 +449,29 @@ export function SmartContentCreationModal({
   };
 
   const applyPreset = (campaignId: string) => {
-    const preset = CAMPAIGNS.find(c => c.id === campaignId);
+    const preset = availableCampaigns.find(c => c.id === campaignId);
     if (!preset) return;
-    setBrandGuidelines(preset.brandGuidelines);
-    setTargetAudience(preset.targetAudience);
-    setWriterProfile(preset.writerProfile);
-    setWritingTone(preset.writingTone);
-    setWritingLevel(preset.writingLevel);
-    setWordCount(preset.wordCountRange);
-    setTopic(preset.topics.split(",")[0].trim());
+    // If it's a real campaign (from Supabase), it has name/description but not the extra preset fields
+    // Use PROJECT_DEFAULTS as fallback for the extra fields
+    if ('brandGuidelines' in preset) {
+      const p = preset as CampaignPreset;
+      setBrandGuidelines(p.brandGuidelines);
+      setTargetAudience(p.targetAudience);
+      setWriterProfile(p.writerProfile);
+      setWritingTone(p.writingTone);
+      setWritingLevel(p.writingLevel);
+      setWordCount(p.wordCountRange);
+      setTopic(p.topics.split(",")[0].trim());
+    } else {
+      // Real campaign — use PROJECT_DEFAULTS as fallback
+      setBrandGuidelines(PROJECT_DEFAULTS.brandGuidelines);
+      setTargetAudience(PROJECT_DEFAULTS.targetAudience);
+      setWriterProfile(PROJECT_DEFAULTS.writerProfile);
+      setWritingTone("");
+      setWritingLevel("");
+      setWordCount([1200, 1700]);
+      setTopic(preset.description || "");
+    }
   };
 
   const clearPreset = () => {
@@ -494,7 +513,7 @@ export function SmartContentCreationModal({
     clearPreset();
 
     if (defaultCampaign) {
-      const match = CAMPAIGNS.find(c => c.name === defaultCampaign);
+      const match = availableCampaigns.find(c => c.name === defaultCampaign);
       setOriginMode("campaign");
       setSelectedCampaignId(match?.id ?? "");
       if (match) applyPreset(match.id);
@@ -713,7 +732,7 @@ export function SmartContentCreationModal({
                         className="w-full pl-11 pr-10 py-3 bg-secondary border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 transition-all appearance-none"
                       >
                         <option value="">— Select a campaign —</option>
-                        {CAMPAIGNS.map(c => (
+                        {availableCampaigns.map(c => (
                           <option key={c.id} value={c.id}>{c.name}</option>
                         ))}
                       </select>
@@ -723,9 +742,29 @@ export function SmartContentCreationModal({
 
                   {/* Campaign preview card */}
                   {selectedCampaignId && (() => {
-                    const preset = CAMPAIGNS.find(c => c.id === selectedCampaignId);
+                    const preset = availableCampaigns.find(c => c.id === selectedCampaignId);
                     if (!preset) return null;
-                    return <CampaignPreviewCard key={preset.id} preset={preset} />;
+                    // Show full preview card for hardcoded presets, simple preview for real campaigns
+                    if ('brandGuidelines' in preset) {
+                      return <CampaignPreviewCard key={preset.id} preset={preset as CampaignPreset} />;
+                    }
+                    // Real campaign — show a simple preview
+                    return (
+                      <div className="rounded-xl border border-border bg-background/30 overflow-hidden">
+                        <div className="flex items-center justify-between gap-2 px-4 pt-4 pb-2">
+                          <p className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-widest">{preset.name}</p>
+                          <span className="px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 text-[10px] font-bold uppercase tracking-wider flex-shrink-0">
+                            Will pre-fill
+                          </span>
+                        </div>
+                        {preset.description && (
+                          <div className="px-4 pb-4">
+                            <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mb-1">Description</p>
+                            <p className="text-sm text-foreground leading-snug">{preset.description}</p>
+                          </div>
+                        )}
+                      </div>
+                    );
                   })()}
                 </div>
               )}
