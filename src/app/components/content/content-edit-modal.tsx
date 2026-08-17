@@ -1,8 +1,11 @@
 import { useState, useRef } from "react";
-import { X, ChevronDown, Search, Upload, Sparkles } from "lucide-react";
+import { X, ChevronDown, Search, Upload, Sparkles, Palette, User, FileText } from "lucide-react";
 import svgPathsShortClip from "@/imports/PostContentContainer-3/svg-ehzova85ar";
 import svgPathsLongForm from "@/imports/PostContentContainer-6/svg-zh0484zckq";
 import { BrandLogo } from "../ui/brand-logo";
+import { BrandKitPicker } from "./brand-kit-picker";
+import { WriterProfilePicker } from "./writer-profile-picker";
+import { ResourcePicker } from "./resource-picker";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -367,13 +370,27 @@ function TagsSection({ tags, onChange, isApproved }: { tags: string[]; onChange:
 }
 
 // Source material / Resources section (matching Figma Resources component)
-function ResourcesSection({ linkValue, onLinkChange }: { linkValue: string; onLinkChange: (v: string) => void }) {
+function ResourcesSection({ linkValue, onLinkChange, selectedCount = 0, onOpenPicker }: { linkValue: string; onLinkChange: (v: string) => void; selectedCount?: number; onOpenPicker?: () => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
   return (
     <div className="flex flex-col items-start shrink-0 w-full pt-[16px]">
       {/* Section heading */}
       <p className="font-bold text-[#fafafa] text-[16px] leading-[24px]">Source material and resources</p>
       <p className="text-[#a1a1aa] text-[14px] leading-[20px] pt-[4px]">Provide references and assets to guide content generation. This step is optional.</p>
+
+      {/* Select from library button */}
+      <div className="pt-[16px] w-full">
+        <button
+          onClick={() => onOpenPicker?.()}
+          className="w-full bg-[#1a1a1a] h-[46px] rounded-[12px] border border-[rgba(255,255,255,0.12)] flex items-center px-[17px] gap-3 hover:border-primary/30 transition-colors"
+        >
+          <FileText className="size-[16px] text-muted-foreground" />
+          <span className="flex-1 text-left text-[14px] text-[#fafafa]">
+            {selectedCount > 0 ? `${selectedCount} resource${selectedCount > 1 ? 's' : ''} selected` : 'Select from resource library'}
+          </span>
+          <ChevronDown className="size-[14px] text-[#a1a1aa]" />
+        </button>
+      </div>
 
       {/* A — Main Content Source */}
       <div className="pt-[24px] w-full">
@@ -549,23 +566,34 @@ function ConfigurationSection({ category, fields, setField }: {
         <div className="pt-[8px]">
           <p className="font-bold text-[#a1a1aa] text-[16px] leading-[24px] mb-[16px]">Voice & Style</p>
 
+          {/* Brand Kit */}
+          <div className="mb-[16px]">
+            <ConfigFieldLabel>Brand Kit</ConfigFieldLabel>
+            <button
+              onClick={() => setShowBrandKitPicker(true)}
+              className="w-full bg-[#1a1a1a] h-[46px] rounded-[12px] border border-[rgba(255,255,255,0.12)] flex items-center px-[17px] gap-3 hover:border-primary/30 transition-colors"
+            >
+              <Palette className="size-[16px] text-muted-foreground" />
+              <span className={`flex-1 text-left text-[14px] ${fields.brandKit ? 'text-[#fafafa]' : 'text-[#a1a1aa]'}`}>
+                {selectedBrandKitName || 'Select brand kit...'}
+              </span>
+              <ChevronDown className="size-[14px] text-[#a1a1aa]" />
+            </button>
+          </div>
+
           {/* Writer Profile */}
           <div className="mb-[20px]">
             <ConfigFieldLabel projectDefault>Writer Profile</ConfigFieldLabel>
-            <div className="bg-[#1a1a1a] h-[46px] relative rounded-[12px] shrink-0 w-full border border-[rgba(255,255,255,0.12)] flex items-center px-[17px]">
-              <select
-                value={fields.writerProfile ?? ""}
-                onChange={(e) => setField("writerProfile", e.target.value)}
-                className="w-full bg-transparent text-[14px] text-[#fafafa] outline-none appearance-none pr-[24px] cursor-pointer"
-              >
-                <option value="">No writer profile - Set tone manually</option>
-                <option value="professional">Professional</option>
-                <option value="casual">Casual</option>
-                <option value="technical">Technical</option>
-                <option value="creative">Creative</option>
-              </select>
-              <ChevronDown className="absolute right-[17px] size-[14px] text-[#a1a1aa] pointer-events-none" />
-            </div>
+            <button
+              onClick={() => setShowWriterProfilePicker(true)}
+              className="w-full bg-[#1a1a1a] h-[46px] rounded-[12px] border border-[rgba(255,255,255,0.12)] flex items-center px-[17px] gap-3 hover:border-primary/30 transition-colors"
+            >
+              <User className="size-[16px] text-muted-foreground" />
+              <span className={`flex-1 text-left text-[14px] ${fields.writerProfileId ? 'text-[#fafafa]' : 'text-[#a1a1aa]'}`}>
+                {selectedWriterProfileName || 'No writer profile - Set tone manually'}
+              </span>
+              <ChevronDown className="size-[14px] text-[#a1a1aa]" />
+            </button>
           </div>
 
           {/* Writing Tone + Level */}
@@ -1035,7 +1063,7 @@ function LongFormFields({ fields, setField, isApproved }: { fields: Record<strin
       </div>
 
       <TagsSection tags={fields.tags ?? []} onChange={(v) => setField("tags", v as any)} isApproved={isApproved} />
-      <ResourcesSection linkValue={fields.sourceLink ?? ""} onLinkChange={(v) => setField("sourceLink", v)} isApproved={isApproved} />
+      <ResourcesSection linkValue={fields.sourceLink ?? ""} onLinkChange={(v) => setField("sourceLink", v)} isApproved={isApproved} selectedCount={fields.selectedResources?.length ?? 0} onOpenPicker={() => setShowResourcePicker(true)} />
       <ConfigurationSection category="long-form" fields={fields} setField={setField as any} isApproved={isApproved} />
     </>
   );
@@ -1074,7 +1102,7 @@ function ShortVideoFields({ fields, setField, isApproved }: { fields: Record<str
       </div>
 
       <TagsSection tags={fields.tags ?? []} onChange={(v) => setField("tags", v as any)} isApproved={isApproved} />
-      <ResourcesSection linkValue={fields.sourceLink ?? ""} onLinkChange={(v) => setField("sourceLink", v)} isApproved={isApproved} />
+      <ResourcesSection linkValue={fields.sourceLink ?? ""} onLinkChange={(v) => setField("sourceLink", v)} isApproved={isApproved} selectedCount={fields.selectedResources?.length ?? 0} onOpenPicker={() => setShowResourcePicker(true)} />
       <ConfigurationSection category="short-video" fields={fields} setField={setField as any} isApproved={isApproved} />
     </>
   );
@@ -1113,7 +1141,7 @@ function HighlightFields({ fields, setField, isApproved }: { fields: Record<stri
       </div>
 
       <TagsSection tags={fields.tags ?? []} onChange={(v) => setField("tags", v as any)} isApproved={isApproved} />
-      <ResourcesSection linkValue={fields.sourceLink ?? ""} onLinkChange={(v) => setField("sourceLink", v)} isApproved={isApproved} />
+      <ResourcesSection linkValue={fields.sourceLink ?? ""} onLinkChange={(v) => setField("sourceLink", v)} isApproved={isApproved} selectedCount={fields.selectedResources?.length ?? 0} onOpenPicker={() => setShowResourcePicker(true)} />
       <ConfigurationSection category="highlight" fields={fields} setField={setField as any} isApproved={isApproved} />
     </>
   );
@@ -1199,7 +1227,7 @@ function AIVideoFields({ fields, setField, isApproved }: { fields: Record<string
       </div>
 
       <TagsSection tags={fields.tags ?? []} onChange={(v) => setField("tags", v as any)} isApproved={isApproved} />
-      <ResourcesSection linkValue={fields.sourceLink ?? ""} onLinkChange={(v) => setField("sourceLink", v)} isApproved={isApproved} />
+      <ResourcesSection linkValue={fields.sourceLink ?? ""} onLinkChange={(v) => setField("sourceLink", v)} isApproved={isApproved} selectedCount={fields.selectedResources?.length ?? 0} onOpenPicker={() => setShowResourcePicker(true)} />
       <ConfigurationSection category="ai-video" fields={fields} setField={setField as any} isApproved={isApproved} />
     </>
   );
@@ -1238,7 +1266,7 @@ function OtherFields({ fields, setField, isApproved }: { fields: Record<string, 
       </div>
 
       <TagsSection tags={fields.tags ?? []} onChange={(v) => setField("tags", v as any)} isApproved={isApproved} />
-      <ResourcesSection linkValue={fields.sourceLink ?? ""} onLinkChange={(v) => setField("sourceLink", v)} isApproved={isApproved} />
+      <ResourcesSection linkValue={fields.sourceLink ?? ""} onLinkChange={(v) => setField("sourceLink", v)} isApproved={isApproved} selectedCount={fields.selectedResources?.length ?? 0} onOpenPicker={() => setShowResourcePicker(true)} />
       <ConfigurationSection category="other" fields={fields} setField={setField as any} isApproved={isApproved} />
     </>
   );
@@ -1267,6 +1295,7 @@ export function ContentEditModal({
     author: "",
     script: "",
     brandGuidelines: "",
+    brandKit: "",
     targetAudience: "",
     additionalInstructions: "",
     sourceLink: "",
@@ -1278,10 +1307,12 @@ export function ContentEditModal({
     totalDuration: "90",
     numHighlights: "5",
     writerProfile: "",
+    writerProfileId: "",
     writingTone: "",
     writingLevel: "",
     wordCountMin: 1200,
     wordCountMax: 1700,
+    selectedResources: [] as string[],
   });
 
   const [version, setVersion] = useState(1);
@@ -1291,6 +1322,12 @@ export function ContentEditModal({
   const [showRejectionModal, setShowRejectionModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [rejectionReasonDisplay, setRejectionReasonDisplay] = useState("");
+  const [showBrandKitPicker, setShowBrandKitPicker] = useState(false);
+  const [showWriterProfilePicker, setShowWriterProfilePicker] = useState(false);
+  const [showResourcePicker, setShowResourcePicker] = useState(false);
+  const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [selectedBrandKitName, setSelectedBrandKitName] = useState("");
+  const [selectedWriterProfileName, setSelectedWriterProfileName] = useState("");
   const [comments, setComments] = useState<Array<{
     id: number;
     author: string;
@@ -1414,10 +1451,13 @@ export function ContentEditModal({
                 )}
               </div>
 
-              {/* Regenerate Content button */}
-              <button className="bg-[#262626] flex gap-[8px] h-[36px] items-center justify-center px-[12px] py-[8px] rounded-[12px] shrink-0 hover:bg-[#333] transition-colors">
-                <span className="font-medium text-[#fafafa] text-[14px]">Regenerate Content</span>
-                <Sparkles className="size-[14px] text-[#4B56F2]" />
+              {/* Generate Content button */}
+              <button
+                onClick={() => setShowGenerateModal(true)}
+                className="bg-[#4B56F2] flex gap-[8px] h-[36px] items-center justify-center px-[16px] py-[8px] rounded-[56px] shrink-0 hover:bg-[#3b46e0] transition-colors"
+              >
+                <Sparkles className="size-[14px] text-white" />
+                <span className="font-medium text-white text-[14px]">Generate Content</span>
               </button>
 
               {/* Status dropdown */}
@@ -1640,6 +1680,107 @@ export function ContentEditModal({
                 className="px-[20px] py-[10px] rounded-[12px] bg-[#ef4444] text-white text-[14px] font-medium hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Confirm Rejection
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Brand Kit Picker ── */}
+      <BrandKitPicker
+        isOpen={showBrandKitPicker}
+        onClose={() => setShowBrandKitPicker(false)}
+        selectedId={fields.brandKit || null}
+        onSelect={(id, name) => {
+          setField('brandKit', id);
+          setSelectedBrandKitName(name);
+          if (!id) {
+            setField('brandKit', '');
+          }
+        }}
+      />
+
+      {/* ── Writer Profile Picker ── */}
+      <WriterProfilePicker
+        isOpen={showWriterProfilePicker}
+        onClose={() => setShowWriterProfilePicker(false)}
+        selectedId={fields.writerProfileId || null}
+        onSelect={(id, name) => {
+          setField('writerProfileId', id);
+          setSelectedWriterProfileName(name);
+          if (!id) {
+            setField('writerProfileId', '');
+          }
+        }}
+      />
+
+      {/* ── Resource Picker ── */}
+      <ResourcePicker
+        isOpen={showResourcePicker}
+        onClose={() => setShowResourcePicker(false)}
+        selectedIds={fields.selectedResources || []}
+        onSelect={(ids) => {
+          setField('selectedResources', ids);
+        }}
+      />
+
+      {/* ── Generate Confirmation Modal ── */}
+      {showGenerateModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" onClick={() => setShowGenerateModal(false)}>
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+          <div
+            className="relative bg-[#1a1a1a] rounded-[16px] border border-[rgba(255,255,255,0.12)] p-[24px] w-full max-w-[480px]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-[12px] mb-[20px]">
+              <div className="bg-[rgba(75,86,242,0.2)] rounded-[12px] size-[40px] flex items-center justify-center shrink-0">
+                <Sparkles className="size-[20px] text-[#4B56F2]" />
+              </div>
+              <div>
+                <p className="font-bold text-[#fafafa] text-[16px]">Generate Content</p>
+                <p className="text-[#a1a1aa] text-[13px]">Review your selections before generating</p>
+              </div>
+            </div>
+
+            {/* Summary */}
+            <div className="space-y-[12px] mb-[24px]">
+              <div className="bg-[#0a0a0a] rounded-[12px] p-[16px]">
+                <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mb-[8px]">Brand Kit</p>
+                <p className="text-[14px] font-medium text-[#fafafa]">{selectedBrandKitName || 'No brand kit selected'}</p>
+              </div>
+              <div className="bg-[#0a0a0a] rounded-[12px] p-[16px]">
+                <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mb-[8px]">Writer Profile</p>
+                <p className="text-[14px] font-medium text-[#fafafa]">{selectedWriterProfileName || 'No writer profile selected'}</p>
+              </div>
+              <div className="bg-[#0a0a0a] rounded-[12px] p-[16px]">
+                <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mb-[8px]">Resources</p>
+                <p className="text-[14px] font-medium text-[#fafafa]">
+                  {fields.selectedResources?.length > 0
+                    ? `${fields.selectedResources.length} resource${fields.selectedResources.length > 1 ? 's' : ''} selected`
+                    : 'No resources selected'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-[12px]">
+              <button
+                onClick={() => setShowGenerateModal(false)}
+                className="px-[20px] py-[10px] rounded-[12px] bg-[#262626] border border-[rgba(255,255,255,0.08)] text-[#a1a1aa] text-[14px] font-medium hover:bg-[#333] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowGenerateModal(false);
+                  // TODO: Trigger AI generation - collect all linked data:
+                  // Brand Kit ID: fields.brandKit
+                  // Writer Profile ID: fields.writerProfileId
+                  // Resource IDs: fields.selectedResources
+                }}
+                className="px-[20px] py-[10px] rounded-[12px] bg-[#4B56F2] text-white text-[14px] font-medium hover:opacity-90 transition-opacity flex items-center gap-[8px]"
+              >
+                <Sparkles className="size-[14px]" />
+                Confirm & Generate
               </button>
             </div>
           </div>

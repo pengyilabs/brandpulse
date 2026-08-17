@@ -5,11 +5,16 @@ import {
   Search, Download, Trash2, Clock, ArrowLeft, Play,
   BookOpen, Mic, MoreHorizontal, Cloud, Archive, FolderOpen,
 } from 'lucide-react';
+import {
+  getResources, uploadResource, deleteResource,
+  Resource as ServiceResource
+} from '../../../lib/services/resources-service';
 
 type ResourceType = 'video' | 'document' | 'text' | 'image';
 
 interface Resource {
   id: string;
+  serviceId: string;
   name: string;
   type: ResourceType;
   size: string;
@@ -29,146 +34,53 @@ interface Resource {
   summary?: string;
 }
 
-const RESOURCES: Resource[] = [
-  {
-    id: '1',
-    name: 'Yoga Session Recording.mp4',
-    type: 'video',
-    size: '245 MB',
-    uploadedDate: '2 hours ago',
-    duration: '45:32',
-    thumbnail: '/brand-tile-navy.svg?w=247&h=136&fit=crop',
-    postsCreated: 7,
-    posts: [
-      { name: 'Instagram Carousel - Wellness Tips', thumbnail: '/brand-tile-violet.svg?w=100&h=100&fit=crop' },
-      { name: 'Instagram Carousel - Wellness Tips', thumbnail: '/brand-tile-cyan.svg?w=100&h=100&fit=crop' },
-      { name: 'LinkedIn Post - Yoga Benefits', thumbnail: '/brand-tile-amber.svg?w=100&h=100&fit=crop' },
-      { name: 'LinkedIn Post - Yoga Benefits', thumbnail: '/brand-tile-coral.svg?w=100&h=100&fit=crop' },
-      { name: 'LinkedIn Post - Yoga Benefits', thumbnail: '/brand-tile-navy-cyan.svg?w=100&h=100&fit=crop' },
-      { name: 'TikTok Script - Morning Routine', thumbnail: '/brand-tile-amber-rose.svg?w=100&h=100&fit=crop' },
-      { name: 'TikTok Script - Morning Routine', thumbnail: '/brand-tile-navy.svg?w=100&h=100&fit=crop' },
-    ],
-    transcribed: true,
-    tags: ['yoga', 'wellness', 'tutorial'],
-    videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
-    summary: `This 45-minute yoga session covers foundational poses for beginners and intermediate practitioners.`,
-    transcription: `[00:00] Welcome to today's yoga session. I'm so glad you're here. Before we begin, let's settle.\n[04:15] Take a deep breath in through your nose and exhale slowly, releasing any morning tension.\n[10:10] We'll start today with three rounds of sun salutations to warm up the body.`
-  },
-  {
-    id: '2',
-    name: 'Brand Guidelines 2026.pdf',
-    type: 'document',
-    size: '2.1 MB',
-    uploadedDate: '3 days ago',
-    pageCount: 32,
-    thumbnail: null,
-    postsCreated: 0,
-    users: [],
-    transcribed: true,
-    tags: ['brand', 'guidelines'],
-    summary: `The Brand Guidelines 2026 document establishes visual and verbal identity standards.`,
-    fullText: `BRAND GUIDELINES 2026\nOfficial Brand Identity Standards\n\nSECTION 1 — OUR BRAND STORY`,
-  },
-  {
-    id: '3',
-    name: 'Blog Posts Collection',
-    type: 'text',
-    size: '840 KB',
-    uploadedDate: '1 week ago',
-    wordCount: 12500,
-    thumbnail: null,
-    postsCreated: 0,
-    users: [],
-    transcribed: true,
-    tags: ['blog', 'reference'],
-    summary: `A curated collection of 24 high-performing blog posts from the past 18 months.`,
-    fullText: `BLOG POSTS COLLECTION — REFERENCE ARCHIVE\n24 Posts · 18 Months · 12,500 Words`,
-  },
-  {
-    id: '4',
-    name: 'Velocity Flux Pulse Launch Graphic',
-    type: 'image',
-    size: '1.8 MB',
-    uploadedDate: '3 weeks ago',
-    resolution: '2400×1600',
-    thumbnail: '/brand-tile-violet.svg?w=247&h=136&fit=crop',
-    postsCreated: 7,
-    posts: [
-      { name: 'Instagram Post - Product Launch', thumbnail: '/brand-tile-cyan.svg?w=100&h=100&fit=crop' },
-      { name: 'Instagram Post - Sneaker Review', thumbnail: '/brand-tile-amber.svg?w=100&h=100&fit=crop' },
-      { name: 'Twitter Thread - Design Process', thumbnail: '/brand-tile-coral.svg?w=100&h=100&fit=crop' },
-      { name: 'LinkedIn Post - Brand Story', thumbnail: '/brand-tile-navy-cyan.svg?w=100&h=100&fit=crop' },
-      { name: 'TikTok Script - Unboxing', thumbnail: '/brand-tile-amber-rose.svg?w=100&h=100&fit=crop' },
-      { name: 'YouTube Short - Features', thumbnail: '/brand-tile-navy.svg?w=100&h=100&fit=crop' },
-      { name: 'Pinterest Pin - Style Guide', thumbnail: '/brand-tile-violet.svg?w=100&h=100&fit=crop' },
-    ],
+// ─── Sample Data ───────────────────────────────────────────────────────────────
+
+const SAMPLE_RESOURCE: Resource = {
+  id: '-1',
+  serviceId: 'sample-resource',
+  name: 'Brand Guidelines 2026.pdf',
+  type: 'document',
+  size: '2.1 MB',
+  uploadedDate: '3 days ago',
+  pageCount: 32,
+  thumbnail: null,
+  postsCreated: 0,
+  transcribed: true,
+  tags: ['brand', 'guidelines'],
+  summary: 'The Brand Guidelines 2026 document establishes visual and verbal identity standards.',
+  fullText: 'BRAND GUIDELINES 2026\nOfficial Brand Identity Standards\n\nSECTION 1 — OUR BRAND STORY',
+};
+
+// ─── Service-to-UI mapping ────────────────────────────────────────────────────
+
+function formatFileSize(bytes: number): string {
+  if (bytes >= 1048576) return `${(bytes / 1048576).toFixed(1)} MB`;
+  if (bytes >= 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${bytes} B`;
+}
+
+function mapServiceToUI(sr: ServiceResource): Resource {
+  const ext = sr.name.split('.').pop()?.toLowerCase() || '';
+  let type: ResourceType = 'document';
+  if (['mp4', 'mov', 'avi', 'webm'].includes(ext)) type = 'video';
+  else if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(ext)) type = 'image';
+  else if (['txt', 'md', 'rtf'].includes(ext)) type = 'text';
+
+  return {
+    id: sr.id,
+    serviceId: sr.id,
+    name: sr.name,
+    type,
+    size: formatFileSize(sr.file_size),
+    uploadedDate: new Date(sr.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
     transcribed: false,
-    tags: ['social', 'launch'],
-  },
-  {
-    id: '5',
-    name: 'Yoga Session Recording.mp4',
-    type: 'video',
-    size: '245 MB',
-    uploadedDate: '2 hours ago',
-    duration: '45:32',
-    thumbnail: '/brand-tile-cyan.svg?w=247&h=136&fit=crop',
-    postsCreated: 7,
-    users: [
-      { name: 'Alex Chen', initials: 'AC', color: '#3B82F6' },
-      { name: 'Sarah Kim', initials: 'SK', color: '#4B56F2' },
-      { name: 'Mike Johnson', initials: 'MJ', color: '#F59E0B' },
-      { name: 'Lisa Wang', initials: 'LW', color: '#8B5CF6' },
-    ],
-    transcribed: true,
-    tags: ['yoga', 'wellness'],
-    videoUrl: 'https://www.w3schools.com/html/movie.mp4',
-  },
-  {
-    id: '6',
-    name: 'Blog Posts Collection',
-    type: 'text',
-    size: '840 KB',
-    uploadedDate: '1 week ago',
-    wordCount: 12500,
-    thumbnail: null,
+    tags: [],
     postsCreated: 0,
-    users: [],
-    transcribed: true,
-    tags: ['blog', 'reference'],
-  },
-  {
-    id: '7',
-    name: 'Blog Posts Collection',
-    type: 'text',
-    size: '840 KB',
-    uploadedDate: '1 week ago',
-    wordCount: 12500,
-    thumbnail: null,
-    postsCreated: 0,
-    users: [],
-    transcribed: true,
-    tags: ['blog', 'reference'],
-  },
-  {
-    id: '8',
-    name: 'Yoga Session Recording.mp4',
-    type: 'video',
-    size: '245 MB',
-    uploadedDate: '2 hours ago',
-    duration: '45:32',
-    thumbnail: '/brand-tile-amber.svg?w=247&h=136&fit=crop',
-    postsCreated: 7,
-    users: [
-      { name: 'Alex Chen', initials: 'AC', color: '#3B82F6' },
-      { name: 'Sarah Kim', initials: 'SK', color: '#4B56F2' },
-      { name: 'Mike Johnson', initials: 'MJ', color: '#F59E0B' },
-      { name: 'Lisa Wang', initials: 'LW', color: '#8B5CF6' },
-    ],
-    transcribed: true,
-    tags: ['yoga'],
-  },
-];
+  };
+}
+
+const RESOURCES: Resource[] = [SAMPLE_RESOURCE];
 
 function CardMenu({ resource }: { resource: Resource }) {
   const { t } = useTranslation();
@@ -639,8 +551,24 @@ export function EnhancedResourcesView() {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploadSource, setUploadSource] = useState<UploadSource>('device');
   const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
-  const [resources, setResources] = useState<Resource[]>(RESOURCES);
+  const [resources, setResources] = useState<Resource[]>([SAMPLE_RESOURCE]);
   const [selectedDriveFiles, setSelectedDriveFiles] = useState<Set<string>>(new Set());
+
+  // Load resources from Supabase
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      const serviceResources = await getResources();
+      if (cancelled) return;
+      const uiResources = serviceResources.map(r => mapServiceToUI(r));
+      setResources(prev => {
+        const sample = prev.find(r => r.serviceId === 'sample-resource') || SAMPLE_RESOURCE;
+        return [sample, ...uiResources];
+      });
+    }
+    load();
+    return () => { cancelled = true; };
+  }, []);
   const [selectedDropboxFiles, setSelectedDropboxFiles] = useState<Set<string>>(new Set());
 
   const filteredResources =
@@ -1069,28 +997,19 @@ export function EnhancedResourcesView() {
                     type="file"
                     multiple
                     className="hidden"
-                    onChange={(e) => {
+                    onChange={async (e) => {
                       const files = e.target.files;
                       if (files && files.length > 0) {
-                        const newResources: Resource[] = Array.from(files).map((file) => {
-                          const ext = file.name.split('.').pop()?.toLowerCase() || '';
-                          let type: ResourceType = 'document';
-                          if (['mp4', 'mov', 'avi', 'webm'].includes(ext)) type = 'video';
-                          else if (['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'].includes(ext)) type = 'document';
-                          else if (['txt', 'md', 'rtf'].includes(ext)) type = 'text';
-                          else if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(ext)) type = 'image';
-                          return {
-                            id: `device-${Date.now()}-${Math.random()}`,
-                            name: file.name,
-                            type,
-                            size: file.size > 1048576 ? `${(file.size / 1048576).toFixed(1)} MB` : `${(file.size / 1024).toFixed(0)} KB`,
-                            uploadedDate: 'Just now',
-                            postsCreated: 0,
-                            transcribed: false,
-                            tags: ['uploaded'],
-                          };
-                        });
-                        setResources((prev) => [...newResources, ...prev]);
+                        const newResources: Resource[] = [];
+                        for (const file of Array.from(files)) {
+                          const created = await uploadResource(file);
+                          if (created) {
+                            newResources.push(mapServiceToUI(created));
+                          }
+                        }
+                        if (newResources.length > 0) {
+                          setResources((prev) => [...newResources, ...prev]);
+                        }
                         setShowUploadModal(false);
                       }
                     }}

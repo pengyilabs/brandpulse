@@ -1,15 +1,54 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Search, ChevronDown, TrendingUp, BarChart3, Calendar, Trash2, MoreHorizontal } from 'lucide-react'
-import { MOCK_SAVED_AUDITS } from '../../data/audit-data'
+import { getAudits, deleteAudit, Audit } from '../../../lib/services/audits-service'
+
+interface SavedAudit {
+  id: string
+  url: string
+  dateRange: string
+  profileScore: number
+  followers: string
+  growth: string
+  engagements: string
+}
+
+function mapServiceToUI(audit: Audit): SavedAudit {
+  let dateRange = '—'
+  if (audit.date_range_start && audit.date_range_end) {
+    dateRange = `${new Date(audit.date_range_start).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${new Date(audit.date_range_end).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+  }
+
+  return {
+    id: audit.id,
+    url: audit.url,
+    dateRange,
+    profileScore: audit.profile_score ?? 0,
+    followers: audit.followers ?? '—',
+    growth: audit.growth ?? '—',
+    engagements: audit.engagements ?? '—',
+  }
+}
 
 export function AuditsView() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState('')
+  const [audits, setAudits] = useState<SavedAudit[]>([])
 
-  const filteredAudits = MOCK_SAVED_AUDITS.filter((audit) =>
+  useEffect(() => {
+    let cancelled = false
+    async function load() {
+      const serviceAudits = await getAudits()
+      if (cancelled) return
+      setAudits(serviceAudits.map(a => mapServiceToUI(a)))
+    }
+    load()
+    return () => { cancelled = true }
+  }, [])
+
+  const filteredAudits = audits.filter((audit) =>
     audit.url.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
@@ -65,10 +104,16 @@ export function AuditsView() {
                   </span>
                 </div>
                 <button
-                  onClick={(e) => e.stopPropagation()}
-                  className="p-1.5 rounded-lg hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors"
+                  onClick={async (e) => {
+                    e.stopPropagation()
+                    if (confirm(t('audits.confirmDelete'))) {
+                      await deleteAudit(audit.id)
+                      setAudits(prev => prev.filter(a => a.id !== audit.id))
+                    }
+                  }}
+                  className="p-1.5 rounded-lg hover:bg-white/10 text-muted-foreground hover:text-red-400 transition-colors"
                 >
-                  <MoreHorizontal className="w-4 h-4" />
+                  <Trash2 className="w-4 h-4" />
                 </button>
               </div>
 

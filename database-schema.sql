@@ -135,6 +135,43 @@ CREATE POLICY "Users can delete own resources"
   USING (auth.uid() = user_id);
 
 -- ============================================
+-- AUDITS
+-- ============================================
+CREATE TABLE IF NOT EXISTS audits (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  url TEXT NOT NULL,
+  name TEXT NOT NULL,
+  date_range_start TIMESTAMPTZ,
+  date_range_end TIMESTAMPTZ,
+  profile_score INTEGER,
+  followers TEXT,
+  growth TEXT,
+  engagements TEXT,
+  audit_data JSONB DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE audits ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own audits"
+  ON audits FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own audits"
+  ON audits FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own audits"
+  ON audits FOR UPDATE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own audits"
+  ON audits FOR DELETE
+  USING (auth.uid() = user_id);
+
+-- ============================================
 -- CAMPAIGNS
 -- ============================================
 CREATE TABLE IF NOT EXISTS campaigns (
@@ -265,3 +302,4 @@ CREATE INDEX IF NOT EXISTS idx_content_items_project_id ON content_items(project
 CREATE INDEX IF NOT EXISTS idx_content_items_campaign_id ON content_items(campaign_id);
 CREATE INDEX IF NOT EXISTS idx_content_items_status ON content_items(status);
 CREATE INDEX IF NOT EXISTS idx_content_items_scheduled_at ON content_items(scheduled_at);
+CREATE INDEX IF NOT EXISTS idx_audits_user_id ON audits(user_id);

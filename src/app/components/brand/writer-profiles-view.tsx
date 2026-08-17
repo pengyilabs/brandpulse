@@ -3,6 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { Plus, User, Trash2, Edit2, Check, FileText, Eye, Star, Sparkles } from 'lucide-react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { useAuditAssets } from '../../data/audit-asset-store';
+import {
+  getWriterProfiles, createWriterProfile, updateWriterProfile, deleteWriterProfile,
+  WriterProfile as ServiceWriterProfile
+} from '../../../lib/services/writer-profiles-service';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -20,8 +24,9 @@ type WritingTone =
 
 type WritingLevel = 'beginner' | 'intermediate' | 'advanced' | 'expert';
 
-interface WriterProfile {
+interface UIWriterProfile {
   id: number;
+  serviceId: string;
   name: string;
   tone: WritingTone;
   level: WritingLevel;
@@ -117,58 +122,45 @@ const SAMPLE_PREVIEWS: Record<WritingTone, Record<WritingLevel, string>> = {
   }
 };
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
+// ─── Sample Data ───────────────────────────────────────────────────────────────
 
-const MOCK_PROFILES: WriterProfile[] = [
-  {
-    id: 1,
-    name: 'Velocity Athletics Team',
-    tone: 'bold',
-    level: 'intermediate',
-    description: 'Motivational, performance-driven content for athletes. Strong verbs, energetic language.',
-    isDefault: true,
-    createdDate: '2026-05-01',
-    usedByContentCount: 47,
-  },
-  {
-    id: 2,
-    name: 'Friendly Customer Support',
-    tone: 'friendly',
-    level: 'beginner',
-    description: 'Approachable, helpful tone for customer service interactions and FAQ content.',
+const SAMPLE_PROFILE: UIWriterProfile = {
+  id: -1,
+  serviceId: 'sample-writer-profile',
+  name: 'Velocity Athletics Team',
+  tone: 'bold',
+  level: 'intermediate',
+  description: 'Motivational, performance-driven content for athletes. Strong verbs, energetic language.',
+  isDefault: true,
+  createdDate: '2026-05-01',
+  usedByContentCount: 0,
+};
+
+// ─── Service-to-UI mapping ────────────────────────────────────────────────────
+
+function mapServiceToUI(profile: ServiceWriterProfile): UIWriterProfile {
+  const tone = (profile.tone as WritingTone) || 'professional';
+  const level = (profile.level as WritingLevel) || 'intermediate';
+  return {
+    id: 0, // not used for service items
+    serviceId: profile.id,
+    name: profile.name,
+    tone,
+    level,
+    description: profile.style || '',
     isDefault: false,
-    createdDate: '2026-04-15',
-    usedByContentCount: 23,
-  },
-  {
-    id: 3,
-    name: 'Technical Documentation',
-    tone: 'technical',
-    level: 'expert',
-    description: 'Precise, detailed technical writing for developer documentation and API guides.',
-    isDefault: false,
-    createdDate: '2026-04-10',
-    usedByContentCount: 12,
-  },
-  {
-    id: 4,
-    name: 'Executive Communications',
-    tone: 'authoritative',
-    level: 'advanced',
-    description: 'Leadership voice for CEO updates, press releases, and corporate announcements.',
-    isDefault: false,
-    createdDate: '2026-03-20',
-    usedByContentCount: 8,
-  },
-];
+    createdDate: new Date(profile.created_at).toISOString().split('T')[0],
+    usedByContentCount: 0,
+  };
+}
 
 // ─── Create/Edit Modal ────────────────────────────────────────────────────────
 
 interface ProfileFormModalProps {
   isOpen: boolean;
-  profile: WriterProfile | null;
+  profile: UIWriterProfile | null;
   onClose: () => void;
-  onSave: (profile: Partial<WriterProfile>) => void;
+  onSave: (profile: Partial<UIWriterProfile>) => void;
 }
 
 function ProfileFormModal({ isOpen, profile, onClose, onSave }: ProfileFormModalProps) {
@@ -332,48 +324,48 @@ function ProfileFormModal({ isOpen, profile, onClose, onSave }: ProfileFormModal
 export function WriterProfilesView() {
   const { t } = useTranslation();
   const { writerProfiles: auditWriterProfiles } = useAuditAssets();
-  const [profiles, setProfiles] = useState<WriterProfile[]>(MOCK_PROFILES);
+  const [profiles, setProfiles] = useState<UIWriterProfile[]>([SAMPLE_PROFILE]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedProfile, setSelectedProfile] = useState<WriterProfile | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<UIWriterProfile | null>(null);
 
+  // Load writer profiles from Supabase
   useEffect(() => {
-    if (auditWriterProfiles.length === 0) return;
-    const auditProfiles: WriterProfile[] = auditWriterProfiles.map((p, i) => ({
-      id: -1 - i,
-      name: p.name,
-      tone: p.tone as any,
-      level: p.level as any,
-      description: p.description,
-      isDefault: false,
-      createdDate: new Date(p.createdAt).toISOString().split('T')[0],
-      usedByContentCount: 0,
-    }));
-    setProfiles((prev) => {
-      const existingNames = new Set(prev.map((p) => p.name));
-      const newOnes = auditProfiles.filter((p) => !existingNames.has(p.name));
-      return [...newOnes, ...prev];
-    });
-  }, [auditWriterProfiles]);
+    let cancelled = false;
+    async function load() {
+      const serviceProfiles = await getWriterProfiles();
+      if (cancelled) return;
+      const uiProfiles = serviceProfiles.map(p => mapServiceToUI(p));
+      setProfiles(prev => {
+        const nonSample = uiProfiles;
+        const sample = prev.find(p => p.serviceId === 'sample-writer-profile') || SAMPLE_PROFILE;
+        return [sample, ...nonSample];
+      });
+    }
+    load();
+    return () => { cancelled = true; };
+  }, []);
 
   const handleCreateNew = () => {
     setSelectedProfile(null);
     setIsModalOpen(true);
   };
 
-  const handleEdit = (profile: WriterProfile) => {
+  const handleEdit = (profile: UIWriterProfile) => {
     setSelectedProfile(profile);
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: number, serviceId: string) => {
     const profile = profiles.find(p => p.id === id);
     if (profile?.isDefault) {
       alert(t('brand.cannotDeleteDefault'));
       return;
     }
-    if (confirm(t('brand.confirmDeleteProfile'))) {
-      setProfiles(profiles.filter(p => p.id !== id));
+    if (!confirm(t('brand.confirmDeleteProfile'))) return;
+    if (serviceId && serviceId !== 'sample-writer-profile') {
+      await deleteWriterProfile(serviceId);
     }
+    setProfiles(profiles.filter(p => p.id !== id));
   };
 
   const handleSetDefault = (id: number) => {
@@ -383,27 +375,36 @@ export function WriterProfilesView() {
     })));
   };
 
-  const handleSave = (data: Partial<WriterProfile>) => {
+  const handleSave = async (data: Partial<UIWriterProfile>) => {
     if (selectedProfile) {
       // Edit existing
+      if (selectedProfile.serviceId && selectedProfile.serviceId !== 'sample-writer-profile') {
+        await updateWriterProfile(selectedProfile.serviceId, {
+          name: data.name,
+          style: data.description,
+          tone: data.tone,
+          level: data.level,
+        });
+      }
       setProfiles(profiles.map(p =>
         p.id === selectedProfile.id
           ? { ...p, ...data }
           : p
       ));
     } else {
-      // Create new
-      const newProfile: WriterProfile = {
-        id: Date.now(),
-        name: data.name || '',
-        tone: data.tone || 'professional',
-        level: data.level || 'intermediate',
-        description: data.description || '',
-        isDefault: false,
-        createdDate: new Date().toISOString().split('T')[0],
-        usedByContentCount: 0,
-      };
-      setProfiles([...profiles, newProfile]);
+      // Create new via service
+      const created = await createWriterProfile(data.name || '', {
+        tone: data.tone,
+        level: data.level,
+        style: data.description,
+      });
+      if (created) {
+        const uiProfile = mapServiceToUI(created);
+        setProfiles(prev => {
+          const sample = prev.find(p => p.serviceId === 'sample-writer-profile') || SAMPLE_PROFILE;
+          return [sample, uiProfile, ...prev.filter(p => p.serviceId !== 'sample-writer-profile')];
+        });
+      }
     }
     setIsModalOpen(false);
     setSelectedProfile(null);
@@ -578,7 +579,7 @@ export function WriterProfilesView() {
                     {t('brand.edit')}
                   </button>
                   <button
-                    onClick={() => handleDelete(profile.id)}
+                    onClick={() => handleDelete(profile.id, profile.serviceId)}
                     className="flex items-center justify-center px-3 py-2 bg-destructive/10 hover:bg-destructive/20 text-destructive rounded-lg transition-colors text-xs font-medium"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
