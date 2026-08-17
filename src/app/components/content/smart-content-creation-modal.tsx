@@ -400,6 +400,117 @@ export function SmartContentCreationModal({
   const [brandGuidelines, setBrandGuidelines] = useState(PROJECT_DEFAULTS.brandGuidelines);
   const [targetAudience, setTargetAudience] = useState(PROJECT_DEFAULTS.targetAudience);
 
+  // ── Scheduling state ──
+  type ScheduleMode = "immediate" | "range" | "unscheduled";
+  const [scheduleMode, setScheduleMode] = useState<ScheduleMode>("immediate");
+  const [scheduleStart, setScheduleStart] = useState<string>("");
+  const [scheduleEnd, setScheduleEnd] = useState<string>("");
+
+  // Platform-specific best days (0=Sun, 1=Mon, ..., 6=Sat)
+  const PLATFORM_BEST_DAYS: Record<string, number[]> = {
+    instagram: [0, 1, 2, 3, 4, 5, 6], // 7 days/week
+    facebook:  [2, 3, 4],               // Tue-Thu
+    linkedin:  [2, 3, 4],               // Tue-Thu
+    x:         [0, 1, 2, 3, 4, 5, 6],  // 7 days/week
+    tiktok:    [0, 1, 2, 3, 4, 5, 6],  // 7 days/week
+    youtube:   [4, 5, 6],               // Thu-Sat
+    general:   [1, 2, 3, 4, 5],         // Mon-Fri for generic
+  };
+
+  // Platform-specific daily post limits
+  const PLATFORM_DAILY_LIMITS: Record<string, number> = {
+    instagram: 2,
+    facebook:  2,
+    linkedin:  1,
+    x:         5,
+    tiktok:    3,
+    youtube:   1,
+    general:   5,
+  };
+
+  function distributeDates(
+    totalItems: number,
+    startStr: string,
+    endStr: string,
+    platformIds: string[]
+  ): string[] {
+    if (totalItems <= 0 || !startStr || !endStr) return [];
+
+    const start = new Date(startStr + "T00:00:00");
+    const end = new Date(endStr + "T00:00:00");
+    if (start > end) return [];
+
+    // Collect all eligible days sorted
+    const eligibleDays: Date[] = [];
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const dayOfWeek = d.getDay();
+      // A day is eligible if ANY selected platform considers it a best day
+      const isEligible = platformIds.length === 0 ||
+        platformIds.some(pid => (PLATFORM_BEST_DAYS[pid] || PLATFORM_BEST_DAYS.general).includes(dayOfWeek));
+      if (isEligible) {
+        eligibleDays.push(new Date(d));
+      }
+    }
+
+    if (eligibleDays.length === 0) {
+      // Fallback: use every day in range
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        eligibleDays.push(new Date(d));
+      }
+    }
+
+    // Calculate per-platform limits
+    const limits = platformIds.length > 0
+      ? platformIds.map(pid => PLATFORM_DAILY_LIMITS[pid] || PLATFORM_DAILY_LIMITS.general)
+      : [PLATFORM_DAILY_LIMITS.general];
+    const maxPerDay = Math.max(...limits);
+    const maxCapacity = eligibleDays.length * maxPerDay;
+
+    // If items exceed capacity, clamp to max capacity
+    const itemsToSchedule = Math.min(totalItems, maxCapacity);
+
+    // Distribute items evenly across eligible days
+    const distribution: number[] = new Array(eligibleDays.length).fill(0);
+    let remaining = itemsToSchedule;
+    while (remaining > 0) {
+      for (let i = 0; i < eligibleDays.length && remaining > 0; i++) {
+        if (distribution[i] < maxPerDay) {
+          distribution[i]++;
+          remaining--;
+        }
+      }
+    }
+
+    // Build result array
+    const result: string[] = [];
+    for (let i = 0; i < eligibleDays.length; i++) {
+      for (let j = 0; j < distribution[i]; j++) {
+        result.push(formatDate(eligibleDays[i]));
+      }
+    }
+
+    // Sort chronologically
+    result.sort((a, b) => a.localeCompare(b));
+    return result;
+  }
+
+  function formatDate(d: Date): string {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }
+
+  function todayStr(): string {
+    return formatDate(new Date());
+  }
+
+  function addDays(dateStr: string, days: number): string {
+    const d = new Date(dateStr + "T00:00:00");
+    d.setDate(d.getDate() + days);
+    return formatDate(d);
+  }
+
   // Quote Card specific
   const [quoteText, setQuoteText] = useState("");
   const [quoteSource, setQuoteSource] = useState("");
@@ -492,6 +603,9 @@ export function SmartContentCreationModal({
       "carousel": new Set(),
     });
     clearPreset();
+    setScheduleMode("immediate");
+    setScheduleStart("");
+    setScheduleEnd("");
 
     if (defaultCampaign) {
       const match = CAMPAIGNS.find(c => c.name === defaultCampaign);
@@ -543,6 +657,18 @@ export function SmartContentCreationModal({
     } else if (step < 5) {
       setStep((s) => (s + 1) as 1 | 2 | 3 | 4 | 5);
     } else {
+      // Compute scheduled dates based on schedule mode
+      let scheduledDates: string[] | null = null;
+      if (scheduleMode === "range" && scheduleStart && scheduleEnd) {
+        const allPlatforms = new Set<string>();
+        CONTENT_TYPES.forEach(t => {
+          if (quantities[t.id] > 0 && t.id !== "long-form") {
+            platformsByType[t.id].forEach(p => allPlatforms.add(p));
+          }
+        });
+        scheduledDates = distributeDates(grandTotal, scheduleStart, scheduleEnd, Array.from(allPlatforms));
+      }
+
       onComplete({
         contentType: selectedType,
         quantities,
@@ -556,6 +682,10 @@ export function SmartContentCreationModal({
         grandTotal,
         uploadedFile, sourceUrl, selectedLibraryAssets, additionalFiles,
         campaign: originMode === "campaign" ? selectedCampaignId : null,
+        scheduleMode,
+        scheduleStart,
+        scheduleEnd,
+        scheduledDates,
       });
     }
   };
@@ -1597,6 +1727,137 @@ export function SmartContentCreationModal({
                   {" "}→ after generation:{" "}
                   <span className="font-bold text-foreground">{CREDIT_BALANCE - totalCost} credits</span>
                 </span>
+              </div>
+
+              {/* ── Scheduling Section ───────────────────────────── */}
+              <div className="rounded-xl border border-border overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-3 bg-secondary/40 border-b border-border">
+                  <Clock className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-xs font-black uppercase tracking-wider text-muted-foreground/60">Schedule</span>
+                </div>
+                <div className="p-4 space-y-4">
+                  {/* Mode selector */}
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { value: "immediate" as ScheduleMode, label: "Generate Now", desc: "Create immediately" },
+                      { value: "range" as ScheduleMode, label: "Date Range", desc: "Spread across dates" },
+                      { value: "unscheduled" as ScheduleMode, label: "Save as Draft", desc: "Not yet scheduled" },
+                    ].map(({ value, label, desc }) => (
+                      <button
+                        key={value}
+                        onClick={() => setScheduleMode(value)}
+                        className={clsx(
+                          "text-left px-3 py-2.5 rounded-lg border-2 transition-all",
+                          scheduleMode === value
+                            ? "border-primary bg-primary/[0.06]"
+                            : "border-border bg-secondary/40 hover:border-border/60"
+                        )}
+                      >
+                        <div className="text-xs font-bold text-foreground">{label}</div>
+                        <div className="text-[10px] text-muted-foreground/60 mt-0.5">{desc}</div>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Date range pickers — only shown for "range" mode */}
+                  {scheduleMode === "range" && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs font-bold text-foreground block mb-1.5">Start Date</label>
+                        <input
+                          type="date"
+                          value={scheduleStart}
+                          min={todayStr()}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setScheduleStart(val);
+                            // Auto-set end to start + 7 days if not set
+                            if (!scheduleEnd && val) {
+                              setScheduleEnd(addDays(val, 7));
+                            }
+                          }}
+                          className="w-full px-3 py-2.5 bg-secondary border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 transition-all"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold text-foreground block mb-1.5">End Date</label>
+                        <input
+                          type="date"
+                          value={scheduleEnd}
+                          min={scheduleStart || todayStr()}
+                          onChange={(e) => setScheduleEnd(e.target.value)}
+                          className="w-full px-3 py-2.5 bg-secondary border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 transition-all"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Distribution preview */}
+                  {scheduleMode === "range" && scheduleStart && scheduleEnd && (() => {
+                    const allPlatforms = new Set<string>();
+                    CONTENT_TYPES.forEach(t => {
+                      if (quantities[t.id] > 0 && t.id !== "long-form") {
+                        platformsByType[t.id].forEach(p => allPlatforms.add(p));
+                      }
+                    });
+                    const platformIds = Array.from(allPlatforms);
+                    const dates = distributeDates(grandTotal, scheduleStart, scheduleEnd, platformIds);
+                    const numDays = dates.length > 0
+                      ? new Set(dates.map(d => d.split("T")[0])).size
+                      : 0;
+                    return (
+                      <div className="rounded-lg bg-secondary/30 border border-border/60 p-3 space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-semibold text-foreground">Distribution Preview</span>
+                          <span className="text-muted-foreground">
+                            {dates.length} item{dates.length !== 1 ? "s" : ""} across {numDays} day{numDays !== 1 ? "s" : ""}
+                          </span>
+                        </div>
+                        {dates.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5">
+                            {(() => {
+                              // Group by date
+                              const grouped: Record<string, number> = {};
+                              dates.forEach(d => {
+                                const key = d.split("T")[0];
+                                grouped[key] = (grouped[key] || 0) + 1;
+                              });
+                              // Show a subset if too many days
+                              const entries = Object.entries(grouped);
+                              const maxVisible = 10;
+                              const visible = entries.slice(0, maxVisible);
+                              const remaining = entries.length - maxVisible;
+                              return (
+                                <>
+                                  {visible.map(([date, count]) => (
+                                    <span
+                                      key={date}
+                                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-background/60 border border-border/60 text-[10px] font-medium text-muted-foreground"
+                                    >
+                                      {date}
+                                      <span className="text-primary font-bold">×{count}</span>
+                                    </span>
+                                  ))}
+                                  {remaining > 0 && (
+                                    <span className="text-[10px] text-muted-foreground/50 px-1">
+                                      +{remaining} more day{remaining !== 1 ? "s" : ""}
+                                    </span>
+                                  )}
+                                </>
+                              );
+                            })()}
+                          </div>
+                        )}
+                        {dates.length < grandTotal && (
+                          <p className="text-[10px] text-amber-400/70 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3" />
+                            {grandTotal - dates.length} item{(grandTotal - dates.length) !== 1 ? "s" : ""} excluded due to platform daily limits
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
               </div>
             </div>
             );
