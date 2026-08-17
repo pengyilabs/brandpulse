@@ -663,7 +663,7 @@ export function SmartContentCreationModal({
       if (scheduleMode === "range" && scheduleStart && scheduleEnd) {
         const allPlatforms = new Set<string>();
         CONTENT_TYPES.forEach(t => {
-          if (quantities[t.id] > 0 && t.id !== "wechat-article") {
+if (quantities[t.id] > 0 && t.id !== "wechat-article") {
             platformsByType[t.id].forEach(p => allPlatforms.add(p));
           }
         });
@@ -1780,7 +1780,7 @@ export function SmartContentCreationModal({
                           onChange={(e) => {
                             const val = e.target.value;
                             setScheduleStart(val);
-                            if (!scheduleEnd && val) {
+if (!scheduleEnd && val) {
                               setScheduleEnd(addDays(val, 7));
                             }
                           }}
@@ -1804,7 +1804,7 @@ export function SmartContentCreationModal({
                   {scheduleMode === "range" && scheduleStart && scheduleEnd && (() => {
                     const allPlatforms = new Set<string>();
                     CONTENT_TYPES.forEach(t => {
-                      if (quantities[t.id] > 0 && t.id !== "wechat-article") {
+if (quantities[t.id] > 0 && t.id !== "wechat-article") {
                         platformsByType[t.id].forEach(p => allPlatforms.add(p));
                       }
                     });
@@ -1824,11 +1824,13 @@ export function SmartContentCreationModal({
                         {dates.length > 0 && (
                           <div className="flex flex-wrap gap-1.5">
                             {(() => {
+// Group by date
                               const grouped: Record<string, number> = {};
                               dates.forEach(d => {
                                 const key = d.split("T")[0];
                                 grouped[key] = (grouped[key] || 0) + 1;
                               });
+// Show a subset if too many days
                               const entries = Object.entries(grouped);
                               const maxVisible = 10;
                               const visible = entries.slice(0, maxVisible);

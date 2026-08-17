@@ -4403,6 +4403,10 @@ export function ProjectView() {
 
           const title = config.title || config.topic?.slice(0, 80) || "Untitled content";
           const description = config.topic || config.title || "Content created via Smart Content Creation";
+// Determine scheduling: use distributed dates, immediate, or unscheduled
+          const scheduledDates: string[] | null = config.scheduledDates || null;
+          const scheduleMode: string = config.scheduleMode || "immediate";
+          let dateIndex = 0;
           const todayISO = new Date().toISOString();
           const scheduledAt = todayISO;
           // Extract creator config from the modal (resource IDs from library assets)
@@ -4419,6 +4423,18 @@ export function ProjectView() {
           const createdItems: ContentItem[] = [];
           for (const group of serviceItems) {
             for (let i = 0; i < group.quantity; i++) {
+              let scheduledAt: string | null;
+              if (scheduleMode === "range" && scheduledDates && scheduledDates.length > 0) {
+                // Use distributed dates, cycling through them
+                const dateStr = scheduledDates[dateIndex % scheduledDates.length];
+                scheduledAt = new Date(dateStr + "T10:00:00").toISOString();
+                dateIndex++;
+              } else if (scheduleMode === "unscheduled") {
+                scheduledAt = null;
+              } else {
+                scheduledAt = new Date().toISOString();
+              }
+
               const created = await createContentItemService(projectId, {
                 campaign_id: campaignId,
                 platform: group.platform || "general",
