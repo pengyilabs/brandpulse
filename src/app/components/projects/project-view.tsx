@@ -46,7 +46,6 @@ import {
   Upload,
   FolderOpen,
   Link as LinkIcon,
-  LayoutTemplate,
   ExternalLink,
   Clock,
   RefreshCw,
@@ -83,11 +82,13 @@ import {
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type ContentType =
-  | "Long Form"
-  | "Short Clip"
-  | "Highlight Reel"
-  | "Text to AI Video"
-  | "Quote Card";
+  | "WeChat Article"
+  | "Short Video"
+  | "Social Post"
+  | "Carousel"
+  | "Quote Card"
+  | "AI Video"
+  | "Live Stream Clip";
 
 type ContentStatus =
   | "draft"
@@ -118,43 +119,44 @@ interface ContentItem {
 }
 
 const UI_TYPE_MAP: Record<string, ContentType> = {
-  "blog-post": "Long Form",
-  "long-form": "Long Form",
-  "long_form": "Long Form",
-  article: "Long Form",
-  "short-clip": "Short Clip",
-  "short_clip": "Short Clip",
-  video: "Short Clip",
-  "highlight-reel": "Highlight Reel",
-  "highlight_reel": "Highlight Reel",
-  compilation: "Highlight Reel",
-  "ai-video": "Text to AI Video",
-  "text-to-ai-video": "Text to AI Video",
-  "text_to_ai_video": "Text to AI Video",
+  "wechat-article": "WeChat Article",
+  "wechat_article": "WeChat Article",
+  article: "WeChat Article",
+  "long-form": "WeChat Article",
+  "short-video": "Short Video",
+  "short_video": "Short Video",
+  video: "Short Video",
+  "live-clip": "Live Stream Clip",
+  "live_clip": "Live Stream Clip",
+  "ai-video": "AI Video",
+  "ai_video": "AI Video",
+  "text-to-ai-video": "AI Video",
   "quote-card": "Quote Card",
   "quote_card": "Quote Card",
-  image: "Quote Card",
-  carousel: "Quote Card",
-  "social-post": "Quote Card",
+  "social-post": "Social Post",
+  "social_post": "Social Post",
+  carousel: "Carousel",
 };
 
 const SERVICE_TYPE_MAP: Record<string, string> = {
-  "Long Form": "long-form",
-  "Short Clip": "short-clip",
-  "Highlight Reel": "highlight-reel",
-  "Text to AI Video": "ai-video",
+  "WeChat Article": "wechat-article",
+  "Short Video": "short-video",
+  "Social Post": "social-post",
+  Carousel: "carousel",
   "Quote Card": "quote-card",
-  "long-form": "long-form",
-  "short-clip": "short-clip",
-  "highlight-reel": "highlight-reel",
-  "quote-card": "quote-card",
-  "ai-video": "ai-video",
+  "AI Video": "ai-video",
+  "Live Stream Clip": "live-clip",
+  "wechat-article": "wechat-article",
+  "short-video": "short-video",
   "social-post": "social-post",
   carousel: "carousel",
+  "quote-card": "quote-card",
+  "ai-video": "ai-video",
+  "live-clip": "live-clip",
 };
 
 function contentTypeToUI(contentType: string): ContentType {
-  return UI_TYPE_MAP[contentType.toLowerCase()] || "Quote Card";
+  return UI_TYPE_MAP[contentType.toLowerCase()] || "Social Post";
 }
 
 function uiStatusToService(status: ContentStatus): string {

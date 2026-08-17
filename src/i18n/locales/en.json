@@ -50,7 +50,6 @@
     "settings": "Settings",
     "collapse": "Collapse",
     "expand": "Expand sidebar",
-    "logout": "Logout",
     "comingSoon": "Coming Soon"
   },
   "dashboard": {
@@ -275,7 +274,47 @@
   "settings": {
     "title": "Settings",
     "description": "Manage your account and preferences",
-    "comingSoon": "Settings coming soon..."
+    "profile": {
+      "title": "Profile",
+      "description": "Update your name and profile picture",
+      "nameLabel": "Display Name",
+      "namePlaceholder": "Enter your name",
+      "avatarLabel": "Avatar URL",
+      "avatarPlaceholder": "Enter avatar URL",
+      "saved": "Profile updated successfully",
+      "error": "Failed to update profile",
+      "save": "Save Profile"
+    },
+    "email": {
+      "title": "Email",
+      "description": "Update your email address. You will receive a confirmation email at the new address.",
+      "currentLabel": "Current Email",
+      "newLabel": "New Email",
+      "newPlaceholder": "Enter new email address",
+      "saved": "Confirmation email sent to your new address",
+      "error": "Failed to update email",
+      "save": "Update Email"
+    },
+    "password": {
+      "title": "Password",
+      "description": "Change your password. Choose a strong password you don't use elsewhere.",
+      "newLabel": "New Password",
+      "newPlaceholder": "Enter new password",
+      "confirmLabel": "Confirm Password",
+      "confirmPlaceholder": "Confirm new password",
+      "mismatch": "Passwords do not match",
+      "saved": "Password updated successfully",
+      "error": "Failed to update password",
+      "save": "Update Password"
+    },
+    "danger": {
+      "title": "Danger Zone",
+      "description": "Irreversible actions for your account",
+      "logout": "Log Out",
+      "logoutConfirm": "Are you sure you want to log out?",
+      "logoutDesc": "You will be signed out of your account and redirected to the login page."
+    },
+    "saving": "Saving..."
   },
   "integrations": {
     "title": "Integrations",
