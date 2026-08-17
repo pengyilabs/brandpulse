@@ -1780,7 +1780,8 @@ if (quantities[t.id] > 0 && t.id !== "wechat-article") {
                           onChange={(e) => {
                             const val = e.target.value;
                             setScheduleStart(val);
-if (!scheduleEnd && val) {
+// Auto-set end to start + 7 days if not set
+                            if (!scheduleEnd && val) {
                               setScheduleEnd(addDays(val, 7));
                             }
                           }}
