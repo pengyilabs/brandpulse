@@ -4459,6 +4459,7 @@ export function ProjectView() {
         }}
         contentType={selectedContentTypeForCreation}
         defaultFile={droppedFile ?? undefined}
+        campaigns={campaigns}
       />
 
       {/* ── Campaign launch modal ── */}
