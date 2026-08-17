@@ -50,7 +50,8 @@
     "settings": "设置",
     "collapse": "收起",
     "expand": "展开侧边栏",
-    "logout": "退出登录"
+    "logout": "退出登录",
+    "comingSoon": "即将推出"
   },
   "dashboard": {
     "tagline": "质量优先",
@@ -97,6 +98,14 @@
     "projectsCount_plural": "{{count}} 个项目"
   },
   "audits": {
+    "comingSoonTitle": "社交媒体审计 — 即将推出",
+    "comingSoonDesc": "使用 AI 分析你的社交媒体账号，衡量品牌影响力、受众互动和内容表现，一站式掌握各平台数据。",
+    "comingSoonFeatures": [
+      "账号评分与行业对标分析",
+      "粉丝增长趋势与互动数据洞察",
+      "内容表现分析及优化建议",
+      "跨平台对比与统一报告"
+    ],
     "title": "已保存的审计",
     "description": "管理和查看你的历史账号分析",
     "searchPlaceholder": "搜索审计...",
