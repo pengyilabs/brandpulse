@@ -526,6 +526,7 @@ export function SmartContentCreationModal({
   const [selectedLibraryAssets, setSelectedLibraryAssets] = useState<Set<number>>(new Set());
   const [additionalFiles, setAdditionalFiles] = useState<File[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [showLibrarySource, setShowLibrarySource] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const additionalFilesInputRef = useRef<HTMLInputElement>(null);
 
@@ -606,6 +607,7 @@ export function SmartContentCreationModal({
     setScheduleMode("immediate");
     setScheduleStart("");
     setScheduleEnd("");
+    setShowLibrarySource(false);
 
     if (defaultCampaign) {
       const match = CAMPAIGNS.find(c => c.name === defaultCampaign);
@@ -875,11 +877,11 @@ export function SmartContentCreationModal({
                 <p className="text-sm text-muted-foreground">Provide references and assets to guide content generation. This step is optional.</p>
               </div>
 
-              {/* Section A: Main Content */}
+              {/* Section: Main Content Source */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-6 h-6 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
-                    <span className="text-xs font-black text-primary">A</span>
+                    <FolderOpen className="w-3.5 h-3.5 text-primary" />
                   </div>
                   <h4 className="text-sm font-bold text-foreground">Main Content Source</h4>
                   <span className="text-xs text-muted-foreground font-medium">(Optional)</span>
@@ -989,76 +991,96 @@ export function SmartContentCreationModal({
                 >
                   Skip — no main source to provide
                 </button>
-              </div>
 
-              {/* Section B: Select from Library */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-6 h-6 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
-                    <span className="text-xs font-black text-primary">B</span>
-                  </div>
-                  <h4 className="text-sm font-bold text-foreground">Select from Library</h4>
+                {/* OR divider before library */}
+                <div className="flex items-center gap-3 my-3">
+                  <div className="flex-1 h-px bg-border" />
+                  <span className="text-xs text-muted-foreground/50 font-semibold uppercase tracking-wider">or</span>
+                  <div className="flex-1 h-px bg-border" />
                 </div>
 
-                <div className="rounded-xl border border-border overflow-hidden">
-                  <div className="max-h-[300px] overflow-y-auto">
-                    {LIBRARY_ASSETS.map((asset) => {
-                      const isSelected = selectedLibraryAssets.has(asset.id);
-                      const showUsed = asset.oneTimeUse && (asset.usedCount ?? 0) > 0;
-                      const AssetIcon = asset.type === "image" ? Image : Folder;
-                      return (
-                        <button
-                          key={asset.id}
-                          onClick={() => toggleLibraryAsset(asset.id)}
-                          className={clsx(
-                            "w-full flex items-center gap-3 px-4 py-3 border-b border-border last:border-b-0 transition-colors text-left",
-                            isSelected ? "bg-primary/5" : "hover:bg-white/[0.02]"
-                          )}
-                        >
-                          {/* Checkbox */}
-                          <div
-                            className={clsx(
-                              "w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors",
-                              isSelected ? "bg-primary border-primary" : "border-border"
-                            )}
-                          >
-                            {isSelected && <Check className="w-3 h-3 text-white" />}
-                          </div>
+                {/* Select from Library — integrated into Main Content Source */}
+                <div>
+                  <button
+                    onClick={() => setShowLibrarySource(v => !v)}
+                    className={clsx(
+                      "w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition-all text-left",
+                      showLibrarySource
+                        ? "border-primary/30 bg-primary/[0.03]"
+                        : "border-border hover:border-border/60 hover:bg-white/[0.01]"
+                    )}
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-[#8B5CF6]/10 border border-[#8B5CF6]/20 flex items-center justify-center flex-shrink-0">
+                      <FolderOpen className="w-4 h-4 text-[#8B5CF6]" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-bold text-foreground">Select from Library</div>
+                      <div className="text-xs text-muted-foreground">
+                        {selectedLibraryAssets.size > 0
+                          ? `${selectedLibraryAssets.size} asset${selectedLibraryAssets.size !== 1 ? "s" : ""} selected`
+                          : "Choose existing resources from your library"}
+                      </div>
+                    </div>
+                    <ChevronDown className={clsx(
+                      "w-4 h-4 text-muted-foreground transition-transform duration-200",
+                      showLibrarySource && "rotate-180"
+                    )} />
+                  </button>
 
-                          {/* Asset icon */}
-                          <AssetIcon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-
-                          {/* Name + size */}
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-foreground truncate">{asset.name}</p>
-                            <p className="text-xs text-muted-foreground">{asset.size}</p>
-                          </div>
-
-                          {/* Previously-used indicator (one-time-use assets only) */}
-                          {showUsed && (
-                            <div className="relative flex-shrink-0 group/used">
-                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400/80 text-[9px] font-bold uppercase tracking-wide">
-                                <RefreshCw className="w-2 h-2" />
-                                Used
-                              </span>
-                              {/* Tooltip */}
-                              <div className="pointer-events-none absolute bottom-full right-0 mb-1.5 z-50 opacity-0 group-hover/used:opacity-100 transition-opacity duration-150">
-                                <div className="bg-popover border border-border rounded-lg px-3 py-2 shadow-xl whitespace-nowrap">
-                                  <p className="text-xs font-semibold text-foreground">
-                                    Previously used in {asset.usedCount} content {asset.usedCount === 1 ? "item" : "items"}
-                                  </p>
-                                  <p className="text-[10px] text-muted-foreground mt-0.5">Reuse is allowed</p>
-                                </div>
-                                <div className="absolute right-2 top-full w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-border" />
+                  {showLibrarySource && (
+                    <div className="mt-2 rounded-xl border border-border overflow-hidden">
+                      <div className="max-h-[240px] overflow-y-auto">
+                        {LIBRARY_ASSETS.map((asset) => {
+                          const isSelected = selectedLibraryAssets.has(asset.id);
+                          const showUsed = asset.oneTimeUse && (asset.usedCount ?? 0) > 0;
+                          const AssetIcon = asset.type === "image" ? Image : Folder;
+                          return (
+                            <button
+                              key={asset.id}
+                              onClick={() => toggleLibraryAsset(asset.id)}
+                              className={clsx(
+                                "w-full flex items-center gap-3 px-4 py-3 border-b border-border last:border-b-0 transition-colors text-left",
+                                isSelected ? "bg-primary/5" : "hover:bg-white/[0.02]"
+                              )}
+                            >
+                              <div
+                                className={clsx(
+                                  "w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors",
+                                  isSelected ? "bg-primary border-primary" : "border-border"
+                                )}
+                              >
+                                {isSelected && <Check className="w-3 h-3 text-white" />}
                               </div>
-                            </div>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
+                              <AssetIcon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-foreground truncate">{asset.name}</p>
+                                <p className="text-xs text-muted-foreground">{asset.size}</p>
+                              </div>
+                              {showUsed && (
+                                <div className="relative flex-shrink-0 group/used">
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400/80 text-[9px] font-bold uppercase tracking-wide">
+                                    <RefreshCw className="w-2 h-2" />
+                                    Used
+                                  </span>
+                                  <div className="pointer-events-none absolute bottom-full right-0 mb-1.5 z-50 opacity-0 group-hover/used:opacity-100 transition-opacity duration-150">
+                                    <div className="bg-popover border border-border rounded-lg px-3 py-2 shadow-xl whitespace-nowrap">
+                                      <p className="text-xs font-semibold text-foreground">
+                                        Previously used in {asset.usedCount} content {asset.usedCount === 1 ? "item" : "items"}
+                                      </p>
+                                      <p className="text-[10px] text-muted-foreground mt-0.5">Reuse is allowed</p>
+                                    </div>
+                                    <div className="absolute right-2 top-full w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-border" />
+                                  </div>
+                                </div>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
+              </div>  {/* end Main Content Source */}
             </div>
           )}
 
