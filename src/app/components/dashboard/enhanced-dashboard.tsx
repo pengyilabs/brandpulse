@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Sparkles, Video, FileText, Image as ImageIcon, Film, TrendingUp } from 'lucide-react';
+import { Plus, Sparkles, Video, FileText, Image as ImageIcon, Film, TrendingUp, LayoutGrid, Scissors, Wand2 } from 'lucide-react';
 import Masonry, { ResponsiveMasonry } from "react-responsive-masonry";
 import { useUIStore } from '../../stores/ui-store';
 
@@ -14,7 +14,7 @@ export function EnhancedDashboard() {
     {
       id: 1,
       name: 'Lumina Wellness Content',
-      type: 'short-clip',
+      type: 'short-video',
       lastContent: '/brand-tile-navy.svg?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx5b2dhJTIwbWVkaXRhdGlvbnxlbnwxfHx8fDE3Nzc0MDAwMDB8MA&ixlib=rb-4.1.0&q=80&w=400',
       contentCount: 24,
       lastEdited: '2 hours ago',
@@ -23,7 +23,7 @@ export function EnhancedDashboard() {
     {
       id: 2,
       name: 'Valentine\'s Campaign',
-      type: 'long-form',
+      type: 'wechat-article',
       lastContent: '/brand-tile-violet.svg?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx2YWxlbnRpbmUlMjBkYXklMjByb21hbnRpY3xlbnwxfHx8fDE3Nzc0MDAwMDB8MA&ixlib=rb-4.1.0&q=80&w=400',
       contentCount: 12,
       lastEdited: '1 day ago',
@@ -32,7 +32,7 @@ export function EnhancedDashboard() {
     {
       id: 3,
       name: 'Product Launch Series',
-      type: 'highlight-reel',
+      type: 'carousel',
       lastContent: '/brand-tile-cyan.svg?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9kdWN0JTIwbGF1bmNofGVufDF8fHx8MTc3NzQwMDAwMHww&ixlib=rb-4.1.0&q=80&w=400',
       contentCount: 18,
       lastEdited: '3 days ago',
@@ -43,7 +43,7 @@ export function EnhancedDashboard() {
   // Quick start options - what you can create
   const quickStartOptions = [
     {
-      id: 'long-form',
+      id: 'wechat-article',
       titleKey: 'dashboard.quickStart.longForm',
       descKey: 'dashboard.quickStart.longFormDesc',
       icon: FileText,
@@ -52,7 +52,7 @@ export function EnhancedDashboard() {
       isPrimary: true,
     },
     {
-      id: 'short-clip',
+      id: 'short-video',
       titleKey: 'dashboard.quickStart.shortClip',
       descKey: 'dashboard.quickStart.shortClipDesc',
       icon: Video,
@@ -61,10 +61,10 @@ export function EnhancedDashboard() {
       isPrimary: true,
     },
     {
-      id: 'highlight-reel',
+      id: 'carousel',
       titleKey: 'dashboard.quickStart.highlightReel',
       descKey: 'dashboard.quickStart.highlightReelDesc',
-      icon: Film,
+      icon: LayoutGrid,
       gradient: 'from-orange-500/20 to-amber-500/20',
       borderColor: 'border-orange-500/50',
       isPrimary: true,
@@ -83,7 +83,7 @@ export function EnhancedDashboard() {
   // Content gallery - masonry grid with different content types
   const recentContent = Array.from({ length: 24 }).map((_, i) => ({
     id: i,
-    type: i % 4 === 0 ? 'short-clip' : i % 4 === 1 ? 'long-form' : i % 4 === 2 ? 'highlight-reel' : 'ai-video',
+    type: i % 4 === 0 ? 'short-video' : i % 4 === 1 ? 'wechat-article' : i % 4 === 2 ? 'carousel' : 'ai-video',
     thumbnail: [
       '/brand-tile-amber.svg?w=400',
       '/brand-tile-coral.svg?w=400',
@@ -123,7 +123,7 @@ export function EnhancedDashboard() {
                 <button
                   key={option.id}
                   onClick={() => {
-                    setSelectedContentType(option.id as 'long-form' | 'short-clip' | 'highlight-reel' | 'ai-video');
+                    setSelectedContentType(option.id as 'wechat-article' | 'short-video' | 'carousel' | 'ai-video');
                     setIsContentModalOpen(true);
                   }}
                   className={`relative group bg-gradient-to-br ${option.gradient} backdrop-blur-sm rounded-2xl p-6 border ${option.borderColor} transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-primary/20`}
@@ -210,7 +210,7 @@ export function EnhancedDashboard() {
 
             {/* Filter Tabs */}
             <div className="flex items-center gap-2 p-1 bg-card rounded-lg border border-border">
-              {['all', 'long-form', 'short-clip', 'highlight-reel', 'ai-video'].map((filter) => (
+              {['all', 'wechat-article', 'short-video', 'carousel', 'ai-video'].map((filter) => (
                 <button
                   key={filter}
                   onClick={() => setActiveFilter(filter)}
@@ -220,7 +220,7 @@ export function EnhancedDashboard() {
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  {filter === 'all' ? t('dashboard.filterAll') : filter === 'long-form' ? t('dashboard.quickStart.longForm') : filter === 'short-clip' ? t('dashboard.quickStart.shortClip') : filter === 'highlight-reel' ? t('dashboard.quickStart.highlightReel') : t('dashboard.quickStart.aiVideo')}
+                  {filter === 'all' ? t('dashboard.filterAll') : filter === 'wechat-article' ? t('dashboard.quickStart.longForm') : filter === 'short-video' ? t('dashboard.quickStart.shortClip') : filter === 'carousel' ? t('dashboard.quickStart.highlightReel') : t('dashboard.quickStart.aiVideo')}
                 </button>
               ))}
             </div>
@@ -249,10 +249,10 @@ export function EnhancedDashboard() {
                     {/* Content Type Badge */}
                     <div className="absolute top-3 right-3">
                       <div className="px-2 py-1 bg-black/60 backdrop-blur-sm rounded-md">
-                        {content.type === 'short-clip' && <Video className="w-3 h-3 text-blue-400" />}
-                        {content.type === 'long-form' && <FileText className="w-3 h-3 text-green-400" />}
-                        {content.type === 'highlight-reel' && <Film className="w-3 h-3 text-orange-400" />}
-                        {content.type === 'ai-video' && <TrendingUp className="w-3 h-3 text-purple-400" />}
+                        {content.type === 'short-video' && <Video className="w-3 h-3 text-blue-400" />}
+                        {content.type === 'wechat-article' && <FileText className="w-3 h-3 text-green-400" />}
+                        {content.type === 'carousel' && <LayoutGrid className="w-3 h-3 text-orange-400" />}
+                        {content.type === 'ai-video' && <Wand2 className="w-3 h-3 text-purple-400" />}
                       </div>
                     </div>
                   </div>

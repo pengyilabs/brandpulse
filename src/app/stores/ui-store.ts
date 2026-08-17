@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-type ContentType = 'long-form' | 'short-clip' | 'highlight-reel' | 'ai-video';
+type ContentType = 'wechat-article' | 'short-video' | 'social-post' | 'carousel' | 'quote-card' | 'ai-video' | 'live-clip';
 
 interface UIStore {
   // Content Creation Modal
@@ -24,7 +24,7 @@ interface UIStore {
 export const useUIStore = create<UIStore>((set) => ({
   // Content Creation Modal
   isContentModalOpen: false,
-  selectedContentType: 'short-clip',
+  selectedContentType: 'social-post',
   openContentModal: (contentType) =>
     set({ isContentModalOpen: true, selectedContentType: contentType }),
   closeContentModal: () => set({ isContentModalOpen: false }),

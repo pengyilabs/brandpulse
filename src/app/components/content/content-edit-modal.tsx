@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { X, ChevronDown, Search, Upload, Sparkles, Palette, User, FileText } from "lucide-react";
 import svgPathsShortClip from "@/imports/PostContentContainer-3/svg-ehzova85ar";
 import svgPathsLongForm from "@/imports/PostContentContainer-6/svg-zh0484zckq";
@@ -465,10 +465,14 @@ function ResourcesSection({ linkValue, onLinkChange, selectedCount = 0, onOpenPi
 }
 
 // Configuration section (shared structure, content-type-specific fields)
-function ConfigurationSection({ category, fields, setField }: {
+function ConfigurationSection({ category, fields, setField, selectedBrandKitName, setShowBrandKitPicker, selectedWriterProfileName, setShowWriterProfilePicker }: {
   category: ContentCategory;
   fields: Record<string, any>;
   setField: (k: string, v: string) => void;
+  selectedBrandKitName: string;
+  setShowBrandKitPicker: (v: boolean) => void;
+  selectedWriterProfileName: string;
+  setShowWriterProfilePicker: (v: boolean) => void;
 }) {
   return (
     <div className="flex flex-col items-start shrink-0 w-full pt-[16px]">
@@ -1030,7 +1034,16 @@ function PreviewPanel({ category, fields, platform }: {
 
 // ─── Content-type form fields ─────────────────────────────────────────────────
 
-function LongFormFields({ fields, setField, isApproved }: { fields: Record<string, any>; setField: (k: string, v: string | string[]) => void; isApproved?: boolean }) {
+function LongFormFields({ fields, setField, isApproved, selectedBrandKitName, setShowBrandKitPicker, selectedWriterProfileName, setShowWriterProfilePicker, setShowResourcePicker }: {
+  fields: Record<string, any>;
+  setField: (k: string, v: string | string[]) => void;
+  isApproved?: boolean;
+  selectedBrandKitName: string;
+  setShowBrandKitPicker: (v: boolean) => void;
+  selectedWriterProfileName: string;
+  setShowWriterProfilePicker: (v: boolean) => void;
+  setShowResourcePicker: (v: boolean) => void;
+}) {
   return (
     <>
       <div className="flex flex-col items-start pt-[16px] shrink-0 w-full">
@@ -1064,12 +1077,21 @@ function LongFormFields({ fields, setField, isApproved }: { fields: Record<strin
 
       <TagsSection tags={fields.tags ?? []} onChange={(v) => setField("tags", v as any)} isApproved={isApproved} />
       <ResourcesSection linkValue={fields.sourceLink ?? ""} onLinkChange={(v) => setField("sourceLink", v)} isApproved={isApproved} selectedCount={fields.selectedResources?.length ?? 0} onOpenPicker={() => setShowResourcePicker(true)} />
-      <ConfigurationSection category="long-form" fields={fields} setField={setField as any} isApproved={isApproved} />
+      <ConfigurationSection category="long-form" fields={fields} setField={setField as any} isApproved={isApproved} selectedBrandKitName={selectedBrandKitName} setShowBrandKitPicker={setShowBrandKitPicker} selectedWriterProfileName={selectedWriterProfileName} setShowWriterProfilePicker={setShowWriterProfilePicker} />
     </>
   );
 }
 
-function ShortVideoFields({ fields, setField, isApproved }: { fields: Record<string, any>; setField: (k: string, v: string | string[]) => void; isApproved?: boolean }) {
+function ShortVideoFields({ fields, setField, isApproved, selectedBrandKitName, setShowBrandKitPicker, selectedWriterProfileName, setShowWriterProfilePicker, setShowResourcePicker }: {
+  fields: Record<string, any>;
+  setField: (k: string, v: string | string[]) => void;
+  isApproved?: boolean;
+  selectedBrandKitName: string;
+  setShowBrandKitPicker: (v: boolean) => void;
+  selectedWriterProfileName: string;
+  setShowWriterProfilePicker: (v: boolean) => void;
+  setShowResourcePicker: (v: boolean) => void;
+}) {
   return (
     <>
       <div className="flex flex-col items-start pt-[16px] shrink-0 w-full">
@@ -1103,12 +1125,21 @@ function ShortVideoFields({ fields, setField, isApproved }: { fields: Record<str
 
       <TagsSection tags={fields.tags ?? []} onChange={(v) => setField("tags", v as any)} isApproved={isApproved} />
       <ResourcesSection linkValue={fields.sourceLink ?? ""} onLinkChange={(v) => setField("sourceLink", v)} isApproved={isApproved} selectedCount={fields.selectedResources?.length ?? 0} onOpenPicker={() => setShowResourcePicker(true)} />
-      <ConfigurationSection category="short-video" fields={fields} setField={setField as any} isApproved={isApproved} />
+      <ConfigurationSection category="short-video" fields={fields} setField={setField as any} isApproved={isApproved} selectedBrandKitName={selectedBrandKitName} setShowBrandKitPicker={setShowBrandKitPicker} selectedWriterProfileName={selectedWriterProfileName} setShowWriterProfilePicker={setShowWriterProfilePicker} />
     </>
   );
 }
 
-function HighlightFields({ fields, setField, isApproved }: { fields: Record<string, any>; setField: (k: string, v: string | string[]) => void; isApproved?: boolean }) {
+function HighlightFields({ fields, setField, isApproved, selectedBrandKitName, setShowBrandKitPicker, selectedWriterProfileName, setShowWriterProfilePicker, setShowResourcePicker }: {
+  fields: Record<string, any>;
+  setField: (k: string, v: string | string[]) => void;
+  isApproved?: boolean;
+  selectedBrandKitName: string;
+  setShowBrandKitPicker: (v: boolean) => void;
+  selectedWriterProfileName: string;
+  setShowWriterProfilePicker: (v: boolean) => void;
+  setShowResourcePicker: (v: boolean) => void;
+}) {
   return (
     <>
       <div className="flex flex-col items-start pt-[16px] shrink-0 w-full">
@@ -1142,12 +1173,20 @@ function HighlightFields({ fields, setField, isApproved }: { fields: Record<stri
 
       <TagsSection tags={fields.tags ?? []} onChange={(v) => setField("tags", v as any)} isApproved={isApproved} />
       <ResourcesSection linkValue={fields.sourceLink ?? ""} onLinkChange={(v) => setField("sourceLink", v)} isApproved={isApproved} selectedCount={fields.selectedResources?.length ?? 0} onOpenPicker={() => setShowResourcePicker(true)} />
-      <ConfigurationSection category="highlight" fields={fields} setField={setField as any} isApproved={isApproved} />
+      <ConfigurationSection category="highlight" fields={fields} setField={setField as any} isApproved={isApproved} selectedBrandKitName={selectedBrandKitName} setShowBrandKitPicker={setShowBrandKitPicker} selectedWriterProfileName={selectedWriterProfileName} setShowWriterProfilePicker={setShowWriterProfilePicker} />
     </>
   );
 }
 
-function QuoteCardFields({ fields, setField, isApproved }: { fields: Record<string, any>; setField: (k: string, v: string | string[]) => void; isApproved?: boolean }) {
+function QuoteCardFields({ fields, setField, isApproved, selectedBrandKitName, setShowBrandKitPicker, selectedWriterProfileName, setShowWriterProfilePicker }: {
+  fields: Record<string, any>;
+  setField: (k: string, v: string | string[]) => void;
+  isApproved?: boolean;
+  selectedBrandKitName: string;
+  setShowBrandKitPicker: (v: boolean) => void;
+  selectedWriterProfileName: string;
+  setShowWriterProfilePicker: (v: boolean) => void;
+}) {
   return (
     <>
       <div className="flex flex-col items-start pt-[16px] shrink-0 w-full">
@@ -1189,12 +1228,21 @@ function QuoteCardFields({ fields, setField, isApproved }: { fields: Record<stri
       </div>
 
       <TagsSection tags={fields.tags ?? []} onChange={(v) => setField("tags", v as any)} isApproved={isApproved} />
-      <ConfigurationSection category="quote-card" fields={fields} setField={setField as any} isApproved={isApproved} />
+      <ConfigurationSection category="quote-card" fields={fields} setField={setField as any} isApproved={isApproved} selectedBrandKitName={selectedBrandKitName} setShowBrandKitPicker={setShowBrandKitPicker} selectedWriterProfileName={selectedWriterProfileName} setShowWriterProfilePicker={setShowWriterProfilePicker} />
     </>
   );
 }
 
-function AIVideoFields({ fields, setField, isApproved }: { fields: Record<string, any>; setField: (k: string, v: string | string[]) => void; isApproved?: boolean }) {
+function AIVideoFields({ fields, setField, isApproved, selectedBrandKitName, setShowBrandKitPicker, selectedWriterProfileName, setShowWriterProfilePicker, setShowResourcePicker }: {
+  fields: Record<string, any>;
+  setField: (k: string, v: string | string[]) => void;
+  isApproved?: boolean;
+  selectedBrandKitName: string;
+  setShowBrandKitPicker: (v: boolean) => void;
+  selectedWriterProfileName: string;
+  setShowWriterProfilePicker: (v: boolean) => void;
+  setShowResourcePicker: (v: boolean) => void;
+}) {
   return (
     <>
       <div className="flex flex-col items-start pt-[16px] shrink-0 w-full">
@@ -1228,12 +1276,21 @@ function AIVideoFields({ fields, setField, isApproved }: { fields: Record<string
 
       <TagsSection tags={fields.tags ?? []} onChange={(v) => setField("tags", v as any)} isApproved={isApproved} />
       <ResourcesSection linkValue={fields.sourceLink ?? ""} onLinkChange={(v) => setField("sourceLink", v)} isApproved={isApproved} selectedCount={fields.selectedResources?.length ?? 0} onOpenPicker={() => setShowResourcePicker(true)} />
-      <ConfigurationSection category="ai-video" fields={fields} setField={setField as any} isApproved={isApproved} />
+      <ConfigurationSection category="ai-video" fields={fields} setField={setField as any} isApproved={isApproved} selectedBrandKitName={selectedBrandKitName} setShowBrandKitPicker={setShowBrandKitPicker} selectedWriterProfileName={selectedWriterProfileName} setShowWriterProfilePicker={setShowWriterProfilePicker} />
     </>
   );
 }
 
-function OtherFields({ fields, setField, isApproved }: { fields: Record<string, any>; setField: (k: string, v: string | string[]) => void; isApproved?: boolean }) {
+function OtherFields({ fields, setField, isApproved, selectedBrandKitName, setShowBrandKitPicker, selectedWriterProfileName, setShowWriterProfilePicker, setShowResourcePicker }: {
+  fields: Record<string, any>;
+  setField: (k: string, v: string | string[]) => void;
+  isApproved?: boolean;
+  selectedBrandKitName: string;
+  setShowBrandKitPicker: (v: boolean) => void;
+  selectedWriterProfileName: string;
+  setShowWriterProfilePicker: (v: boolean) => void;
+  setShowResourcePicker: (v: boolean) => void;
+}) {
   return (
     <>
       <div className="flex flex-col items-start pt-[16px] shrink-0 w-full">
@@ -1267,7 +1324,7 @@ function OtherFields({ fields, setField, isApproved }: { fields: Record<string, 
 
       <TagsSection tags={fields.tags ?? []} onChange={(v) => setField("tags", v as any)} isApproved={isApproved} />
       <ResourcesSection linkValue={fields.sourceLink ?? ""} onLinkChange={(v) => setField("sourceLink", v)} isApproved={isApproved} selectedCount={fields.selectedResources?.length ?? 0} onOpenPicker={() => setShowResourcePicker(true)} />
-      <ConfigurationSection category="other" fields={fields} setField={setField as any} isApproved={isApproved} />
+      <ConfigurationSection category="other" fields={fields} setField={setField as any} isApproved={isApproved} selectedBrandKitName={selectedBrandKitName} setShowBrandKitPicker={setShowBrandKitPicker} selectedWriterProfileName={selectedWriterProfileName} setShowWriterProfilePicker={setShowWriterProfilePicker} />
     </>
   );
 }
@@ -1345,6 +1402,13 @@ export function ContentEditModal({
   const setField = (k: string, v: any) => setFieldsRaw((prev) => ({ ...prev, [k]: v }));
 
   const isApproved = currentStatus === "Approved";
+
+  // Reset picker state when content item changes (fixes crash when switching items)
+  useEffect(() => {
+    setSelectedBrandKitName("");
+    setSelectedWriterProfileName("");
+    setFieldsRaw((prev) => ({ ...prev, brandKit: "", writerProfile: "", writerProfileId: "", selectedResources: [] }));
+  }, [contentItem.id]);
 
   const handleStatusChange = (newStatus: string) => {
     if (newStatus === "Rejected") {
@@ -1559,12 +1623,12 @@ export function ContentEditModal({
           {/* Form panel (right, scrollable) */}
           <div className="flex-1 min-w-0 overflow-y-auto bg-[#0a0a0a]">
             <div className="flex flex-col items-start px-[24px] py-[16px] pb-[120px]">
-              {category === "long-form" && <LongFormFields fields={fields} setField={setField} />}
-              {category === "short-video" && <ShortVideoFields fields={fields} setField={setField} />}
-              {category === "highlight" && <HighlightFields fields={fields} setField={setField} />}
-              {category === "quote-card" && <QuoteCardFields fields={fields} setField={setField} />}
-              {category === "ai-video" && <AIVideoFields fields={fields} setField={setField} />}
-              {category === "other" && <OtherFields fields={fields} setField={setField} />}
+              {category === "long-form" && <LongFormFields fields={fields} setField={setField} selectedBrandKitName={selectedBrandKitName} setShowBrandKitPicker={setShowBrandKitPicker} selectedWriterProfileName={selectedWriterProfileName} setShowWriterProfilePicker={setShowWriterProfilePicker} setShowResourcePicker={setShowResourcePicker} />}
+              {category === "short-video" && <ShortVideoFields fields={fields} setField={setField} selectedBrandKitName={selectedBrandKitName} setShowBrandKitPicker={setShowBrandKitPicker} selectedWriterProfileName={selectedWriterProfileName} setShowWriterProfilePicker={setShowWriterProfilePicker} setShowResourcePicker={setShowResourcePicker} />}
+              {category === "highlight" && <HighlightFields fields={fields} setField={setField} selectedBrandKitName={selectedBrandKitName} setShowBrandKitPicker={setShowBrandKitPicker} selectedWriterProfileName={selectedWriterProfileName} setShowWriterProfilePicker={setShowWriterProfilePicker} setShowResourcePicker={setShowResourcePicker} />}
+              {category === "quote-card" && <QuoteCardFields fields={fields} setField={setField} selectedBrandKitName={selectedBrandKitName} setShowBrandKitPicker={setShowBrandKitPicker} selectedWriterProfileName={selectedWriterProfileName} setShowWriterProfilePicker={setShowWriterProfilePicker} />}
+              {category === "ai-video" && <AIVideoFields fields={fields} setField={setField} selectedBrandKitName={selectedBrandKitName} setShowBrandKitPicker={setShowBrandKitPicker} selectedWriterProfileName={selectedWriterProfileName} setShowWriterProfilePicker={setShowWriterProfilePicker} setShowResourcePicker={setShowResourcePicker} />}
+              {category === "other" && <OtherFields fields={fields} setField={setField} selectedBrandKitName={selectedBrandKitName} setShowBrandKitPicker={setShowBrandKitPicker} selectedWriterProfileName={selectedWriterProfileName} setShowWriterProfilePicker={setShowWriterProfilePicker} setShowResourcePicker={setShowResourcePicker} />}
 
               {/* ── Comments Section ── */}
               <div className="w-full pt-[24px]">

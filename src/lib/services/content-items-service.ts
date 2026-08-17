@@ -66,6 +66,9 @@ export async function createContentItem(
     title?: string | null;
     description?: string | null;
     scheduled_at?: string | null;
+    brand_kit_id?: string | null;
+    writer_profile_id?: string | null;
+    resource_ids?: string[];
   }
 ): Promise<ContentItem | null> {
   const { data: result, error } = await supabase
@@ -78,6 +81,9 @@ export async function createContentItem(
       title: data.title || null,
       description: data.description || null,
       scheduled_at: data.scheduled_at || null,
+      brand_kit_id: data.brand_kit_id || null,
+      writer_profile_id: data.writer_profile_id || null,
+      resource_ids: data.resource_ids || [],
       status: 'draft',
     })
     .select()
@@ -93,7 +99,7 @@ export async function createContentItem(
 
 export async function updateContentItem(
   id: string,
-  updates: Partial<Pick<ContentItem, 'title' | 'description' | 'status' | 'scheduled_at' | 'campaign_id'>>
+  updates: Partial<Pick<ContentItem, 'title' | 'description' | 'status' | 'scheduled_at' | 'campaign_id' | 'brand_kit_id' | 'writer_profile_id' | 'resource_ids'>>
 ): Promise<ContentItem | null> {
   const { data, error } = await supabase
     .from('content_items')
