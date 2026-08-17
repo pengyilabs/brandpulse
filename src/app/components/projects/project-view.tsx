@@ -4405,6 +4405,10 @@ export function ProjectView() {
           const description = config.topic || config.title || "Content created via Smart Content Creation";
           const todayISO = new Date().toISOString();
           const scheduledAt = todayISO;
+          // Extract creator config from the modal (resource IDs from library assets)
+          const resourceIds: string[] = config.selectedLibraryAssets
+            ? Array.from(config.selectedLibraryAssets).map(String)
+            : [];
 
           const campaignsLookup: Record<string, { name: string; color: string }> = {};
           campaigns.forEach(c => {
@@ -4422,6 +4426,7 @@ export function ProjectView() {
                 title,
                 description,
                 scheduled_at: scheduledAt,
+                resource_ids: resourceIds,
               });
               if (created) {
                 createdItems.push(mapServiceToUIContentItem(created, campaignsLookup));
