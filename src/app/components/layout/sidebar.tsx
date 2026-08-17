@@ -14,6 +14,7 @@ import {
   FileJson,
   Globe,
   LogOut,
+  Clock,
 } from "lucide-react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { clsx } from "clsx";
@@ -24,11 +25,11 @@ import { useAuthStore } from "@/app/stores/auth-store";
 const NAV_ITEMS = [
   { id: "dashboard", labelKey: "nav.dashboard", icon: Home },
   { id: "projects", labelKey: "nav.projects", icon: FolderOpen },
-  { id: "audits", labelKey: "nav.audits", icon: BarChart3 },
   { id: "brand-kit", labelKey: "nav.brandKit", icon: Palette },
   { id: "writer-profiles", labelKey: "nav.writerProfiles", icon: UserCircle },
   { id: "resources", labelKey: "nav.resources", icon: Library },
   { id: "templates", labelKey: "nav.templates", icon: LayoutTemplate },
+  { id: "audits", labelKey: "nav.audits", icon: BarChart3, disabled: true, previewKey: "audits.comingSoonDesc" },
   { id: "settings", labelKey: "nav.settings", icon: Settings },
 ];
 
@@ -74,10 +75,54 @@ export function Sidebar() {
           {NAV_ITEMS.map((item) => {
             const isActive = currentPath === item.id || currentPath.startsWith(item.id + '/');
             const Icon = item.icon;
+            const isDisabled = item.disabled;
 
             return (
               <TooltipPrimitive.Root key={item.id}>
                 <TooltipPrimitive.Trigger asChild>
+                  {isDisabled ? (
+                    <div
+                      className={clsx(
+                        "relative w-full flex items-center rounded-lg mb-0.5",
+                        "outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                        "transition-colors duration-150",
+                        collapsed ? "justify-center p-[11px]" : "gap-3 px-3 py-[9px]",
+                        "opacity-50 cursor-not-allowed text-muted-foreground"
+                      )}
+                    >
+                      <span
+                        className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-r-full bg-primary"
+                        style={{
+                          height: isActive ? 20 : 0,
+                          opacity: isActive ? 1 : 0,
+                          transition: "height 200ms ease, opacity 150ms ease",
+                        }}
+                      />
+
+                      <Icon className="w-[18px] h-[18px] flex-shrink-0" />
+
+                      {/* Label + Coming Soon badge */}
+                      <div
+                        className="overflow-hidden flex-1 flex items-center justify-between"
+                        style={{
+                          maxWidth: collapsed ? 0 : 140,
+                          opacity: collapsed ? 0 : 1,
+                          transition: "max-width 200ms ease, opacity 120ms ease",
+                        }}
+                      >
+                        <span
+                          className={clsx(
+                            "block text-sm font-medium whitespace-nowrap"
+                          )}
+                        >
+                          {t(item.labelKey)}
+                        </span>
+                        <span className="ml-2 px-1.5 py-0.5 bg-muted text-[10px] font-medium rounded-full text-muted-foreground whitespace-nowrap">
+                          {t('nav.comingSoon')}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
                   <Link
                     to={`/${item.id}`}
                     className={clsx(
@@ -122,6 +167,7 @@ export function Sidebar() {
                       </span>
                     </div>
                   </Link>
+                  )}
                 </TooltipPrimitive.Trigger>
 
                 {collapsed && (
@@ -140,6 +186,9 @@ export function Sidebar() {
                       )}
                     >
                       {t(item.labelKey)}
+                      {item.disabled && (
+                        <span className="ml-1">· {t('nav.comingSoon')}</span>
+                      )}
                       <TooltipPrimitive.Arrow
                         width={8}
                         height={4}
@@ -147,10 +196,10 @@ export function Sidebar() {
                       />
                     </TooltipPrimitive.Content>
                   </TooltipPrimitive.Portal>
-                )}
-              </TooltipPrimitive.Root>
-            );
-          })}
+                  )}
+                </TooltipPrimitive.Root>
+              );
+            })}
         </nav>
 
         {/* ── Language Switcher ── */}
