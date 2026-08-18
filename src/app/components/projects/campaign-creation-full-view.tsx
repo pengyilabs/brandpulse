@@ -1,8 +1,8 @@
 import React, { useState, useRef, useMemo, useEffect } from "react";
 import {
-  X, Upload, Link as LinkIcon, FileText, Video, ImageIcon, LayoutGrid,
+  X, Upload, Link as LinkIcon, FileText, Video, ImageIcon, LayoutGrid, Film,
   Check, Flag, ChevronDown, ChevronUp,
-  Calendar, Target, ArrowLeft, Quote, Scissors, Star,
+  Calendar, Target, ArrowLeft, Quote, Scissors,
   Wand2, Plus, Minus, Lightbulb, Users, ShoppingCart,
   AlertCircle, Zap, Layers, Cloud, Archive, HardDrive,
   MessageCircle, Music2, Share2, Play,
@@ -37,7 +37,7 @@ const SOCIAL_PLATFORMS: SocialPlatform[] = [
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type ContentTypeId = "blog-post" | "social-post" | "short-clip" | "highlight-reel" | "quote-card" | "ai-video" | "carousel";
+type ContentTypeId = "wechat-article" | "short-video" | "social-post" | "carousel" | "quote-card" | "ai-video" | "live-clip";
 type FunnelStage = "awareness" | "consideration" | "conversion";
 
 interface ContentTypeDef {
@@ -63,13 +63,13 @@ interface ScheduledItem {
 // ─── Config ───────────────────────────────────────────────────────────────────
 
 const CONTENT_TYPES: ContentTypeDef[] = [
-  { id: "blog-post", label: "Long Form", sublabel: "Article / Blog Post", description: "In-depth article or recap", Icon: FileText, color: "#4B56F2", credits: 20, hasPlatforms: false },
-  { id: "short-clip", label: "Short Clip", sublabel: "Short Video", description: "8s per clip · Extracts & re-edits", Icon: Scissors, color: "#60A5FA", credits: 15, hasPlatforms: true },
-  { id: "highlight-reel", label: "Highlight Reel", sublabel: "Compilation", description: "60–90s compilation, auto-curated", Icon: Star, color: "#F59E0B", credits: 25, hasPlatforms: true },
-  { id: "quote-card", label: "Quote Card", sublabel: "Graphic", description: "Minimal Dark", Icon: Quote, color: "#A78BFA", credits: 8, hasPlatforms: true },
-  { id: "ai-video", label: "Text to AI Video", sublabel: "AI Video", description: "AI-generated from topic & guidelines", Icon: Wand2, color: "#EC4899", credits: 30, hasPlatforms: true },
-  { id: "social-post", label: "Social Post", sublabel: "Text + Image", description: "Text and image posts", Icon: ImageIcon, color: "#06B6D4", credits: 5, hasPlatforms: true },
-  { id: "carousel", label: "Carousel", sublabel: "Carousel", description: "Multi-slide swipeable posts", Icon: LayoutGrid, color: "#8B5CF6", credits: 12, hasPlatforms: true },
+  { id: "wechat-article", label: "WeChat Article", sublabel: "公众号文章", description: "In-depth articles for WeChat Official Accounts", Icon: FileText, color: "#07C160", credits: 20, hasPlatforms: false },
+  { id: "short-video", label: "Short Video", sublabel: "短视频", description: "Short-form video for Douyin, Xiaohongshu & Bilibili", Icon: Film, color: "#010101", credits: 15, hasPlatforms: true },
+  { id: "social-post", label: "Social Post", sublabel: "社交帖子", description: "Platform-native posts for WeChat Moments, Weibo & more", Icon: Share2, color: "#06B6D4", credits: 10, hasPlatforms: true },
+  { id: "carousel", label: "Carousel", sublabel: "图文/轮播", description: "Multi-slide image-text posts for Xiaohongshu & WeChat", Icon: LayoutGrid, color: "#8B5CF6", credits: 12, hasPlatforms: true },
+  { id: "quote-card", label: "Quote Card", sublabel: "引用卡片", description: "Branded quote graphics from templates", Icon: Quote, color: "#A78BFA", credits: 8, hasPlatforms: true },
+  { id: "ai-video", label: "AI Video", sublabel: "AI生视频", description: "AI-generated from topic & guidelines", Icon: Wand2, color: "#EC4899", credits: 30, hasPlatforms: true },
+  { id: "live-clip", label: "Live Clip", sublabel: "直播剪辑", description: "Short clips edited from live streams", Icon: Scissors, color: "#60A5FA", credits: 15, hasPlatforms: true },
 ];
 
 const FUNNEL_STAGES = [
@@ -160,7 +160,7 @@ export const PREVIOUS_CAMPAIGNS: PreviousCampaign[] = [
     description: "High-energy summer product launch with athlete stories and training content",
     color: "#F97316",
     dateRange: "Jun 1 – Jun 28, 2026",
-    contentTypeCounts: { "blog-post": 2, "short-clip": 6, "highlight-reel": 2, "quote-card": 3, "social-post": 5, "ai-video": 1 },
+    contentTypeCounts: { "wechat-article": 2, "short-video": 6, "live-clip": 2, "quote-card": 3, "social-post": 5, "ai-video": 1, "carousel": 0 },
     funnelPct: { awareness: 50, consideration: 30, conversion: 20 },
     topics: ["Performance Innovation", "Athlete Stories", "Product Launches"],
     durationValue: "4",
@@ -172,7 +172,7 @@ export const PREVIOUS_CAMPAIGNS: PreviousCampaign[] = [
     description: "Top-of-funnel brand building campaign focused on education and community",
     color: "#8B5CF6",
     dateRange: "Jan 6 – Feb 2, 2026",
-    contentTypeCounts: { "blog-post": 4, "short-clip": 3, "highlight-reel": 1, "quote-card": 4, "social-post": 6, "ai-video": 0 },
+    contentTypeCounts: { "wechat-article": 4, "short-video": 3, "live-clip": 1, "quote-card": 4, "social-post": 6, "ai-video": 0, "carousel": 0 },
     funnelPct: { awareness: 70, consideration: 20, conversion: 10 },
     topics: ["Performance Innovation", "Training Tips", "Community Engagement"],
     durationValue: "4",
@@ -184,7 +184,7 @@ export const PREVIOUS_CAMPAIGNS: PreviousCampaign[] = [
     description: "Mid-funnel consideration campaign featuring product walkthroughs and comparisons",
     color: "#06B6D4",
     dateRange: "Mar 2 – Mar 29, 2026",
-    contentTypeCounts: { "blog-post": 3, "short-clip": 4, "highlight-reel": 2, "quote-card": 2, "social-post": 4, "ai-video": 2 },
+    contentTypeCounts: { "wechat-article": 3, "short-video": 4, "live-clip": 2, "quote-card": 2, "social-post": 4, "ai-video": 2, "carousel": 0 },
     funnelPct: { awareness: 30, consideration: 50, conversion: 20 },
     topics: ["Product Launches", "Training Tips"],
     durationValue: "4",
@@ -196,7 +196,7 @@ export const PREVIOUS_CAMPAIGNS: PreviousCampaign[] = [
     description: "Bottom-of-funnel campaign driving sign-ups with offers and social proof",
     color: "#4B56F2",
     dateRange: "Apr 1 – Apr 14, 2026",
-    contentTypeCounts: { "blog-post": 1, "short-clip": 5, "highlight-reel": 1, "quote-card": 3, "social-post": 7, "ai-video": 1 },
+    contentTypeCounts: { "wechat-article": 1, "short-video": 5, "live-clip": 1, "quote-card": 3, "social-post": 7, "ai-video": 1, "carousel": 0 },
     funnelPct: { awareness: 20, consideration: 30, conversion: 50 },
     topics: ["Athlete Stories", "Product Launches"],
     durationValue: "2",
@@ -208,7 +208,7 @@ export const PREVIOUS_CAMPAIGNS: PreviousCampaign[] = [
     description: "Ongoing wellness and lifestyle content with sustainability messaging",
     color: "#EC4899",
     dateRange: "May 1 – May 31, 2026",
-    contentTypeCounts: { "blog-post": 3, "short-clip": 4, "highlight-reel": 1, "quote-card": 5, "social-post": 8, "ai-video": 0 },
+    contentTypeCounts: { "wechat-article": 3, "short-video": 4, "live-clip": 1, "quote-card": 5, "social-post": 8, "ai-video": 0, "carousel": 0 },
     funnelPct: { awareness: 55, consideration: 30, conversion: 15 },
     topics: ["Performance Innovation", "Athlete Stories", "Training Tips", "Product Launches"],
     durationValue: "1",
@@ -579,9 +579,10 @@ interface CampaignCreationFullViewProps {
   onClose: () => void;
   onComplete: (config: any) => void;
   initialDuplicate?: PreviousCampaign | null;
+  projectTopics?: string[];
 }
 
-export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialDuplicate }: CampaignCreationFullViewProps) {
+export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialDuplicate, projectTopics }: CampaignCreationFullViewProps) {
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const [expandedStep, setExpandedStep] = useState<number>(1);
@@ -612,22 +613,22 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
 
   // Step 3 - Content Type Mix
   const [contentTypeCounts, setContentTypeCounts] = useState<Record<ContentTypeId, number>>({
-    "blog-post": 1,
-    "short-clip": 4,
-    "highlight-reel": 1,
-    "quote-card": 2,
+    "wechat-article": 1,
+    "short-video": 4,
     "social-post": 3,
-    "ai-video": 0,
     "carousel": 0,
+    "quote-card": 2,
+    "ai-video": 0,
+    "live-clip": 1,
   });
   const [platformsByType, setPlatformsByType] = useState<Record<ContentTypeId, Set<SocialPlatformId>>>({
-    "blog-post": new Set(),
-    "short-clip": new Set(["instagram", "tiktok"]),
-    "highlight-reel": new Set(),
+    "wechat-article": new Set(),
+    "short-video": new Set(["douyin", "xiaohongshu"]),
+    "social-post": new Set(["wechat", "weibo"]),
+    "carousel": new Set(),
     "quote-card": new Set(),
     "ai-video": new Set(),
-    "social-post": new Set(["facebook", "linkedin"]),
-    "carousel": new Set(),
+    "live-clip": new Set(),
   });
 
   const togglePlatformForType = (typeId: ContentTypeId, platformId: SocialPlatformId) => {
@@ -654,7 +655,8 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
   const [funnelPct, setFunnelPct] = useState({ awareness: 60, consideration: 25, conversion: 15 });
 
   // Step 5 - Topics
-  const [selectedTopics, setSelectedTopics] = useState<Set<string>>(new Set(PROJECT_TOPICS.slice(0, 2)));
+  const topicsFromProject = projectTopics ?? PROJECT_TOPICS;
+  const [selectedTopics, setSelectedTopics] = useState<Set<string>>(new Set(topicsFromProject.slice(0, 2)));
   const [customTopics, setCustomTopics] = useState<string[]>([]);
   const [newTopicInput, setNewTopicInput] = useState("");
 
@@ -946,12 +948,13 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
 
       // Recalculate content type counts
       const newCounts: Record<ContentTypeId, number> = {
-        "blog-post": 0,
-        "short-clip": 0,
-        "highlight-reel": 0,
-        "quote-card": 0,
+        "wechat-article": 0,
+        "short-video": 0,
         "social-post": 0,
+        "carousel": 0,
+        "quote-card": 0,
         "ai-video": 0,
+        "live-clip": 0,
       };
 
       updatedItems.forEach(item => {
@@ -1268,85 +1271,105 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
 
                     {/* Step 3: Content Type Mix */}
                     {stepItem.id === 3 && (
-                      <div className="space-y-3">
-                        {CONTENT_TYPES.map((type) => {
+                      <div className="space-y-0">
+                        {CONTENT_TYPES.map((type, idx) => {
                           const Icon = type.Icon;
                           const count = contentTypeCounts[type.id];
                           const typeTotal = getTypeItemCount(type.id);
                           const platforms = platformsByType[type.id];
+                          const hasPlatforms = type.hasPlatforms;
+                          const rowBorder = idx < CONTENT_TYPES.length - 1 ? "border-b border-white/[0.05]" : "";
                           return (
-                            <div key={type.id} className={clsx(
-                              "p-3 border rounded-xl transition-all bg-background",
-                              count > 0 ? "border-primary/40 shadow-sm" : "border-border"
-                            )}>
-                              <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${type.color}18`, border: `1px solid ${type.color}30` }}>
-                                  <Icon className="w-5 h-5" style={{ color: type.color }} />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-sm font-bold text-foreground">{type.label}</span>
-                                    <span className="text-[11px] px-1.5 py-0.5 rounded-md bg-secondary border border-border text-muted-foreground font-medium">{type.sublabel}</span>
-                                  </div>
-                                  <div className="text-[12px] text-muted-foreground mt-0.5">{type.description}</div>
-                                  <div className="flex items-center gap-2 mt-1.5">
-                                    <span className="text-[11px] text-muted-foreground font-medium">{type.credits} credits / item</span>
-                                    {count > 0 && type.hasPlatforms && platforms.size > 0 && (
-                                      <>
-                                        <span className="text-muted-foreground/40">·</span>
-                                        <span className="text-[11px] text-primary font-semibold">{count} × {platforms.size} = {typeTotal} total items</span>
-                                      </>
-                                    )}
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                  <button
-                                    onClick={() => decrementCount(type.id)}
-                                    disabled={count === 0}
-                                    className="w-8 h-8 rounded-lg bg-secondary hover:bg-secondary/80 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center border border-border"
+                            <div key={type.id}>
+                              {/* Main row */}
+                              <div className={clsx("flex items-center justify-between px-5 py-3", rowBorder)}>
+                                {/* Left: icon + info */}
+                                <div className="flex items-center gap-3 min-w-0 flex-1">
+                                  <div
+                                    className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                                    style={{ backgroundColor: `${type.color}1A`, border: `1px solid ${type.color}33` }}
                                   >
-                                    <Minus className="w-4 h-4 text-foreground" />
-                                  </button>
-                                  <span className="text-sm font-bold w-6 text-center tabular-nums">{count}</span>
-                                  <button
-                                    onClick={() => incrementCount(type.id)}
-                                    className="w-8 h-8 rounded-lg bg-secondary hover:bg-secondary/80 flex items-center justify-center border border-border"
-                                  >
-                                    <Plus className="w-4 h-4 text-foreground" />
-                                  </button>
+                                    <Icon className="w-4 h-4" style={{ color: type.color }} />
+                                  </div>
+                                  <div className="flex flex-col gap-0.5 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-sm font-bold text-foreground leading-none">{type.label}</span>
+                                      <span
+                                        className="text-[9px] font-black uppercase tracking-wider rounded px-[5px] py-px"
+                                        style={{
+                                          border: `1px solid ${type.color}4D`,
+                                          backgroundColor: "rgba(10,10,10,0.5)",
+                                          color: "var(--muted-foreground)",
+                                        }}
+                                      >
+                                        {type.sublabel}
+                                      </span>
+                                    </div>
+                                    <span className="text-xs text-muted-foreground truncate">{type.description}</span>
+                                  </div>
+                                </div>
+
+                                {/* Right: stepper + count */}
+                                <div className="flex items-center gap-5 flex-shrink-0">
+                                  <div className="flex items-center gap-3">
+                                    <button
+                                      onClick={() => decrementCount(type.id)}
+                                      disabled={count === 0}
+                                      className={clsx(
+                                        "w-6 h-6 rounded-md flex items-center justify-center transition-all",
+                                        count === 0
+                                          ? "bg-secondary/50 text-muted-foreground/30 cursor-not-allowed"
+                                          : "bg-secondary hover:bg-secondary/80 text-muted-foreground"
+                                      )}
+                                    >
+                                      <Minus className="w-2.5 h-2.5" />
+                                    </button>
+                                    <span className={clsx(
+                                      "w-4 text-center text-sm font-bold tabular-nums select-none",
+                                      count > 0 ? "text-foreground" : "text-muted-foreground/40"
+                                    )}>{count}</span>
+                                    <button
+                                      onClick={() => incrementCount(type.id)}
+                                      className="w-6 h-6 rounded-md bg-secondary flex items-center justify-center transition-all hover:bg-secondary/80 text-muted-foreground"
+                                    >
+                                      <Plus className="w-2.5 h-2.5" />
+                                    </button>
+                                  </div>
+                                  <span className={clsx(
+                                    "text-[13px] font-semibold tabular-nums w-[60px] text-right",
+                                    typeTotal > 0 ? "text-foreground/90" : "text-muted-foreground/30"
+                                  )}>
+                                    {typeTotal} {typeTotal === 1 ? "item" : "items"}
+                                  </span>
                                 </div>
                               </div>
 
-                              {/* Platform pills row (only when count > 0 and hasPlatforms) */}
-                              {count > 0 && type.hasPlatforms && (
-                                <div className="mt-3 pt-3 border-t border-border/80">
-                                  <div className="flex items-center gap-1.5 mb-2">
-                                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Distribute across</span>
-                                  </div>
-                                  <div className="flex flex-wrap gap-1.5">
-                                    {SOCIAL_PLATFORMS.map(({ id, label, color, Icon: PIcon }) => {
-                                      const on = platforms.has(id);
-                                      return (
-                                        <button
-                                          key={id}
-                                          onClick={() => togglePlatformForType(type.id, id)}
-                                          className={clsx(
-                                            "group flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[11.5px] font-semibold transition-all",
-                                            on
-                                              ? "bg-foreground/5 border-foreground/15 text-foreground"
-                                              : "bg-background border-border text-muted-foreground hover:text-foreground hover:border-foreground/20 hover:bg-foreground/[0.03]"
-                                          )}
-                                          style={on ? { backgroundColor: `${color}10`, borderColor: `${color}40`, color: color } : {}}
-                                        >
-                                          <PIcon className="w-3.5 h-3.5" style={on ? { color } : {}} />
-                                          {label}
-                                        </button>
-                                      );
-                                    })}
-                                  </div>
-                                  {platforms.size === 0 && (
-                                    <p className="mt-2 text-[11px] text-muted-foreground italic">No platforms selected — will be assigned globally later.</p>
-                                  )}
+                              {/* Platform pills — shown when count > 0 and type supports platforms */}
+                              {count > 0 && hasPlatforms && (
+                                <div className={clsx(
+                                  "flex flex-wrap gap-2 px-5 pb-3 pt-1 pl-[44px]",
+                                  rowBorder
+                                )}>
+                                  {SOCIAL_PLATFORMS.map(({ id, label, color, Icon: PIcon }) => {
+                                    const on = platforms.has(id);
+                                    return (
+                                      <button
+                                        key={id}
+                                        onClick={() => togglePlatformForType(type.id, id)}
+                                        className={clsx(
+                                          "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 transition-all",
+                                          on
+                                            ? "border border-primary bg-primary/10 text-foreground"
+                                            : "border border-white/[0.08] bg-white/[0.02] text-muted-foreground/60 hover:bg-white/[0.04]"
+                                        )}
+                                      >
+                                        <span className="text-[11px] font-semibold leading-[13px]">{label}</span>
+                                        {on && (
+                                          <span className="flex items-center justify-center w-[9px] h-[9px] rounded-full bg-primary/80" />
+                                        )}
+                                      </button>
+                                    );
+                                  })}
                                 </div>
                               )}
                             </div>
@@ -1453,7 +1476,7 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
                         <p className="text-sm text-muted-foreground">Select or add topics for your campaign content.</p>
                         <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">From Project</div>
                         <div className="flex flex-wrap gap-2">
-                          {PROJECT_TOPICS.map((topic) => (
+                          {topicsFromProject.map((topic) => (
                             <button
                               key={topic}
                               onClick={() => toggleTopic(topic)}
@@ -1507,7 +1530,7 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
                             onKeyDown={(e) => {
                               if (e.key === 'Enter' && newTopicInput.trim()) {
                                 const t = newTopicInput.trim();
-                                if (![...PROJECT_TOPICS, ...customTopics].includes(t)) {
+                                if (![...topicsFromProject, ...customTopics].includes(t)) {
                                   setCustomTopics(prev => [...prev, t]);
                                 }
                                 setSelectedTopics(prev => new Set([...prev, t]));
@@ -1521,7 +1544,7 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
                             onClick={() => {
                               const t = newTopicInput.trim();
                               if (!t) return;
-                              if (![...PROJECT_TOPICS, ...customTopics].includes(t)) {
+                              if (![...topicsFromProject, ...customTopics].includes(t)) {
                                 setCustomTopics(prev => [...prev, t]);
                               }
                               setSelectedTopics(prev => new Set([...prev, t]));
