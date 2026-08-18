@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Plus, Upload, Link as LinkIcon, FileText, Video, Image as ImageIcon,
+  Plus, Upload, FileText, Video, Image as ImageIcon,
   Search, Download, Trash2, Clock, ArrowLeft, Play,
-  BookOpen, Mic, MoreHorizontal, Cloud, Archive, FolderOpen,
+  BookOpen, Mic, MoreHorizontal, Cloud,
 } from 'lucide-react';
 import {
   getResources, uploadResource, deleteResource,
@@ -34,7 +34,7 @@ interface Resource {
   summary?: string;
 }
 
-// ─── Sample Data ───────────────────────────────────────────────────────────────
+// ─── Sample Data (kept as fallback but no more fake cloud resources) ────────────
 
 const SAMPLE_RESOURCE: Resource = {
   id: '-1',
@@ -477,7 +477,7 @@ const getTypeIcon = (type: string) => {
   }
 };
 
-type UploadSource = 'device' | 'google-drive' | 'dropbox';
+type UploadSource = 'device';
 
 interface RecentAsset {
   id: string;
@@ -487,43 +487,6 @@ interface RecentAsset {
   usedIn?: string;
   thumbnail?: string;
 }
-
-const RECENT_ASSETS: RecentAsset[] = [
-  { id: 'a1', name: 'hero-banner.png', type: 'image', uploadedDate: '2 mins ago', usedIn: 'Running Form Tips' },
-  { id: 'a2', name: 'project-brief.pdf', type: 'document', uploadedDate: '1 hour ago' },
-  { id: 'a3', name: 'intro-video.mp4', type: 'video', uploadedDate: 'Yesterday', usedIn: "Father's Day" },
-  { id: 'a4', name: 'thumbnail-01.jpg', type: 'image', uploadedDate: '2 days ago' },
-  { id: 'a5', name: 'logo-dark.svg', type: 'image', uploadedDate: '3 days ago', usedIn: 'Summer Sol' },
-  { id: 'a6', name: 'notes.txt', type: 'text', uploadedDate: 'Last week' },
-  { id: 'a7', name: 'brand-kit.pdf', type: 'document', uploadedDate: 'Last week', usedIn: 'Community' },
-  { id: 'a8', name: 'campaign-deck.pptx', type: 'document', uploadedDate: '2 weeks ago' },
-  { id: 'a9', name: 'promo-video.mp4', type: 'video', uploadedDate: '2 weeks ago', usedIn: 'Back to School' },
-  { id: 'a10', name: 'style-guide.pdf', type: 'document', uploadedDate: '3 weeks ago' },
-  { id: 'a11', name: 'cover-art.png', type: 'image', uploadedDate: 'Last month', usedIn: 'Athlete Profile' },
-  { id: 'a12', name: 'raw-footage.mov', type: 'video', uploadedDate: 'Last month' },
-];
-
-const DRIVE_FILES = [
-  { id: 'd1', name: 'brand-assets-folder', type: 'folder', size: '—', modified: '2 days ago' },
-  { id: 'd2', name: 'marketing-video-4k.mp4', type: 'video', size: '852 MB', modified: '1 week ago' },
-  { id: 'd3', name: 'product-photo-shoot', type: 'folder', size: '—', modified: '3 days ago' },
-  { id: 'd4', name: 'campaign-deck-q3.pdf', type: 'document', size: '12.4 MB', modified: '5 hours ago' },
-  { id: 'd5', name: 'testimonial-clip.mp4', type: 'video', size: '340 MB', modified: '1 day ago' },
-  { id: 'd6', name: 'logo-collection', type: 'folder', size: '—', modified: '1 month ago' },
-  { id: 'd7', name: 'voiceover-script.pdf', type: 'document', size: '2.1 MB', modified: '2 weeks ago' },
-  { id: 'd8', name: 'behind-the-scenes.mov', type: 'video', size: '1.2 GB', modified: '4 days ago' },
-];
-
-const DROPBOX_FILES = [
-  { id: 'b1', name: 'social-media-assets', type: 'folder', size: '—', modified: '1 week ago' },
-  { id: 'b2', name: 'user-testimonial.mp4', type: 'video', size: '245 MB', modified: '3 hours ago' },
-  { id: 'b3', name: 'launch-creatives', type: 'folder', size: '—', modified: '2 days ago' },
-  { id: 'b4', name: 'editing-template.prproj', type: 'document', size: '56 MB', modified: '2 weeks ago' },
-  { id: 'b5', name: 'raw-interview.mov', type: 'video', size: '2.4 GB', modified: '5 days ago' },
-  { id: 'b6', name: 'product-lifestyle.jpg', type: 'image', size: '8.7 MB', modified: '1 day ago' },
-  { id: 'b7', name: 'brand-voice-guide.pdf', type: 'document', size: '3.4 MB', modified: '1 month ago' },
-  { id: 'b8', name: 'event-recording.mp4', type: 'video', size: '680 MB', modified: '4 days ago' },
-];
 
 const getAssetIcon = (type: ResourceType) => {
   switch (type) {
@@ -535,24 +498,13 @@ const getAssetIcon = (type: ResourceType) => {
   }
 };
 
-const getFileIcon = (type: string) => {
-  switch (type) {
-    case 'video': return Video;
-    case 'folder': return FolderOpen;
-    case 'image': return ImageIcon;
-    case 'document':
-    default: return FileText;
-  }
-};
-
 export function EnhancedResourcesView() {
   const { t } = useTranslation();
   const [activeFilter, setActiveFilter] = useState('all');
   const [showUploadModal, setShowUploadModal] = useState(false);
-  const [uploadSource, setUploadSource] = useState<UploadSource>('device');
+  const [uploadSource] = useState<UploadSource>('device');
   const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
   const [resources, setResources] = useState<Resource[]>([SAMPLE_RESOURCE]);
-  const [selectedDriveFiles, setSelectedDriveFiles] = useState<Set<string>>(new Set());
 
   // Load resources from Supabase
   useEffect(() => {
@@ -569,7 +521,6 @@ export function EnhancedResourcesView() {
     load();
     return () => { cancelled = true; };
   }, []);
-  const [selectedDropboxFiles, setSelectedDropboxFiles] = useState<Set<string>>(new Set());
 
   const filteredResources =
     activeFilter === 'all'
@@ -583,52 +534,6 @@ export function EnhancedResourcesView() {
     video: resources.filter((r) => r.type === 'video').length,
     document: resources.filter((r) => r.type === 'document' || r.type === 'text').length,
     image: resources.filter((r) => r.type === 'image').length,
-  };
-
-  const toggleFileSelection = (fileId: string, source: 'google-drive' | 'dropbox') => {
-    if (source === 'google-drive') {
-      setSelectedDriveFiles((prev) => {
-        const next = new Set(prev);
-        if (next.has(fileId)) next.delete(fileId);
-        else next.add(fileId);
-        return next;
-      });
-    } else {
-      setSelectedDropboxFiles((prev) => {
-        const next = new Set(prev);
-        if (next.has(fileId)) next.delete(fileId);
-        else next.add(fileId);
-        return next;
-      });
-    }
-  };
-
-  const handleUploadFromCloud = (source: 'google-drive' | 'dropbox') => {
-    const selectedIds = source === 'google-drive' ? selectedDriveFiles : selectedDropboxFiles;
-    const files = source === 'google-drive' ? DRIVE_FILES : DROPBOX_FILES;
-    const selectedFiles = files.filter((f) => selectedIds.has(f.id));
-
-    if (selectedFiles.length === 0) return;
-
-    const newResources: Resource[] = selectedFiles.map((file) => ({
-      id: `${source}-${file.id}-${Date.now()}`,
-      name: file.name,
-      type: (file.type === 'folder' ? 'document' : file.type) as ResourceType,
-      size: file.size === '—' ? '—' : file.size,
-      uploadedDate: 'Just now',
-      postsCreated: 0,
-      transcribed: file.type === 'video' ? false : true,
-      tags: [source === 'google-drive' ? 'google-drive' : 'dropbox'],
-    }));
-
-    setResources((prev) => [...newResources, ...prev]);
-
-    if (source === 'google-drive') {
-      setSelectedDriveFiles(new Set());
-    } else {
-      setSelectedDropboxFiles(new Set());
-    }
-    setShowUploadModal(false);
   };
 
   if (selectedResource) {
@@ -805,230 +710,69 @@ export function EnhancedResourcesView() {
               <p className="text-sm text-[#a1a1aa] mt-2">{t('resources.uploadFiles')}</p>
             </div>
 
-            {/* Body */}
-            <div className="flex flex-1 min-h-0 overflow-hidden">
-              {/* Sidebar */}
-              <div className="w-[200px] flex-shrink-0 border-r border-[#ffffff14] px-4 py-3 flex flex-col gap-1">
-                {([                  { key: 'device' as UploadSource, icon: Upload, label: t('resources.uploadFromDevice') },
-                  { key: 'google-drive' as UploadSource, icon: Cloud, label: t('resources.googleDrive') },
-                  { key: 'dropbox' as UploadSource, icon: Archive, label: t('resources.dropbox') },
-                ]).map(({ key, icon: Icon, label }) => (
-                  <button
-                    key={key}
-                    onClick={() => setUploadSource(key)}
-                    className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm transition-colors text-left ${
-                      uploadSource === key
-                        ? 'bg-[#4B56F2]/10 text-[#4B56F2] font-semibold'
-                        : 'text-[#fafafa] font-medium hover:bg-[#ffffff0a]'
-                    }`}
-                  >
-                    <Icon className="w-5 h-5 flex-shrink-0" />
-                    {label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 overflow-y-auto px-8 py-6 flex flex-col gap-6">
-                {uploadSource === 'device' && (
-                  <>
-                    {/* Upload Zone */}
-                    <label className="border-2 border-dashed border-[#ffffff14] rounded-xl bg-[#0a0a0a33] h-[120px] flex flex-col items-center justify-center cursor-pointer hover:border-[#4B56F2]/40 transition-colors">
-                      <input type="file" multiple className="hidden" />
-                      <Cloud className="w-8 h-8 text-[#a1a1aa] mb-2" />
-                      <p className="text-[#fafafa] text-sm font-semibold">{t('resources.clickOrDrag')}</p>
-                    </label>
-
-                    {/* Recent Assets */}
-                    <div className="flex flex-col gap-4">
-                      <p className="text-xs font-bold text-[#a1a1aa] uppercase tracking-wider">{t('resources.recentAssets')}</p>
-                      <div className="grid grid-cols-4 gap-3">
-                        {RECENT_ASSETS.map((asset) => {
-                          const AssetIcon = getAssetIcon(asset.type);
-                          return (
-                            <div
-                              key={asset.id}
-                              className="flex flex-col gap-2 border border-[#ffffff14] rounded-[10px] bg-[#1a1a1a] p-[9px]"
-                            >
-                              <div className="relative flex items-center justify-center rounded-md bg-[#0a0a0a] h-[72px] overflow-hidden">
-                                <AssetIcon className="w-6 h-6 text-[#a1a1aa]" />
-                                {asset.usedIn ? (
-                                  <div className="absolute bottom-1.5 left-1.5 flex items-center border border-[#12B667]/40 rounded-[4px] bg-[#12B667]/20 px-1.5 py-0.5 max-w-[130px]">
-                                    <span className="text-[9px] font-bold text-[#8FE6B5] whitespace-nowrap overflow-hidden text-ellipsis">
-                                      {t('resources.usedIn', { name: asset.usedIn })}
-                                    </span>
-                                  </div>
-                                ) : (
-                                  <div className="absolute bottom-1.5 left-1.5 flex items-center border border-[#ffffff14] rounded-[4px] bg-[#ffffff0a] px-1.5 py-0.5 w-[46px] h-[17px] justify-center">
-                                    <span className="text-[9px] font-medium text-[#a1a1aa] opacity-60">{t('resources.unused')}</span>
-                                  </div>
-                                )}
-                              </div>
-                              <div className="flex flex-col gap-0.5">
-                                <p className="text-[11px] font-semibold text-[#fafafa] truncate">{asset.name}</p>
-                                <p className="text-[10px] text-[#a1a1aa]">{asset.uploadedDate}</p>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {uploadSource === 'google-drive' && (
-                  <div className="flex flex-col gap-3">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs font-bold text-[#a1a1aa] uppercase tracking-wider">{t('resources.googleDriveFiles')}</p>
-                      {selectedDriveFiles.size > 0 && (
-                        <span className="text-xs font-semibold text-[#12B667]">
-                          {t('resources.selected', { count: selectedDriveFiles.size })}
-                        </span>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      {DRIVE_FILES.map((file) => {
-                        const FileIcon = getFileIcon(file.type);
-                        const isSelected = selectedDriveFiles.has(file.id);
-                        return (
-                          <button
-                            key={file.id}
-                            onClick={() => toggleFileSelection(file.id, 'google-drive')}
-                            className={`flex items-center gap-3 border rounded-lg p-3 transition-colors cursor-pointer text-left w-full ${
-                              isSelected
-                                ? 'border-[#4B56F2] bg-[#4B56F2]/10'
-                                : 'border-[#ffffff14] bg-[#1a1a1a] hover:border-[#4B56F2]/40'
-                            }`}
-                          >
-                            <div
-                              className={`flex items-center justify-center w-5 h-5 rounded border flex-shrink-0 transition-colors ${
-                                isSelected
-                                  ? 'bg-[#12B667] border-[#12B667]'
-                                  : 'bg-transparent border-[#ffffff33]'
-                              }`}
-                            >
-                              {isSelected && (
-                                <svg viewBox="0 0 12 12" className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <path d="M2 6l3 3 5-5" />
-                                </svg>
-                              )}
-                            </div>
-                            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-[#0a0a0a] flex-shrink-0">
-                              <FileIcon className="w-5 h-5 text-[#a1a1aa]" />
-                            </div>
-                            <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-                              <p className="text-xs font-semibold text-[#fafafa] truncate">{file.name}</p>
-                              <p className="text-[10px] text-[#a1a1aa]">{file.size} · {file.modified}</p>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {uploadSource === 'dropbox' && (
-                  <div className="flex flex-col gap-3">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs font-bold text-[#a1a1aa] uppercase tracking-wider">{t('resources.dropboxFiles')}</p>
-                      {selectedDropboxFiles.size > 0 && (
-                        <span className="text-xs font-semibold text-[#12B667]">
-                          {t('resources.selected', { count: selectedDropboxFiles.size })}
-                        </span>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      {DROPBOX_FILES.map((file) => {
-                        const FileIcon = getFileIcon(file.type);
-                        const isSelected = selectedDropboxFiles.has(file.id);
-                        return (
-                          <button
-                            key={file.id}
-                            onClick={() => toggleFileSelection(file.id, 'dropbox')}
-                            className={`flex items-center gap-3 border rounded-lg p-3 transition-colors cursor-pointer text-left w-full ${
-                              isSelected
-                                ? 'border-[#4B56F2] bg-[#4B56F2]/10'
-                                : 'border-[#ffffff14] bg-[#1a1a1a] hover:border-[#4B56F2]/40'
-                            }`}
-                          >
-                            <div
-                              className={`flex items-center justify-center w-5 h-5 rounded border flex-shrink-0 transition-colors ${
-                                isSelected
-                                  ? 'bg-[#12B667] border-[#12B667]'
-                                  : 'bg-transparent border-[#ffffff33]'
-                              }`}
-                            >
-                              {isSelected && (
-                                <svg viewBox="0 0 12 12" className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <path d="M2 6l3 3 5-5" />
-                                </svg>
-                              )}
-                            </div>
-                            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-[#0a0a0a] flex-shrink-0">
-                              <FileIcon className="w-5 h-5 text-[#a1a1aa]" />
-                            </div>
-                            <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-                              <p className="text-xs font-semibold text-[#fafafa] truncate">{file.name}</p>
-                              <p className="text-[10px] text-[#a1a1aa]">{file.size} · {file.modified}</p>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
+            {/* Body — simplified: only device upload, no cloud services */}
+            <div className="flex-1 overflow-y-auto px-8 py-6 flex flex-col gap-6">
+              {/* Upload Zone */}
+              <label className="border-2 border-dashed border-[#ffffff14] rounded-xl bg-[#0a0a0a33] h-[180px] flex flex-col items-center justify-center cursor-pointer hover:border-[#4B56F2]/40 transition-colors">
+                <input
+                  type="file"
+                  multiple
+                  className="hidden"
+                  onChange={async (e) => {
+                    const files = e.target.files;
+                    if (files && files.length > 0) {
+                      const newResources: Resource[] = [];
+                      for (const file of Array.from(files)) {
+                        const created = await uploadResource(file);
+                        if (created) {
+                          newResources.push(mapServiceToUI(created));
+                        }
+                      }
+                      if (newResources.length > 0) {
+                        setResources((prev) => [...newResources, ...prev]);
+                      }
+                      setShowUploadModal(false);
+                    }
+                  }}
+                />
+                <Cloud className="w-10 h-10 text-[#a1a1aa] mb-3" />
+                <p className="text-[#fafafa] text-sm font-semibold">{t('resources.clickOrDrag')}</p>
+                <p className="text-xs text-[#a1a1aa] mt-1">{t('resources.uploadFiles')}</p>
+              </label>
             </div>
 
             {/* Footer */}
-            <div className="flex-shrink-0 flex items-center justify-between border-t border-[#ffffff14] bg-[#1a1a1a] px-8 py-5">
+            <div className="flex-shrink-0 flex items-center justify-end border-t border-[#ffffff14] bg-[#1a1a1a] px-8 py-5">
               <button
-                onClick={() => {
-                  setShowUploadModal(false);
-                  setUploadSource('device');
-                }}
-                className="text-sm font-semibold text-[#a1a1aa] hover:text-white transition-colors"
+                onClick={() => setShowUploadModal(false)}
+                className="text-sm font-semibold text-[#a1a1aa] hover:text-white transition-colors mr-3"
               >
                 {t('common.cancel')}
               </button>
-              {uploadSource === 'device' ? (
-                <label className="inline-flex items-center justify-center rounded-lg bg-[#4B56F2] px-6 py-2.5 text-sm font-bold text-white shadow-[0px_4px_12px_0px_#4B56F24d] cursor-pointer hover:opacity-90 transition-opacity">
-                  <input
-                    type="file"
-                    multiple
-                    className="hidden"
-                    onChange={async (e) => {
-                      const files = e.target.files;
-                      if (files && files.length > 0) {
-                        const newResources: Resource[] = [];
-                        for (const file of Array.from(files)) {
-                          const created = await uploadResource(file);
-                          if (created) {
-                            newResources.push(mapServiceToUI(created));
-                          }
+              <label className="inline-flex items-center justify-center rounded-lg bg-[#4B56F2] px-6 py-2.5 text-sm font-bold text-white shadow-[0px_4px_12px_0px_#4B56F24d] cursor-pointer hover:opacity-90 transition-opacity">
+                <input
+                  type="file"
+                  multiple
+                  className="hidden"
+                  onChange={async (e) => {
+                    const files = e.target.files;
+                    if (files && files.length > 0) {
+                      const newResources: Resource[] = [];
+                      for (const file of Array.from(files)) {
+                        const created = await uploadResource(file);
+                        if (created) {
+                          newResources.push(mapServiceToUI(created));
                         }
-                        if (newResources.length > 0) {
-                          setResources((prev) => [...newResources, ...prev]);
-                        }
-                        setShowUploadModal(false);
                       }
-                    }}
-                  />
-                  {t('resources.upload')}
-                </label>
-              ) : (
-                <button
-                  onClick={() => handleUploadFromCloud(uploadSource)}
-                  disabled={(uploadSource === 'google-drive' ? selectedDriveFiles : selectedDropboxFiles).size === 0}
-                  className={`inline-flex items-center justify-center rounded-lg px-6 py-2.5 text-sm font-bold text-white transition-opacity ${
-                    (uploadSource === 'google-drive' ? selectedDriveFiles : selectedDropboxFiles).size === 0
-                      ? 'bg-[#4B56F2]/30 cursor-not-allowed'
-                      : 'bg-[#4B56F2] shadow-[0px_4px_12px_0px_#4B56F24d] hover:opacity-90 cursor-pointer'
-                  }`}
-                >
-                  {t('resources.upload')}{(uploadSource === 'google-drive' ? selectedDriveFiles : selectedDropboxFiles).size > 0 ? ` (${(uploadSource === 'google-drive' ? selectedDriveFiles : selectedDropboxFiles).size})` : ''}
-                </button>
-              )}
+                      if (newResources.length > 0) {
+                        setResources((prev) => [...newResources, ...prev]);
+                      }
+                      setShowUploadModal(false);
+                    }
+                  }}
+                />
+                {t('resources.upload')}
+              </label>
             </div>
           </div>
         </div>
