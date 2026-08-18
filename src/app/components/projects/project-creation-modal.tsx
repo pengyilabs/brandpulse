@@ -1,10 +1,11 @@
-import { useState, useRef, type ReactNode } from 'react';
+import { useState, useRef, useEffect, type ReactNode } from 'react';
 import {
   X, Check, Plus, Upload, Trash2, ChevronRight, Zap,
   Globe, AlignLeft, Users, Image, Palette, Mic2, BookOpen,
-  Tag, Folder, Grid3X3, UserPlus, Mail, AlertCircle,
+  Tag, Folder, Grid3X3, UserPlus, Mail, AlertCircle, Loader2,
 } from 'lucide-react';
-import { createProject } from '../../../lib/services/projects-service';
+import { createProject, updateProject } from '../../../lib/services/projects-service';
+import { getWriterProfiles, createWriterProfile, WriterProfile } from '../../../lib/services/writer-profiles-service';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -24,16 +25,18 @@ interface FormData {
   customTone: string;
   brandDescription: string;
   referenceLinks: string[];
-  // Step 3
-  longWriterProfile: string;
+  // Step 3 - Long Form
+  longWriterProfile: string;        // '' | 'new' | profile_id
   longWritingTone: string;
   longWritingLevel: string;
   longWordCount: number;
-  // Step 4
-  shortWriterProfile: string;
+  longNewProfileName: string;       // name for new profile being created
+  // Step 4 - Short Form
+  shortWriterProfile: string;       // '' | 'new' | profile_id
   shortWritingTone: string;
   shortWritingLevel: string;
   shortWordCount: number;
+  shortNewProfileName: string;      // name for new profile being created
   // Step 5
   topics: string[];
   // Step 6
@@ -51,8 +54,8 @@ const INITIAL: FormData = {
   brandColors: ['#4B56F2', '#0A0A0A', '#FFFFFF', ''],
   toneOfVoice: 'Professional', customTone: '',
   brandDescription: '', referenceLinks: [''],
-  longWriterProfile: '', longWritingTone: 'Professional', longWritingLevel: 'Professional', longWordCount: 2000,
-  shortWriterProfile: '', shortWritingTone: 'Casual', shortWritingLevel: 'Conversational', shortWordCount: 200,
+  longWriterProfile: '', longWritingTone: 'Professional', longWritingLevel: 'Professional', longWordCount: 2000, longNewProfileName: '',
+  shortWriterProfile: '', shortWritingTone: 'Casual', shortWritingLevel: 'Conversational', shortWordCount: 200, shortNewProfileName: '',
   topics: [], resources: [], resourceText: '', templates: [],
   teamMembers: [], inviteEmail: '',
 };
@@ -88,6 +91,23 @@ export function ProjectCreationModal({ isOpen, onClose, onComplete }: ProjectCre
   const [openTemplate, setOpenTemplate] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  // Writer profiles fetched from DB
+  const [writerProfiles, setWriterProfiles] = useState<WriterProfile[]>([]);
+  const [profilesLoading, setProfilesLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+    setProfilesLoading(true);
+    getWriterProfiles().then(profiles => {
+      if (!cancelled) {
+        setWriterProfiles(profiles);
+        setProfilesLoading(false);
+      }
+    });
+    return () => { cancelled = true; };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const update = (patch: Partial<FormData>) => setData(d => ({ ...d, ...patch }));
@@ -101,8 +121,38 @@ export function ProjectCreationModal({ isOpen, onClose, onComplete }: ProjectCre
   const back = () => { if (step > 1) setStep(s => s - 1); };
 
   const create = async () => {
+    // Save any new writer profiles before creating the project
+    let longProfileId: string | null = null;
+    let shortProfileId: string | null = null;
+
+    if (data.longWriterProfile === 'new' && data.longNewProfileName.trim()) {
+      const newProfile = await createWriterProfile(data.longNewProfileName.trim(), {
+        tone: data.longWritingTone,
+        level: data.longWritingLevel,
+        word_count: data.longWordCount,
+      });
+      if (newProfile) longProfileId = newProfile.id;
+    }
+
+    if (data.shortWriterProfile === 'new' && data.shortNewProfileName.trim()) {
+      const newProfile = await createWriterProfile(data.shortNewProfileName.trim(), {
+        tone: data.shortWritingTone,
+        level: data.shortWritingLevel,
+        word_count: data.shortWordCount,
+      });
+      if (newProfile) shortProfileId = newProfile.id;
+    }
+
+    // Create the project
     const project = await createProject(data.projectName, data.projectContext);
     if (project) {
+      // Set default writer profile(s) on the project
+      if (longProfileId) {
+        await updateProject(project.id, { default_writer_profile_id: longProfileId });
+      } else if (data.longWriterProfile && data.longWriterProfile !== 'new') {
+        await updateProject(project.id, { default_writer_profile_id: data.longWriterProfile });
+      }
+
       onComplete(project);
       setStep(1);
       setData(INITIAL);
@@ -221,8 +271,8 @@ export function ProjectCreationModal({ isOpen, onClose, onComplete }: ProjectCre
           <div className="flex-1 overflow-y-auto px-8 py-6">
             {step === 1 && <Step1 data={data} update={update} />}
             {step === 2 && <Step2 data={data} update={update} addLink={addLink} updateLink={updateLink} removeLink={removeLink} />}
-            {step === 3 && <Step3 data={data} update={update} />}
-            {step === 4 && <Step4 data={data} update={update} />}
+            {step === 3 && <Step3 data={data} update={update} writerProfiles={writerProfiles} profilesLoading={profilesLoading} />}
+            {step === 4 && <Step4 data={data} update={update} writerProfiles={writerProfiles} profilesLoading={profilesLoading} />}
             {step === 5 && (
               <Step5
                 topics={data.topics}
@@ -493,25 +543,79 @@ function Step2({ data, update, addLink, updateLink, removeLink }: {
 
 // ── Step 3: Long Form Defaults ────────────────────────────────────────────────
 
-function Step3({ data, update }: { data: FormData; update: (p: Partial<FormData>) => void }) {
+function Step3({ data, update, writerProfiles, profilesLoading }: {
+  data: FormData; update: (p: Partial<FormData>) => void;
+  writerProfiles: WriterProfile[]; profilesLoading: boolean;
+}) {
+  const isCreatingNew = data.longWriterProfile === 'new';
+  const selectedProfile = !isCreatingNew && data.longWriterProfile
+    ? writerProfiles.find(p => p.id === data.longWriterProfile)
+    : null;
+
+  const handleProfileChange = (value: string) => {
+    update({ longWriterProfile: value });
+    if (value === 'new') {
+      // Reset fields to defaults when creating new
+      update({ longWritingTone: 'Professional', longWritingLevel: 'Professional', longWordCount: 2000 });
+    } else if (value) {
+      // Auto-fill from selected profile
+      const profile = writerProfiles.find(p => p.id === value);
+      if (profile) {
+        update({
+          longWritingTone: profile.tone || 'Professional',
+          longWritingLevel: profile.level || 'Professional',
+          longWordCount: profile.word_count || 2000,
+        });
+      }
+    }
+  };
+
   return (
     <div className="space-y-5">
       <InfoNote>
         These defaults apply to blog posts and long-form LinkedIn content. You can override them per content item.
       </InfoNote>
 
-      <FormField label="Virtual Writer Profile">
-        <select
-          value={data.longWriterProfile}
-          onChange={e => update({ longWriterProfile: e.target.value })}
-          className={inputCls}
-        >
-          <option value="">Select or create a writer persona...</option>
-          <option value="alex">Alex — Thought Leader</option>
-          <option value="sarah">Sarah — Content Strategist</option>
-          <option value="new">+ Create New Profile</option>
-        </select>
+      <FormField label="Writer Profile">
+        {profilesLoading ? (
+          <div className="flex items-center gap-2 py-2.5">
+            <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">Loading profiles...</span>
+          </div>
+        ) : (
+          <select
+            value={data.longWriterProfile}
+            onChange={e => handleProfileChange(e.target.value)}
+            className={inputCls}
+          >
+            <option value="">Select or create a writer profile...</option>
+            {writerProfiles.map(p => (
+              <option key={p.id} value={p.id}>
+                {p.name}{p.tone ? ` — ${p.tone}` : ''}
+              </option>
+            ))}
+            <option value="new">+ Create New Profile</option>
+          </select>
+        )}
       </FormField>
+
+      {isCreatingNew && (
+        <FormField label="New Profile Name" hint="Give this writer profile a name">
+          <input
+            value={data.longNewProfileName}
+            onChange={e => update({ longNewProfileName: e.target.value })}
+            placeholder="e.g. Brand Voice, Thought Leader"
+            className={inputCls}
+          />
+        </FormField>
+      )}
+
+      {selectedProfile && !isCreatingNew && (
+        <div className="flex gap-2.5 p-3 bg-primary/5 border border-primary/20 rounded-xl text-sm text-muted-foreground">
+          <Check className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+          <span>Using "<strong>{selectedProfile.name}</strong>" — tone, level, and word count are pre-filled from this profile.</span>
+        </div>
+      )}
 
       <FormField label="Writer Avatar">
         <div className="flex items-center gap-4">
@@ -530,6 +634,7 @@ function Step3({ data, update }: { data: FormData; update: (p: Partial<FormData>
           <select
             value={data.longWritingTone}
             onChange={e => update({ longWritingTone: e.target.value })}
+            disabled={!!selectedProfile}
             className={inputCls}
           >
             {TONE_OPTIONS.filter(t => t !== 'Custom').map(t => <option key={t}>{t}</option>)}
@@ -539,6 +644,7 @@ function Step3({ data, update }: { data: FormData; update: (p: Partial<FormData>
           <select
             value={data.longWritingLevel}
             onChange={e => update({ longWritingLevel: e.target.value })}
+            disabled={!!selectedProfile}
             className={inputCls}
           >
             {LEVEL_OPTIONS.map(l => <option key={l}>{l}</option>)}
@@ -552,6 +658,7 @@ function Step3({ data, update }: { data: FormData; update: (p: Partial<FormData>
             type="number"
             value={data.longWordCount}
             onChange={e => update({ longWordCount: +e.target.value })}
+            disabled={!!selectedProfile}
             min={500}
             max={10000}
             step={100}
@@ -566,25 +673,77 @@ function Step3({ data, update }: { data: FormData; update: (p: Partial<FormData>
 
 // ── Step 4: Short Form Defaults ───────────────────────────────────────────────
 
-function Step4({ data, update }: { data: FormData; update: (p: Partial<FormData>) => void }) {
+function Step4({ data, update, writerProfiles, profilesLoading }: {
+  data: FormData; update: (p: Partial<FormData>) => void;
+  writerProfiles: WriterProfile[]; profilesLoading: boolean;
+}) {
+  const isCreatingNew = data.shortWriterProfile === 'new';
+  const selectedProfile = !isCreatingNew && data.shortWriterProfile
+    ? writerProfiles.find(p => p.id === data.shortWriterProfile)
+    : null;
+
+  const handleProfileChange = (value: string) => {
+    update({ shortWriterProfile: value });
+    if (value === 'new') {
+      update({ shortWritingTone: 'Casual', shortWritingLevel: 'Conversational', shortWordCount: 200 });
+    } else if (value) {
+      const profile = writerProfiles.find(p => p.id === value);
+      if (profile) {
+        update({
+          shortWritingTone: profile.tone || 'Casual',
+          shortWritingLevel: profile.level || 'Conversational',
+          shortWordCount: profile.word_count || 200,
+        });
+      }
+    }
+  };
+
   return (
     <div className="space-y-5">
       <InfoNote>
         These defaults apply to social media posts and short-form content. You can override them per content item.
       </InfoNote>
 
-      <FormField label="Virtual Writer Profile">
-        <select
-          value={data.shortWriterProfile}
-          onChange={e => update({ shortWriterProfile: e.target.value })}
-          className={inputCls}
-        >
-          <option value="">Select or create a writer persona...</option>
-          <option value="maya">Maya — Social Media Voice</option>
-          <option value="chris">Chris — Brand Ambassador</option>
-          <option value="new">+ Create New Profile</option>
-        </select>
+      <FormField label="Writer Profile">
+        {profilesLoading ? (
+          <div className="flex items-center gap-2 py-2.5">
+            <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">Loading profiles...</span>
+          </div>
+        ) : (
+          <select
+            value={data.shortWriterProfile}
+            onChange={e => handleProfileChange(e.target.value)}
+            className={inputCls}
+          >
+            <option value="">Select or create a writer profile...</option>
+            {writerProfiles.map(p => (
+              <option key={p.id} value={p.id}>
+                {p.name}{p.tone ? ` — ${p.tone}` : ''}
+              </option>
+            ))}
+            <option value="new">+ Create New Profile</option>
+          </select>
+        )}
       </FormField>
+
+      {isCreatingNew && (
+        <FormField label="New Profile Name" hint="Give this writer profile a name">
+          <input
+            value={data.shortNewProfileName}
+            onChange={e => update({ shortNewProfileName: e.target.value })}
+            placeholder="e.g. Social Voice, Brand Ambassador"
+            className={inputCls}
+          />
+        </FormField>
+      )}
+
+      {selectedProfile && !isCreatingNew && (
+        <div className="flex gap-2.5 p-3 bg-primary/5 border border-primary/20 rounded-xl text-sm text-muted-foreground">
+          <Check className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+          <span>Using "<strong>{selectedProfile.name}</strong>" — tone, level, and word count are pre-filled.</span>
+        </div>
+      )}
 
       <FormField label="Writer Avatar">
         <div className="flex items-center gap-4">
@@ -603,6 +762,7 @@ function Step4({ data, update }: { data: FormData; update: (p: Partial<FormData>
           <select
             value={data.shortWritingTone}
             onChange={e => update({ shortWritingTone: e.target.value })}
+            disabled={!!selectedProfile}
             className={inputCls}
           >
             {TONE_OPTIONS.filter(t => t !== 'Custom').map(t => <option key={t}>{t}</option>)}
@@ -612,6 +772,7 @@ function Step4({ data, update }: { data: FormData; update: (p: Partial<FormData>
           <select
             value={data.shortWritingLevel}
             onChange={e => update({ shortWritingLevel: e.target.value })}
+            disabled={!!selectedProfile}
             className={inputCls}
           >
             {LEVEL_OPTIONS.map(l => <option key={l}>{l}</option>)}
@@ -625,6 +786,7 @@ function Step4({ data, update }: { data: FormData; update: (p: Partial<FormData>
             type="number"
             value={data.shortWordCount}
             onChange={e => update({ shortWordCount: +e.target.value })}
+            disabled={!!selectedProfile}
             min={50}
             max={1000}
             step={25}
