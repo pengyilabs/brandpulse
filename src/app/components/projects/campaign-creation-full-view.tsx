@@ -1102,46 +1102,60 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
                             </div>
                           </div>
 
-                          {/* Duration Panel */}
-                          <div className={clsx("mt-3 transition-all", dateMode !== "duration" && "opacity-40 pointer-events-none select-none")}>
-                            <div className="flex gap-2">
-                              <input
-                                type="number"
-                                min="1"
-                                max="365"
-                                value={durationValue}
-                                onChange={(e) => setDurationValue(e.target.value)}
-                                disabled={dateMode !== "duration"}
-                                className="flex-1 px-4 py-2.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                              />
-                              <div className="flex rounded-lg border border-border overflow-hidden">
-                                {(["days", "weeks", "months"] as const).map((unit) => (
-                                  <button
-                                    key={unit}
-                                    onClick={() => setDurationUnit(unit)}
-                                    disabled={dateMode !== "duration"}
-                                    className={clsx(
-                                      "px-3 py-2.5 text-sm font-medium capitalize transition-colors",
-                                      durationUnit === unit
-                                        ? "bg-primary text-primary-foreground"
-                                        : "bg-background text-muted-foreground hover:text-foreground"
-                                    )}
-                                  >
-                                    {unit.charAt(0).toUpperCase() + unit.slice(1)}
-                                  </button>
-                                ))}
+                          {/* Duration Panel - hidden when date-range mode */}
+                          {dateMode === "duration" ? (
+                            <div className="mt-3 transition-all">
+                              <div className="flex gap-2">
+                                <input
+                                  type="number"
+                                  min="1"
+                                  max="365"
+                                  value={durationValue}
+                                  onChange={(e) => setDurationValue(e.target.value)}
+                                  disabled={dateMode !== "duration"}
+                                  className="flex-1 px-4 py-2.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                />
+                                <div className="flex rounded-lg border border-border overflow-hidden">
+                                  {(["days", "weeks", "months"] as const).map((unit) => (
+                                    <button
+                                      key={unit}
+                                      onClick={() => setDurationUnit(unit)}
+                                      disabled={dateMode !== "duration"}
+                                      className={clsx(
+                                        "px-3 py-2.5 text-sm font-medium capitalize transition-colors",
+                                        durationUnit === unit
+                                          ? "bg-primary text-primary-foreground"
+                                          : "bg-background text-muted-foreground hover:text-foreground"
+                                      )}
+                                    >
+                                      {unit.charAt(0).toUpperCase() + unit.slice(1)}
+                                    </button>
+                                  ))}
+                                </div>
                               </div>
+                              {dateMode === "duration" && durationUnit === "weeks" && (
+                                <p className="mt-1.5 text-xs text-muted-foreground">
+                                  Ends{" "}
+                                  <span className="text-primary font-semibold">
+                                    {fmtDateDisplay(effectiveDates.end)}
+                                  </span>
+                                  {" "}· snapped to Sunday
+                                </p>
+                              )}
                             </div>
-                            {dateMode === "duration" && durationUnit === "weeks" && (
-                              <p className="mt-1.5 text-xs text-muted-foreground">
-                                Ends{" "}
-                                <span className="text-primary font-semibold">
-                                  {fmtDateDisplay(effectiveDates.end)}
-                                </span>
-                                {" "}· snapped to Sunday
-                              </p>
-                            )}
-                          </div>
+                          ) : dateMode === "date-range" && effectiveDates.start && effectiveDates.end ? (
+                            <p className="mt-3 text-sm text-muted-foreground">
+                              Duration:{" "}
+                              <span className="font-semibold text-foreground">
+                                {(() => {
+                                  const s = new Date(effectiveDates.start + "T00:00:00");
+                                  const e = new Date(effectiveDates.end + "T00:00:00");
+                                  return Math.ceil((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24));
+                                })()}
+                              </span>{" "}
+                              days
+                            </p>
+                          ) : null}
                         </div>
                       </>
                     )}
