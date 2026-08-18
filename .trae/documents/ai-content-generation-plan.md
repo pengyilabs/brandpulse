@@ -13,7 +13,7 @@
 
 - This is a Vite SPA (no backend server). Environment variables prefixed with `VITE_` are bundled into the client-side code and visible to anyone.
 - Therefore, AI API calls **cannot** be made directly from the browser.
-- **Solution**: Use Supabase Edge Functions (Deno-based serverless functions) as a secure proxy.
+- **Solution**: Use Netlify Functions as a secure proxy (same domain, no CORS issues).
   - The API key is stored as a server-side environment variable on the Edge Function.
   - The frontend calls the Edge Function endpoint.
   - The Edge Function forwards the request to OpenRouter and returns the result.
@@ -49,7 +49,7 @@ src/
 ### Data Flow
 
 ```
-[Browser] → POST /api/... → [Supabase Edge Function] → POST https://openrouter.ai/api/v1/...
+[Browser] → POST /.netlify/functions/ai-proxy → [Netlify Function] → POST https://openrouter.ai/api/v1/...
                                                               ↑
                                                         API key stored here (server-side env)
 ```
@@ -60,25 +60,23 @@ src/
 
 ### Scope
 
-1. Create Supabase Edge Function `ai-proxy` as a secure proxy to OpenRouter API
-2. Set `OPENROUTER_API_KEY` as a server-side environment variable on the Edge Function
-3. Configure `.env.example` with a placeholder (NOT the real key)
-4. Write a connectivity test script that calls the Edge Function locally
-5. Document how to set up the key locally (`.env.local` for Supabase Edge Functions)
+1. Create Netlify Function `ai-proxy` as a secure proxy to OpenRouter API
+2. Set `OPENROUTER_API_KEY` as a Netlify environment variable (in Netlify Dashboard)
+3. Update `netlify.toml` to include the `functions` directory
+4. Remove the Supabase Edge Function files
+5. Document how to set up the key in Netlify Dashboard
 
 ### Security Rules
 
 - `OPENROUTER_API_KEY` must NEVER appear in any committed file
-- `.env.example` must contain only: `OPENROUTER_API_KEY=your_openrouter_api_key_here`
 - No `VITE_OPENROUTER_API_KEY` anywhere (would expose to client)
-- Edge Function is the only place that reads the API key
+- Netlify Function is the only place that reads the API key
 
 ### What the user needs to provide
 
-When running/test this locally, the user will be prompted to:
-1. Copy `.env.example` to `.env.local`
-2. Set their OpenRouter API key in `.env.local`
-3. Run `supabase functions serve ai-proxy` locally
+When running this locally, the user will need to:
+1. Set `OPENROUTER_API_KEY` in Netlify Dashboard → Environment variables
+2. The function deploys automatically with the frontend (no separate deploy)
 
 ---
 

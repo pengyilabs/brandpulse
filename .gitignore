@@ -45,3 +45,6 @@ temp-analysis/
 
 # TRAE IDE context (local development only)
 ../TRAE_IDE_CONTEXT.md
+
+# Supabase local environment (contains API keys)
+supabase/.env
