@@ -153,68 +153,7 @@ export interface PreviousCampaign {
   durationUnit: "days" | "weeks" | "months";
 }
 
-export const PREVIOUS_CAMPAIGNS: PreviousCampaign[] = [
-  {
-    id: "velocity-summer",
-    name: "Velocity Summer Launch",
-    description: "High-energy summer product launch with athlete stories and training content",
-    color: "#F97316",
-    dateRange: "Jun 1 – Jun 28, 2026",
-    contentTypeCounts: { "wechat-article": 2, "short-video": 6, "live-clip": 2, "quote-card": 3, "social-post": 5, "ai-video": 1, "carousel": 0 },
-    funnelPct: { awareness: 50, consideration: 30, conversion: 20 },
-    topics: ["Performance Innovation", "Athlete Stories", "Product Launches"],
-    durationValue: "4",
-    durationUnit: "weeks",
-  },
-  {
-    id: "brand-awareness-q1",
-    name: "Brand Awareness Q1",
-    description: "Top-of-funnel brand building campaign focused on education and community",
-    color: "#8B5CF6",
-    dateRange: "Jan 6 – Feb 2, 2026",
-    contentTypeCounts: { "wechat-article": 4, "short-video": 3, "live-clip": 1, "quote-card": 4, "social-post": 6, "ai-video": 0, "carousel": 0 },
-    funnelPct: { awareness: 70, consideration: 20, conversion: 10 },
-    topics: ["Performance Innovation", "Training Tips", "Community Engagement"],
-    durationValue: "4",
-    durationUnit: "weeks",
-  },
-  {
-    id: "product-demo-series",
-    name: "Product Demo Series",
-    description: "Mid-funnel consideration campaign featuring product walkthroughs and comparisons",
-    color: "#06B6D4",
-    dateRange: "Mar 2 – Mar 29, 2026",
-    contentTypeCounts: { "wechat-article": 3, "short-video": 4, "live-clip": 2, "quote-card": 2, "social-post": 4, "ai-video": 2, "carousel": 0 },
-    funnelPct: { awareness: 30, consideration: 50, conversion: 20 },
-    topics: ["Product Launches", "Training Tips"],
-    durationValue: "4",
-    durationUnit: "weeks",
-  },
-  {
-    id: "conversion-sprint",
-    name: "Q2 Conversion Sprint",
-    description: "Bottom-of-funnel campaign driving sign-ups with offers and social proof",
-    color: "#4B56F2",
-    dateRange: "Apr 1 – Apr 14, 2026",
-    contentTypeCounts: { "wechat-article": 1, "short-video": 5, "live-clip": 1, "quote-card": 3, "social-post": 7, "ai-video": 1, "carousel": 0 },
-    funnelPct: { awareness: 20, consideration: 30, conversion: 50 },
-    topics: ["Athlete Stories", "Product Launches"],
-    durationValue: "2",
-    durationUnit: "weeks",
-  },
-  {
-    id: "wellness-monthly",
-    name: "Wellness Brand Monthly",
-    description: "Ongoing wellness and lifestyle content with sustainability messaging",
-    color: "#EC4899",
-    dateRange: "May 1 – May 31, 2026",
-    contentTypeCounts: { "wechat-article": 3, "short-video": 4, "live-clip": 1, "quote-card": 5, "social-post": 8, "ai-video": 0, "carousel": 0 },
-    funnelPct: { awareness: 55, consideration: 30, conversion: 15 },
-    topics: ["Performance Innovation", "Athlete Stories", "Training Tips", "Product Launches"],
-    durationValue: "1",
-    durationUnit: "months",
-  },
-];
+export const PREVIOUS_CAMPAIGNS: PreviousCampaign[] = [];
 
 // ─── Mini Donut Chart ─────────────────────────────────────────────────────────
 
