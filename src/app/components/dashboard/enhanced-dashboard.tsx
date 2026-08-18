@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Sparkles, Video, FileText, Image as ImageIcon, Film, TrendingUp, LayoutGrid, Scissors, Wand2, Loader2, Inbox } from 'lucide-react';
-import Masonry, { ResponsiveMasonry } from "react-responsive-masonry";
+import { Plus, Sparkles, Video, FileText, TrendingUp, LayoutGrid, Loader2, Inbox } from 'lucide-react';
 import { useUIStore } from '../../stores/ui-store';
 import { getProjects, ProjectWithCounts } from '../../../lib/services/projects-service';
-import { getAllUserContentItems, ContentItem } from '../../../lib/services/content-items-service';
 
 function timeAgo(dateStr: string): string {
   const now = Date.now();
@@ -21,51 +19,23 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(days / 30)}mo ago`;
 }
 
-function getContentTypeIcon(type: string) {
-  switch (type) {
-    case 'short-video': return <Video className="w-3 h-3 text-blue-400" />;
-    case 'wechat-article': return <FileText className="w-3 h-3 text-green-400" />;
-    case 'carousel': return <LayoutGrid className="w-3 h-3 text-orange-400" />;
-    case 'ai-video': return <Wand2 className="w-3 h-3 text-purple-400" />;
-    default: return <FileText className="w-3 h-3 text-muted-foreground" />;
-  }
-}
-
-function getAspectRatio(type: string): string {
-  switch (type) {
-    case 'short-video': return '9/16';
-    case 'wechat-article': return '16/9';
-    case 'carousel': return '1/1';
-    case 'ai-video': return '16/9';
-    default: return '16/9';
-  }
-}
-
 export function EnhancedDashboard() {
   const { t } = useTranslation();
   const { openContentModal, openProjectModal } = useUIStore();
-  const [activeFilter, setActiveFilter] = useState('all');
 
   // Real data state
   const [projects, setProjects] = useState<ProjectWithCounts[]>([]);
-  const [contentItems, setContentItems] = useState<(ContentItem & { project_name?: string })[]>([]);
   const [projectsLoading, setProjectsLoading] = useState(true);
-  const [contentLoading, setContentLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
 
     async function fetchData() {
-      const [projResult, contentResult] = await Promise.all([
-        getProjects(),
-        getAllUserContentItems(),
-      ]);
+      const projResult = await getProjects();
 
       if (!cancelled) {
         setProjects(projResult);
         setProjectsLoading(false);
-        setContentItems(contentResult);
-        setContentLoading(false);
       }
     }
 
@@ -112,11 +82,6 @@ export function EnhancedDashboard() {
       isPrimary: true,
     },
   ];
-
-  // Filter items based on active filter
-  const filteredContent = activeFilter === 'all'
-    ? contentItems
-    : contentItems.filter(item => item.content_type === activeFilter);
 
   return (
     <div className="flex-1 overflow-y-auto bg-background">
@@ -238,95 +203,6 @@ export function EnhancedDashboard() {
                 </button>
               ))}
             </div>
-          )}
-        </div>
-
-        {/* Your Content Gallery */}
-        <div>
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-2xl font-semibold text-foreground mb-1">{t('dashboard.yourContent')}</h2>
-              <p className="text-sm text-muted-foreground">{t('dashboard.yourContentDesc')}</p>
-            </div>
-
-            {/* Filter Tabs */}
-            <div className="flex items-center gap-2 p-1 bg-card rounded-lg border border-border">
-              {['all', 'wechat-article', 'short-video', 'carousel', 'ai-video'].map((filter) => (
-                <button
-                  key={filter}
-                  onClick={() => setActiveFilter(filter)}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    activeFilter === filter
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  {filter === 'all' ? t('dashboard.filterAll') : filter === 'wechat-article' ? t('dashboard.quickStart.longForm') : filter === 'short-video' ? t('dashboard.quickStart.shortClip') : filter === 'carousel' ? t('dashboard.quickStart.highlightReel') : t('dashboard.quickStart.aiVideo')}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {contentLoading ? (
-            <div className="flex items-center justify-center py-16">
-              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : filteredContent.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="p-4 bg-card rounded-2xl border border-border mb-4">
-                <Inbox className="w-8 h-8 text-muted-foreground" />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground mb-1">No content yet</h3>
-              <p className="text-sm text-muted-foreground mb-4">Create your first piece of content using the options above</p>
-            </div>
-          ) : (
-            <ResponsiveMasonry columnsCountBreakPoints={{ 350: 2, 750: 4, 900: 6 }}>
-              <Masonry gutter="16px">
-                {filteredContent.map((content) => {
-                  const aspectRatio = getAspectRatio(content.content_type);
-                  const hasGeneratedContent = !!content.generated_content_url;
-                  return (
-                    <div key={content.id} className="group cursor-pointer">
-                      <div
-                        className="bg-card rounded-xl overflow-hidden relative border border-border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/10"
-                        style={{ aspectRatio }}
-                      >
-                        {hasGeneratedContent ? (
-                          <img
-                            src={content.generated_content_url!}
-                            alt={content.title || 'Content'}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-primary/5 to-secondary flex items-center justify-center">
-                            <div className="text-center">
-                              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-card/80 border border-border/50 mb-2">
-                                {getContentTypeIcon(content.content_type)}
-                              </div>
-                              <p className="text-xs text-muted-foreground px-2 truncate max-w-[120px]">
-                                {content.title || 'Untitled'}
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                        <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-200">
-                          <p className="text-sm text-white font-medium truncate mb-1">{content.title || 'Untitled'}</p>
-                          <p className="text-xs text-white/70 truncate">{content.project_name}</p>
-                        </div>
-
-                        {/* Content Type Badge */}
-                        <div className="absolute top-3 right-3">
-                          <div className="px-2 py-1 bg-black/60 backdrop-blur-sm rounded-md">
-                            {getContentTypeIcon(content.content_type)}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </Masonry>
-            </ResponsiveMasonry>
           )}
         </div>
       </div>
