@@ -235,7 +235,7 @@ CREATE TABLE IF NOT EXISTS content_items (
   project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
   campaign_id UUID REFERENCES campaigns(id) ON DELETE SET NULL,
   platform TEXT NOT NULL CHECK (platform IN ('instagram', 'facebook', 'linkedin', 'x', 'tiktok', 'youtube', 'xiaohongshu', 'douyin', 'wechat_channels', 'wechat_official')),
-  content_type TEXT NOT NULL CHECK (content_type IN ('image', 'carousel', 'short_video', 'long_video', 'story', 'text_post', 'article')),
+  content_type TEXT NOT NULL CHECK (content_type IN ('wechat-article', 'short-video', 'social-post', 'carousel')),
   status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'generating', 'review', 'approved', 'published')),
   title TEXT,
   description TEXT,

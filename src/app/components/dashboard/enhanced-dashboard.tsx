@@ -72,15 +72,6 @@ export function EnhancedDashboard() {
       borderColor: 'border-orange-500/50',
       isPrimary: true,
     },
-    {
-      id: 'ai-video' as const,
-      titleKey: 'dashboard.quickStart.aiVideo',
-      descKey: 'dashboard.quickStart.aiVideoDesc',
-      icon: TrendingUp,
-      gradient: 'from-purple-500/20 to-pink-500/20',
-      borderColor: 'border-purple-500/50',
-      isPrimary: true,
-    },
   ];
 
   return (
