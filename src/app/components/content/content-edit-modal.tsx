@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { X, ChevronDown, Search, Upload, Sparkles, Palette, User, FileText } from "lucide-react";
+import { X, ChevronDown, Search, Upload, Sparkles, Palette, User, FileText, ImageIcon, Loader2 } from "lucide-react";
 import svgPathsShortClip from "@/imports/PostContentContainer-3/svg-ehzova85ar";
 import svgPathsLongForm from "@/imports/PostContentContainer-6/svg-zh0484zckq";
 import { BrandLogo } from "../ui/brand-logo";
 import { BrandKitPicker } from "./brand-kit-picker";
 import { WriterProfilePicker } from "./writer-profile-picker";
 import { ResourcePicker } from "./resource-picker";
+import { generateContentDraft, generateContentImage } from "../../../lib/services/ai-content-service";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -698,6 +699,32 @@ function ConfigurationSection({ category, fields, setField, selectedBrandKitName
             </div>
           </div>
         </div>
+
+        {/* AI Image Generation */}
+        <div className="pt-[16px]">
+          <button
+            onClick={() => {
+              setIsGeneratingImage(true);
+              generateContentImage(contentItem.id.toString()).then((result) => {
+                setIsGeneratingImage(false);
+                if (result.success && result.imageUrl) {
+                  onUpdate({ generated_content_url: result.imageUrl });
+                }
+              });
+            }}
+            disabled={isGeneratingImage}
+            className="w-full bg-[#1a1a1a] h-[46px] rounded-[12px] border border-[rgba(255,255,255,0.12)] flex items-center justify-center gap-[8px] hover:bg-[#262626] transition-colors disabled:opacity-50"
+          >
+            {isGeneratingImage ? (
+              <Loader2 className="size-[16px] text-[#4B56F2] animate-spin" />
+            ) : (
+              <ImageIcon className="size-[16px] text-[#4B56F2]" />
+            )}
+            <span className="text-[14px] font-medium text-[#fafafa]">
+              {isGeneratingImage ? 'Generating Image...' : 'Generate Image with AI'}
+            </span>
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -1383,6 +1410,8 @@ export function ContentEditModal({
   const [showWriterProfilePicker, setShowWriterProfilePicker] = useState(false);
   const [showResourcePicker, setShowResourcePicker] = useState(false);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [selectedBrandKitName, setSelectedBrandKitName] = useState("");
   const [selectedWriterProfileName, setSelectedWriterProfileName] = useState("");
   const [comments, setComments] = useState<Array<{
@@ -1836,15 +1865,26 @@ export function ContentEditModal({
               <button
                 onClick={() => {
                   setShowGenerateModal(false);
-                  // TODO: Trigger AI generation - collect all linked data:
-                  // Brand Kit ID: fields.brandKit
-                  // Writer Profile ID: fields.writerProfileId
-                  // Resource IDs: fields.selectedResources
+                  setIsGenerating(true);
+                  generateContentDraft(contentItem.id.toString()).then((result) => {
+                    setIsGenerating(false);
+                    if (result.success) {
+                      onUpdate({
+                        title: result.title,
+                        description: result.description,
+                      });
+                    }
+                  });
                 }}
-                className="px-[20px] py-[10px] rounded-[12px] bg-[#4B56F2] text-white text-[14px] font-medium hover:opacity-90 transition-opacity flex items-center gap-[8px]"
+                disabled={isGenerating}
+                className="px-[20px] py-[10px] rounded-[12px] bg-[#4B56F2] text-white text-[14px] font-medium hover:opacity-90 transition-opacity flex items-center gap-[8px] disabled:opacity-50"
               >
-                <Sparkles className="size-[14px]" />
-                Confirm & Generate
+                {isGenerating ? (
+                  <Loader2 className="size-[14px] animate-spin" />
+                ) : (
+                  <Sparkles className="size-[14px]" />
+                )}
+                {isGenerating ? 'Generating...' : 'Confirm & Generate'}
               </button>
             </div>
           </div>
