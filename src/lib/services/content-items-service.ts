@@ -99,7 +99,7 @@ export async function createContentItem(
 
 export async function updateContentItem(
   id: string,
-  updates: Partial<Pick<ContentItem, 'title' | 'description' | 'status' | 'scheduled_at' | 'campaign_id' | 'brand_kit_id' | 'writer_profile_id' | 'resource_ids'>>
+  updates: Partial<Pick<ContentItem, 'title' | 'description' | 'status' | 'scheduled_at' | 'campaign_id' | 'brand_kit_id' | 'writer_profile_id' | 'resource_ids' | 'generated_content_url'>>
 ): Promise<ContentItem | null> {
   const { data, error } = await supabase
     .from('content_items')
