@@ -48,3 +48,11 @@ temp-analysis/
 
 # Supabase local environment (contains API keys)
 supabase/.env
+
+# Feishu task temp files
+cf-*.json
+temp-*.json
+
+# Local task management
+TASKS.md
+tasks-dashboard.html
