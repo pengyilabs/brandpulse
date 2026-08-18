@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { createProject, updateProject } from '../../../lib/services/projects-service';
 import { getWriterProfiles, createWriterProfile, WriterProfile } from '../../../lib/services/writer-profiles-service';
+import { getBrandKits, createBrandKit, BrandKit } from '../../../lib/services/brand-kits-service';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -20,6 +21,8 @@ interface FormData {
   projectContext: string;
   targetAudience: string;
   // Step 2
+  brandKitId: string;               // '' | 'new' | brand_kit_id
+  brandKitName: string;             // name for new brand kit
   brandColors: string[];
   toneOfVoice: string;
   customTone: string;
@@ -51,6 +54,7 @@ interface FormData {
 
 const INITIAL: FormData = {
   projectName: '', domain: 'https://', projectContext: '', targetAudience: '',
+  brandKitId: '', brandKitName: '',
   brandColors: ['#4B56F2', '#0A0A0A', '#FFFFFF', ''],
   toneOfVoice: 'Professional', customTone: '',
   brandDescription: '', referenceLinks: [''],
@@ -95,14 +99,24 @@ export function ProjectCreationModal({ isOpen, onClose, onComplete }: ProjectCre
   const [writerProfiles, setWriterProfiles] = useState<WriterProfile[]>([]);
   const [profilesLoading, setProfilesLoading] = useState(false);
 
+  // Brand kits fetched from DB
+  const [brandKits, setBrandKits] = useState<BrandKit[]>([]);
+  const [brandKitsLoading, setBrandKitsLoading] = useState(false);
+
   useEffect(() => {
     if (!isOpen) return;
     let cancelled = false;
     setProfilesLoading(true);
-    getWriterProfiles().then(profiles => {
+    setBrandKitsLoading(true);
+    Promise.all([
+      getWriterProfiles(),
+      getBrandKits(),
+    ]).then(([profiles, kits]) => {
       if (!cancelled) {
         setWriterProfiles(profiles);
         setProfilesLoading(false);
+        setBrandKits(kits);
+        setBrandKitsLoading(false);
       }
     });
     return () => { cancelled = true; };
@@ -141,6 +155,19 @@ export function ProjectCreationModal({ isOpen, onClose, onComplete }: ProjectCre
         word_count: data.shortWordCount,
       });
       if (newProfile) shortProfileId = newProfile.id;
+    }
+
+    // Save new brand kit if creating one
+    let brandKitId: string | null = null;
+    if (data.brandKitId === 'new' && data.brandKitName.trim()) {
+      const newKit = await createBrandKit(
+        data.brandKitName.trim(),
+        data.brandColors.filter(c => c),
+        [],
+        null,
+        data.toneOfVoice === 'Custom' ? data.customTone || data.brandDescription : data.toneOfVoice || data.brandDescription,
+      );
+      if (newKit) brandKitId = newKit.id;
     }
 
     // Create the project
@@ -270,7 +297,7 @@ export function ProjectCreationModal({ isOpen, onClose, onComplete }: ProjectCre
           {/* Form */}
           <div className="flex-1 overflow-y-auto px-8 py-6">
             {step === 1 && <Step1 data={data} update={update} />}
-            {step === 2 && <Step2 data={data} update={update} addLink={addLink} updateLink={updateLink} removeLink={removeLink} />}
+            {step === 2 && <Step2 data={data} update={update} addLink={addLink} updateLink={updateLink} removeLink={removeLink} brandKits={brandKits} brandKitsLoading={brandKitsLoading} />}
             {step === 3 && <Step3 data={data} update={update} writerProfiles={writerProfiles} profilesLoading={profilesLoading} />}
             {step === 4 && <Step4 data={data} update={update} writerProfiles={writerProfiles} profilesLoading={profilesLoading} />}
             {step === 5 && (
@@ -419,10 +446,38 @@ function Step1({ data, update }: { data: FormData; update: (p: Partial<FormData>
 
 // ── Step 2: Brand Guidelines ──────────────────────────────────────────────────
 
-function Step2({ data, update, addLink, updateLink, removeLink }: {
+function Step2({ data, update, addLink, updateLink, removeLink, brandKits, brandKitsLoading }: {
   data: FormData; update: (p: Partial<FormData>) => void;
   addLink: () => void; updateLink: (i: number, v: string) => void; removeLink: (i: number) => void;
+  brandKits: BrandKit[]; brandKitsLoading: boolean;
 }) {
+  const isCreatingNew = data.brandKitId === 'new';
+  const selectedKit = !isCreatingNew && data.brandKitId
+    ? brandKits.find(k => k.id === data.brandKitId)
+    : null;
+
+  const handleKitChange = (value: string) => {
+    update({ brandKitId: value });
+    if (value === 'new') {
+      // Reset to defaults when creating new
+      update({ brandKitName: '', brandColors: ['#4B56F2', '#0A0A0A', '#FFFFFF', ''], toneOfVoice: 'Professional', customTone: '', brandDescription: '' });
+    } else if (value) {
+      // Auto-fill from selected brand kit
+      const kit = brandKits.find(k => k.id === value);
+      if (kit) {
+        const colors = (kit.colors as string[]) || [];
+        const padded = [...colors.slice(0, 4)];
+        while (padded.length < 4) padded.push('');
+        update({
+          brandColors: padded,
+          toneOfVoice: kit.tone_of_voice || 'Professional',
+          customTone: '',
+          brandDescription: kit.tone_of_voice || '',
+        });
+      }
+    }
+  };
+
   const updateColor = (i: number, v: string) => {
     const colors = [...data.brandColors];
     colors[i] = v;
@@ -431,6 +486,52 @@ function Step2({ data, update, addLink, updateLink, removeLink }: {
 
   return (
     <div className="space-y-5">
+      <InfoNote>
+        Select an existing brand kit or create a new one. Brand kits are reusable across all your projects.
+      </InfoNote>
+
+      {/* Brand Kit Selector */}
+      <FormField label="Brand Kit">
+        {brandKitsLoading ? (
+          <div className="flex items-center gap-2 py-2.5">
+            <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">Loading brand kits...</span>
+          </div>
+        ) : (
+          <select
+            value={data.brandKitId}
+            onChange={e => handleKitChange(e.target.value)}
+            className={inputCls}
+          >
+            <option value="">Select or create a brand kit...</option>
+            {brandKits.map(k => (
+              <option key={k.id} value={k.id}>
+                {k.name}{k.tone_of_voice ? ` — ${k.tone_of_voice}` : ''}
+              </option>
+            ))}
+            <option value="new">+ Create New Brand Kit</option>
+          </select>
+        )}
+      </FormField>
+
+      {selectedKit && !isCreatingNew && (
+        <div className="flex gap-2.5 p-3 bg-primary/5 border border-primary/20 rounded-xl text-sm text-muted-foreground">
+          <Check className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+          <span>Using "<strong>{selectedKit.name}</strong>" — colors, tone, and description are pre-filled from this brand kit. You can still customize below.</span>
+        </div>
+      )}
+
+      {isCreatingNew && (
+        <FormField label="New Brand Kit Name" hint="Give this brand kit a name to reuse later">
+          <input
+            value={data.brandKitName}
+            onChange={e => update({ brandKitName: e.target.value })}
+            placeholder="e.g. Brand Voice, Company Identity"
+            className={inputCls}
+          />
+        </FormField>
+      )}
+
       {/* Logo Upload */}
       <FormField label="Upload Logo">
         <div className="flex items-center gap-4">
