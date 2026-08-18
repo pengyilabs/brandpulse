@@ -59,7 +59,6 @@ import * as Dialog from "@radix-ui/react-dialog";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { clsx } from "clsx";
 import { SmartContentCreationModal } from "../content/smart-content-creation-modal";
-import { generateContentDraft } from "../../../lib/services/ai-content-service";
 import { CampaignCreationFullView, PreviousCampaign } from "./campaign-creation-full-view";
 import { PREVIOUS_CAMPAIGNS } from "./campaign-creation-full-view";
 import { ContentReview } from "../content/content-review";
@@ -4454,23 +4453,6 @@ export function ProjectView() {
           if (createdItems.length) {
             setItems(prev => [...createdItems, ...prev]);
             toast.success(`${createdItems.length} content item${createdItems.length > 1 ? "s" : ""} created via planning flow.`);
-
-            // Auto-generate AI drafts for all created items (fire-and-forget)
-            createdItems.forEach((item) => {
-              generateContentDraft(item.id).then((result) => {
-                if (result.success) {
-                  // Update the item in state with the AI-generated title/description
-                  setItems(prev => prev.map(it =>
-                    it.id === item.id
-                      ? { ...it, title: result.title ?? it.title, description: result.description ?? it.description }
-                      : it
-                  ));
-                  toast.success(`AI draft generated for "${result.title || item.title}"`);
-                } else {
-                  toast.error(`AI generation failed for "${item.title}": ${result.error}`);
-                }
-              });
-            });
           } else {
             toast.warning("No items were created.");
           }

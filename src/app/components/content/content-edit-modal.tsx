@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { toast } from "sonner";
 import { X, ChevronDown, Search, Upload, Sparkles, Palette, User, FileText, ImageIcon, Loader2 } from "lucide-react";
 import svgPathsShortClip from "@/imports/PostContentContainer-3/svg-ehzova85ar";
 import svgPathsLongForm from "@/imports/PostContentContainer-6/svg-zh0484zckq";
@@ -7,6 +8,7 @@ import { BrandKitPicker } from "./brand-kit-picker";
 import { WriterProfilePicker } from "./writer-profile-picker";
 import { ResourcePicker } from "./resource-picker";
 import { generateContentDraft, generateContentImage } from "../../../lib/services/ai-content-service";
+import { buildContentPrompt, buildImagePrompt } from "../../../lib/ai/prompts/platform-prompts";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -704,13 +706,13 @@ function ConfigurationSection({ category, fields, setField, selectedBrandKitName
         <div className="pt-[16px]">
           <button
             onClick={() => {
-              setIsGeneratingImage(true);
-              generateContentImage(contentItem.id.toString()).then((result) => {
-                setIsGeneratingImage(false);
-                if (result.success && result.imageUrl) {
-                  onUpdate({ generated_content_url: result.imageUrl });
-                }
+              const prompt = buildImagePrompt({
+                platform: contentItem.platform || '',
+                topic: contentItem.topic,
+                style: fields.writingTone,
               });
+              setImagePrompt(prompt);
+              setShowImagePrompt(true);
             }}
             disabled={isGeneratingImage}
             className="w-full bg-[#1a1a1a] h-[46px] rounded-[12px] border border-[rgba(255,255,255,0.12)] flex items-center justify-center gap-[8px] hover:bg-[#262626] transition-colors disabled:opacity-50"
@@ -1410,8 +1412,11 @@ export function ContentEditModal({
   const [showWriterProfilePicker, setShowWriterProfilePicker] = useState(false);
   const [showResourcePicker, setShowResourcePicker] = useState(false);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [promptPreview, setPromptPreview] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [imagePrompt, setImagePrompt] = useState("");
+  const [showImagePrompt, setShowImagePrompt] = useState(false);
   const [selectedBrandKitName, setSelectedBrandKitName] = useState("");
   const [selectedWriterProfileName, setSelectedWriterProfileName] = useState("");
   const [comments, setComments] = useState<Array<{
@@ -1546,7 +1551,17 @@ export function ContentEditModal({
 
               {/* Generate Content button */}
               <button
-                onClick={() => setShowGenerateModal(true)}
+                onClick={() => {
+                  const prompt = buildContentPrompt({
+                    platform: contentItem.platform || '',
+                    topic: contentItem.topic,
+                    contentType: contentItem.contentType,
+                    tone: fields.writingTone,
+                    wordCount: `${fields.wordCountMin}-${fields.wordCountMax}`,
+                  });
+                  setPromptPreview(prompt);
+                  setShowGenerateModal(true);
+                }}
                 className="bg-[#4B56F2] flex gap-[8px] h-[36px] items-center justify-center px-[16px] py-[8px] rounded-[56px] shrink-0 hover:bg-[#3b46e0] transition-colors"
               >
                 <Sparkles className="size-[14px] text-white" />
@@ -1817,12 +1832,12 @@ export function ContentEditModal({
         }}
       />
 
-      {/* ── Generate Confirmation Modal ── */}
+      {/* ── Generate Content Prompt Preview ── */}
       {showGenerateModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" onClick={() => setShowGenerateModal(false)}>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" onClick={() => !isGenerating && setShowGenerateModal(false)}>
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
           <div
-            className="relative bg-[#1a1a1a] rounded-[16px] border border-[rgba(255,255,255,0.12)] p-[24px] w-full max-w-[480px]"
+            className="relative bg-[#1a1a1a] rounded-[16px] border border-[rgba(255,255,255,0.12)] p-[24px] w-full max-w-[640px] max-h-[80vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-[12px] mb-[20px]">
@@ -1830,37 +1845,29 @@ export function ContentEditModal({
                 <Sparkles className="size-[20px] text-[#4B56F2]" />
               </div>
               <div>
-                <p className="font-bold text-[#fafafa] text-[16px]">Generate Content</p>
-                <p className="text-[#a1a1aa] text-[13px]">Review your selections before generating</p>
+                <p className="font-bold text-[#fafafa] text-[16px]">Prompt Preview</p>
+                <p className="text-[#a1a1aa] text-[13px]">Review the prompt that will be sent to the AI model</p>
               </div>
             </div>
 
-            {/* Summary */}
-            <div className="space-y-[12px] mb-[24px]">
-              <div className="bg-[#0a0a0a] rounded-[12px] p-[16px]">
-                <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mb-[8px]">Brand Kit</p>
-                <p className="text-[14px] font-medium text-[#fafafa]">{selectedBrandKitName || 'No brand kit selected'}</p>
-              </div>
-              <div className="bg-[#0a0a0a] rounded-[12px] p-[16px]">
-                <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mb-[8px]">Writer Profile</p>
-                <p className="text-[14px] font-medium text-[#fafafa]">{selectedWriterProfileName || 'No writer profile selected'}</p>
-              </div>
-              <div className="bg-[#0a0a0a] rounded-[12px] p-[16px]">
-                <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mb-[8px]">Resources</p>
-                <p className="text-[14px] font-medium text-[#fafafa]">
-                  {fields.selectedResources?.length > 0
-                    ? `${fields.selectedResources.length} resource${fields.selectedResources.length > 1 ? 's' : ''} selected`
-                    : 'No resources selected'}
-                </p>
-              </div>
+            {/* Prompt textarea */}
+            <div className="flex-1 min-h-0 mb-[20px]">
+              <textarea
+                readOnly
+                value={promptPreview}
+                className="w-full h-full min-h-[300px] bg-[#0a0a0a] border border-[rgba(255,255,255,0.08)] rounded-[12px] p-[16px] text-[13px] text-[#d4d4d8] font-mono leading-relaxed resize-none focus:outline-none"
+              />
             </div>
 
             <div className="flex justify-end gap-[12px]">
               <button
-                onClick={() => setShowGenerateModal(false)}
+                onClick={() => {
+                  navigator.clipboard.writeText(promptPreview);
+                  toast.success('Prompt copied to clipboard');
+                }}
                 className="px-[20px] py-[10px] rounded-[12px] bg-[#262626] border border-[rgba(255,255,255,0.08)] text-[#a1a1aa] text-[14px] font-medium hover:bg-[#333] transition-colors"
               >
-                Cancel
+                Copy Prompt
               </button>
               <button
                 onClick={() => {
@@ -1873,6 +1880,9 @@ export function ContentEditModal({
                         title: result.title,
                         description: result.description,
                       });
+                      toast.success('Content generated successfully');
+                    } else {
+                      toast.error(`Generation failed: ${result.error}`);
                     }
                   });
                 }}
@@ -1884,7 +1894,73 @@ export function ContentEditModal({
                 ) : (
                   <Sparkles className="size-[14px]" />
                 )}
-                {isGenerating ? 'Generating...' : 'Confirm & Generate'}
+                {isGenerating ? 'Generating...' : 'Send to OpenRouter'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Image Prompt Preview ── */}
+      {showImagePrompt && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" onClick={() => !isGeneratingImage && setShowImagePrompt(false)}>
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+          <div
+            className="relative bg-[#1a1a1a] rounded-[16px] border border-[rgba(255,255,255,0.12)] p-[24px] w-full max-w-[640px] max-h-[80vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-[12px] mb-[20px]">
+              <div className="bg-[rgba(168,85,247,0.2)] rounded-[12px] size-[40px] flex items-center justify-center shrink-0">
+                <ImageIcon className="size-[20px] text-[#A855F7]" />
+              </div>
+              <div>
+                <p className="font-bold text-[#fafafa] text-[16px]">Image Prompt Preview</p>
+                <p className="text-[#a1a1aa] text-[13px]">Review the prompt that will be sent to the image generation model</p>
+              </div>
+            </div>
+
+            {/* Prompt textarea */}
+            <div className="flex-1 min-h-0 mb-[20px]">
+              <textarea
+                readOnly
+                value={imagePrompt}
+                className="w-full h-full min-h-[200px] bg-[#0a0a0a] border border-[rgba(255,255,255,0.08)] rounded-[12px] p-[16px] text-[13px] text-[#d4d4d8] font-mono leading-relaxed resize-none focus:outline-none"
+              />
+            </div>
+
+            <div className="flex justify-end gap-[12px]">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(imagePrompt);
+                  toast.success('Image prompt copied to clipboard');
+                }}
+                className="px-[20px] py-[10px] rounded-[12px] bg-[#262626] border border-[rgba(255,255,255,0.08)] text-[#a1a1aa] text-[14px] font-medium hover:bg-[#333] transition-colors"
+              >
+                Copy Prompt
+              </button>
+              <button
+                onClick={() => {
+                  setShowImagePrompt(false);
+                  setIsGeneratingImage(true);
+                  generateContentImage(contentItem.id.toString()).then((result) => {
+                    setIsGeneratingImage(false);
+                    if (result.success && result.imageUrl) {
+                      onUpdate({ generated_content_url: result.imageUrl });
+                      toast.success('Image generated successfully');
+                    } else {
+                      toast.error(`Image generation failed: ${result.error}`);
+                    }
+                  });
+                }}
+                disabled={isGeneratingImage}
+                className="px-[20px] py-[10px] rounded-[12px] bg-[#A855F7] text-white text-[14px] font-medium hover:opacity-90 transition-opacity flex items-center gap-[8px] disabled:opacity-50"
+              >
+                {isGeneratingImage ? (
+                  <Loader2 className="size-[14px] animate-spin" />
+                ) : (
+                  <ImageIcon className="size-[14px]" />
+                )}
+                {isGeneratingImage ? 'Generating...' : 'Send to OpenRouter'}
               </button>
             </div>
           </div>

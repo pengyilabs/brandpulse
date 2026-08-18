@@ -36,7 +36,7 @@ export async function generateContentDraft(contentItemId: string): Promise<Gener
       platform: item.platform,
       topic: item.title || item.description || 'Untitled',
       contentType: item.content_type,
-      brandKit: brandKit ? { tone_of_voice: brandKit.tone_of_voice, description: brandKit.description } : undefined,
+      brandKit: brandKit ? { tone_of_voice: brandKit.tone_of_voice } : undefined,
       writerProfile: writerProfile ? {
         style: writerProfile.style,
         tone: writerProfile.tone,
