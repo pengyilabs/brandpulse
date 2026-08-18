@@ -8,6 +8,7 @@ import {
   MessageCircle, Music2, Share2, Play, Bookmark,
 } from "lucide-react";
 import { clsx } from "clsx";
+import { createContentItem } from '../../../lib/services/content-items-service';
 
 // Social platforms
 type SocialPlatformId = "wechat" | "xiaohongshu" | "douyin" | "weibo" | "bilibili";
@@ -519,9 +520,11 @@ interface CampaignCreationFullViewProps {
   onComplete: (config: any) => void;
   initialDuplicate?: PreviousCampaign | null;
   projectTopics?: string[];
+  projectId: string;
+  onNavigateToCalendar?: () => void;
 }
 
-export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialDuplicate, projectTopics }: CampaignCreationFullViewProps) {
+export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialDuplicate, projectTopics, projectId, onNavigateToCalendar }: CampaignCreationFullViewProps) {
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const [expandedStep, setExpandedStep] = useState<number>(1);
@@ -1828,7 +1831,7 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
                 </button>
                 <div className="flex-1" />
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     setShowReviewModal(false);
                     onComplete({
                       campaignName, startDate, endDate, uploadedFile, sourceUrl,
@@ -1836,6 +1839,17 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
                       selectedTopics: Array.from(selectedTopics),
                       totalItems, totalCredits,
                     });
+                    // Create content items for each scheduled item
+                    for (const item of scheduledItems) {
+                      await createContentItem(projectId, {
+                        platform: item.platform || '',
+                        content_type: item.typeId,
+                        scheduled_at: item.date,
+                        campaign_id: null,
+                        title: item.topic,
+                      });
+                    }
+                    onNavigateToCalendar?.();
                   }}
                   className="flex items-center gap-2 px-6 py-2.5 bg-[#4B56F2] hover:bg-[#4B56F2]/90 text-white rounded-xl font-bold text-sm transition-colors"
                 >
