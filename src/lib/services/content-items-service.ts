@@ -130,6 +130,36 @@ export async function deleteContentItem(id: string): Promise<boolean> {
   return true;
 }
 
+export async function getAllUserContentItems(): Promise<(ContentItem & { project_name?: string })[]> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data: projects } = await supabase
+    .from('projects')
+    .select('id, name')
+    .eq('user_id', user.id);
+
+  if (!projects || projects.length === 0) return [];
+
+  const projectMap = new Map(projects.map(p => [p.id, p.name]));
+
+  const { data, error } = await supabase
+    .from('content_items')
+    .select('*')
+    .in('project_id', projects.map(p => p.id))
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching user content items:', error);
+    return [];
+  }
+
+  return (data || []).map(item => ({
+    ...item,
+    project_name: projectMap.get(item.project_id) || 'Unknown Project',
+  }));
+}
+
 export async function getContentItemCount(projectId: string): Promise<number> {
   const { count, error } = await supabase
     .from('content_items')
