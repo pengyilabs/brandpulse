@@ -2,7 +2,7 @@ import React, { useState, useRef, useMemo, useEffect } from "react";
 import {
   X, Upload, Link as LinkIcon, FileText, Video, ImageIcon, LayoutGrid, Film,
   Check, Flag, ChevronDown, ChevronUp,
-Calendar, Target, ArrowLeft, Quote, Scissors,
+  Calendar, Target, ArrowLeft, Quote, Scissors,
   Wand2, Plus, Minus, Lightbulb, Users, ShoppingCart,
   AlertCircle, Zap, Layers, Cloud, Archive, HardDrive,
   MessageCircle, Music2, Share2, Play, Bookmark,
@@ -38,7 +38,7 @@ const SOCIAL_PLATFORMS: SocialPlatform[] = [
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type ContentTypeId = "wechat-article" | "short-video" | "social-post" | "carousel";
+type ContentTypeId = "wechat-article" | "short-video" | "social-post" | "carousel" | "quote-card" | "ai-video" | "live-clip";
 type FunnelStage = "awareness" | "consideration" | "conversion";
 
 interface ContentTypeDef {
@@ -68,6 +68,9 @@ const CONTENT_TYPES: ContentTypeDef[] = [
   { id: "short-video", label: "Short Video", sublabel: "短视频", description: "Short-form video for Douyin, Xiaohongshu & Bilibili", Icon: Film, color: "#010101", credits: 15, hasPlatforms: true },
   { id: "social-post", label: "Social Post", sublabel: "社交帖子", description: "Platform-native posts for WeChat Moments, Weibo & more", Icon: Share2, color: "#06B6D4", credits: 10, hasPlatforms: true },
   { id: "carousel", label: "Carousel", sublabel: "图文/轮播", description: "Multi-slide image-text posts for Xiaohongshu & WeChat", Icon: LayoutGrid, color: "#8B5CF6", credits: 12, hasPlatforms: true },
+  { id: "quote-card", label: "Quote Card", sublabel: "引用卡片", description: "Branded quote graphics from templates", Icon: Quote, color: "#A78BFA", credits: 8, hasPlatforms: true },
+  { id: "ai-video", label: "AI Video", sublabel: "AI生视频", description: "AI-generated from topic & guidelines", Icon: Wand2, color: "#EC4899", credits: 30, hasPlatforms: true },
+  { id: "live-clip", label: "Live Clip", sublabel: "直播剪辑", description: "Short clips edited from live streams", Icon: Scissors, color: "#60A5FA", credits: 15, hasPlatforms: true },
 ];
 
 const FUNNEL_STAGES = [
@@ -133,6 +136,7 @@ const STEP_CONFIG = [
   { id: 3, label: "Content Type Mix" },
   { id: 4, label: "Funnel Stage" },
   { id: 5, label: "Topics" },
+  { id: 6, label: "Review" },
 ];
 
 // ─── Previous Campaign Templates (for Duplicate Existing) ─────────────────────
@@ -140,6 +144,7 @@ const STEP_CONFIG = [
 export interface PreviousCampaign {
   id: string;
   name: string;
+  description: string;
   color: string;
   dateRange: string;
   contentTypeCounts: Record<ContentTypeId, number>;
@@ -528,17 +533,9 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
 
   // Step 1 - Campaign Details
   const [campaignName, setCampaignName] = useState("");
-  const [startDate, setStartDate] = useState(() => {
-    const d = new Date();
-    return d.toISOString().split("T")[0];
-  });
-  const [endDate, setEndDate] = useState(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 28);
-    const day = d.getDay();
-    if (day !== 0) d.setDate(d.getDate() + (7 - day));
-    return d.toISOString().split("T")[0];
-  });
+  const [campaignDescription, setCampaignDescription] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [dateMode, setDateMode] = useState<"date-range" | "duration">("duration");
   const [durationValue, setDurationValue] = useState("4");
   const [durationUnit, setDurationUnit] = useState<"days" | "weeks" | "months">("weeks");
@@ -567,12 +564,18 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
     "short-video": 4,
     "social-post": 3,
     "carousel": 0,
+    "quote-card": 2,
+    "ai-video": 0,
+    "live-clip": 1,
   });
   const [platformsByType, setPlatformsByType] = useState<Record<ContentTypeId, Set<SocialPlatformId>>>({
-    "wechat-article": new Set(["wechat"]),
-    "short-video": new Set(["douyin", "xiaohongshu", "bilibili", "weibo", "wechat"]),
-    "social-post": new Set(["wechat", "weibo", "xiaohongshu", "douyin", "bilibili"]),
-    "carousel": new Set(["xiaohongshu", "wechat", "weibo"]),
+    "wechat-article": new Set(),
+    "short-video": new Set(["douyin", "xiaohongshu"]),
+    "social-post": new Set(["wechat", "weibo"]),
+    "carousel": new Set(),
+    "quote-card": new Set(),
+    "ai-video": new Set(),
+    "live-clip": new Set(),
   });
 
   const togglePlatformForType = (typeId: ContentTypeId, platformId: SocialPlatformId) => {
@@ -613,6 +616,7 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
   const applyDuplicate = (campaign: PreviousCampaign) => {
     setSelectedDuplicate(campaign);
     setCampaignName(`${campaign.name} (Copy)`);
+    setCampaignDescription(campaign.description);
     setContentTypeCounts(campaign.contentTypeCounts);
     setFunnelPct(campaign.funnelPct);
     setSelectedTopics(new Set(campaign.topics));
@@ -696,7 +700,7 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
   // Generate scheduled items — runs as soon as dates + content are configured (from Step 3+)
   useEffect(() => {
     const { start, end } = effectiveDates;
-if (!start || !end || totalItems === 0 || currentStep < 3) {
+    if (!start || !end || totalItems === 0 || currentStep < 3) {
       setScheduledItems([]);
       return;
     }
@@ -763,7 +767,7 @@ if (!start || !end || totalItems === 0 || currentStep < 3) {
         : (parseInt(durationValue) > 0);
       return campaignName.trim() && hasSchedule;
     }
-if (currentStep === 2) return selectedLibraryItems.size > 0 || uploadedFile !== null || sourceUrl.trim();
+    if (currentStep === 2) return selectedLibraryItems.size > 0 || uploadedFile !== null || sourceUrl.trim();
     if (currentStep === 3) return totalItems > 0;
     if (currentStep === 4) return true;
     if (currentStep === 5) return selectedTopics.size > 0;
@@ -777,7 +781,9 @@ if (currentStep === 2) return selectedLibraryItems.size > 0 || uploadedFile !== 
       setCurrentStep(nextStep);
       setExpandedStep(nextStep);
     } else if (currentStep === 5) {
-      // Step 5 → open the review modal directly
+      // Step 5 → open the review modal (step 6)
+      setCurrentStep(6);
+      setExpandedStep(6);
       setShowReviewModal(true);
     } else {
       onComplete({
@@ -787,16 +793,10 @@ if (currentStep === 2) return selectedLibraryItems.size > 0 || uploadedFile !== 
         uploadedFile,
         sourceUrl,
         contentTypeCounts,
-        platformsByType: Object.fromEntries(
-          Object.entries(platformsByType).map(([k, v]) => [k, Array.from(v)])
-        ),
         funnelAssignments,
-        funnelPct,
         selectedTopics: Array.from(selectedTopics),
-        customTopics,
         totalItems,
         totalCredits,
-        scheduledItems,
       });
     }
   };
@@ -915,6 +915,9 @@ if (currentStep === 2) return selectedLibraryItems.size > 0 || uploadedFile !== 
         "short-video": 0,
         "social-post": 0,
         "carousel": 0,
+        "quote-card": 0,
+        "ai-video": 0,
+        "live-clip": 0,
       };
 
       updatedItems.forEach(item => {
@@ -996,8 +999,8 @@ if (currentStep === 2) return selectedLibraryItems.size > 0 || uploadedFile !== 
             ))}
           </div>
           <div className="flex justify-between mt-2">
-            <span className="text-xs text-muted-foreground">Step {currentStep} of 5</span>
-            <span className="text-xs text-muted-foreground">{Math.round((completedSteps.size / 5) * 100)}% complete</span>
+            <span className="text-xs text-muted-foreground">Step {currentStep} of 6</span>
+            <span className="text-xs text-muted-foreground">{Math.round((completedSteps.size / 6) * 100)}% complete</span>
           </div>
         </div>
 
@@ -1059,6 +1062,16 @@ if (currentStep === 2) return selectedLibraryItems.size > 0 || uploadedFile !== 
                             onChange={(e) => setCampaignName(e.target.value)}
                             placeholder="e.g., Summer Product Launch 2026"
                             className="w-full px-4 py-2.5 bg-background border border-border rounded-lg text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-bold text-foreground block mb-2">Description</label>
+                          <textarea
+                            value={campaignDescription}
+                            onChange={(e) => setCampaignDescription(e.target.value)}
+                            placeholder="Brief description of the campaign goals and messaging..."
+                            rows={3}
+                            className="w-full px-4 py-2.5 bg-background border border-border rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/30"
                           />
                         </div>
                         {/* ── Schedule Mode Switcher ── */}
@@ -1174,7 +1187,7 @@ if (currentStep === 2) return selectedLibraryItems.size > 0 || uploadedFile !== 
                     {/* Step 2: Source Material */}
                     {stepItem.id === 2 && (
                       <>
-{/* Add Resources button — opens the resource selection modal */}
+                        {/* Add Resources button — opens the resource selection modal */}
                         <div>
                           <button
                             onClick={() => { setLibraryDraft(new Set(selectedLibraryItems)); setShowLibraryModal(true); }}
@@ -1315,6 +1328,21 @@ if (currentStep === 2) return selectedLibraryItems.size > 0 || uploadedFile !== 
                           );
                         })}
 
+                        {/* Distribution bar */}
+                        {totalItems > 0 && (
+                          <div className="p-3 border border-border rounded-xl bg-background/60">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Mix distribution</span>
+                              <span className="text-[11px] text-muted-foreground">{totalItems} items · {totalCredits} credits</span>
+                            </div>
+                            <div className="flex h-2.5 w-full rounded-full overflow-hidden bg-secondary border border-border">
+                              {contentTypeDistribution.filter(d => d.count > 0).map(d => (
+                                <div key={d.id} style={{ width: `${d.percentage}%`, backgroundColor: d.color }} className="h-full first:rounded-l-full last:rounded-r-full" />
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
                         <div className="pt-3 border-t border-border flex justify-between items-center">
                           <div>
                             <div className="flex items-center gap-2">
@@ -1324,6 +1352,10 @@ if (currentStep === 2) return selectedLibraryItems.size > 0 || uploadedFile !== 
                             <span className="text-[11px] text-muted-foreground">Quantity × platforms = total deliverables</span>
                           </div>
                           <span className="text-lg font-bold text-primary tabular-nums">{totalItems}</span>
+                        </div>
+                        <div className="flex justify-between items-center -mt-1">
+                          <span className="text-sm font-bold text-foreground">Total Credits</span>
+                          <span className="text-lg font-bold text-primary tabular-nums">{totalCredits}</span>
                         </div>
                       </div>
                     )}
@@ -1714,6 +1746,9 @@ if (currentStep === 2) return selectedLibraryItems.size > 0 || uploadedFile !== 
                     {effStart && effEnd && (
                       <div className="text-xs text-muted-foreground">{effStart} → {effEnd}</div>
                     )}
+                    {campaignDescription && (
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{campaignDescription}</p>
+                    )}
                   </div>
                 </div>
 
@@ -1800,15 +1835,9 @@ if (currentStep === 2) return selectedLibraryItems.size > 0 || uploadedFile !== 
                     setShowReviewModal(false);
                     onComplete({
                       campaignName, startDate, endDate, uploadedFile, sourceUrl,
-                      contentTypeCounts,
-                      platformsByType: Object.fromEntries(
-                        Object.entries(platformsByType).map(([k, v]) => [k, Array.from(v)])
-                      ),
-                      funnelAssignments, funnelPct,
+                      contentTypeCounts, funnelAssignments,
                       selectedTopics: Array.from(selectedTopics),
-                      customTopics,
                       totalItems, totalCredits,
-                      scheduledItems,
                     });
                     // Create content items for each scheduled item
                     for (const item of scheduledItems) {
