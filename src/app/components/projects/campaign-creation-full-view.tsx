@@ -5,11 +5,12 @@ import {
   Calendar, Target, ArrowLeft, Quote, Scissors, Star,
   Wand2, Plus, Minus, Lightbulb, Users, ShoppingCart,
   AlertCircle, Zap, Layers, Cloud, Archive, HardDrive,
+  MessageCircle, Music2, Share2, Play,
 } from "lucide-react";
 import { clsx } from "clsx";
 
 // Social platforms
-type SocialPlatformId = "instagram" | "facebook" | "linkedin" | "twitter" | "tiktok" | "youtube";
+type SocialPlatformId = "wechat" | "xiaohongshu" | "douyin" | "weibo" | "bilibili";
 
 interface SocialPlatform {
   id: SocialPlatformId;
@@ -19,21 +20,19 @@ interface SocialPlatform {
 }
 
 const PLATFORM_ICON_STYLE = {
-  instagram: { color: "#E11D48", Icon: ImageIcon },
-  facebook: { color: "#010101", Icon: LayoutGrid },
-  linkedin: { color: "#0A66C2", Icon: LayoutGrid },
-  twitter: { color: "#000000", Icon: LayoutGrid },
-  tiktok: { color: "#FE2C55", Icon: Video },
-  youtube: { color: "#FF0000", Icon: Video },
+  wechat: { color: "#07C160", Icon: MessageCircle },
+  xiaohongshu: { color: "#FF2442", Icon: LayoutGrid },
+  douyin: { color: "#010101", Icon: Music2 },
+  weibo: { color: "#E6162D", Icon: Share2 },
+  bilibili: { color: "#00A1D6", Icon: Play },
 };
 
 const SOCIAL_PLATFORMS: SocialPlatform[] = [
-  { id: "instagram", label: "Instagram", color: "#E11D48", Icon: PLATFORM_ICON_STYLE.instagram.Icon },
-  { id: "facebook", label: "Facebook", color: "#010101", Icon: PLATFORM_ICON_STYLE.facebook.Icon },
-  { id: "linkedin", label: "LinkedIn", color: "#0A66C2", Icon: PLATFORM_ICON_STYLE.linkedin.Icon },
-  { id: "twitter", label: "X (Twitter)", color: "#000000", Icon: PLATFORM_ICON_STYLE.twitter.Icon },
-  { id: "tiktok", label: "TikTok", color: "#FE2C55", Icon: PLATFORM_ICON_STYLE.tiktok.Icon },
-  { id: "youtube", label: "YouTube", color: "#FF0000", Icon: PLATFORM_ICON_STYLE.youtube.Icon },
+  { id: "wechat", label: "WeChat", color: "#07C160", Icon: PLATFORM_ICON_STYLE.wechat.Icon },
+  { id: "xiaohongshu", label: "Xiaohongshu", color: "#FF2442", Icon: PLATFORM_ICON_STYLE.xiaohongshu.Icon },
+  { id: "douyin", label: "Douyin", color: "#010101", Icon: PLATFORM_ICON_STYLE.douyin.Icon },
+  { id: "weibo", label: "Weibo", color: "#E6162D", Icon: PLATFORM_ICON_STYLE.weibo.Icon },
+  { id: "bilibili", label: "Bilibili", color: "#00A1D6", Icon: PLATFORM_ICON_STYLE.bilibili.Icon },
 ];
 
 // ─── Types ────────────────────────────────────────────────────────────────────
