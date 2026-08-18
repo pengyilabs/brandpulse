@@ -4,7 +4,7 @@ import { ProjectView } from './components/projects/project-view';
 import { EnhancedDashboard } from './components/dashboard/enhanced-dashboard';
 import { WriterProfilesView } from './components/brand/writer-profiles-view';
 import { EnhancedResourcesView } from './components/resources/enhanced-resources-view';
-import { TemplatesView } from './components/templates/templates-view';
+
 import { IntegrationsView } from './components/settings/integrations-view';
 import { SettingsView } from './components/settings/settings-view';
 import { ProfileView } from './components/brand/profile-view';
@@ -74,10 +74,7 @@ export const router = createBrowserRouter([
             path: 'resources',
             element: <EnhancedResourcesView />,
           },
-          {
-            path: 'templates',
-            element: <TemplatesView />,
-          },
+          
           {
             path: 'integrations',
             element: <IntegrationsView />,
