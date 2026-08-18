@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-type ContentType = 'wechat-article' | 'short-video' | 'social-post' | 'carousel' | 'quote-card' | 'ai-video' | 'live-clip';
+type ContentType = 'wechat-article' | 'short-video' | 'social-post' | 'carousel';
 
 interface UIStore {
   // Content Creation Modal

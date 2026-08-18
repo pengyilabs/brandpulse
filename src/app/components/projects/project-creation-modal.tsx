@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect, type ReactNode } from 'react';
 import {
   X, Check, Plus, Upload, Trash2, ChevronRight, Zap,
-  Globe, AlignLeft, Users, Image, Palette, Mic2, BookOpen,
-  Tag, Folder, Grid3X3, UserPlus, Mail, AlertCircle, Loader2,
+  Globe, Image, Palette, Mic2, BookOpen,
+  Tag, Folder, AlertCircle, Loader2,
 } from 'lucide-react';
 import { createProject, updateProject } from '../../../lib/services/projects-service';
 import { getWriterProfiles, createWriterProfile, WriterProfile } from '../../../lib/services/writer-profiles-service';
@@ -10,9 +10,7 @@ import { getBrandKits, createBrandKit, BrandKit } from '../../../lib/services/br
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-interface TeamMember { email: string; role: string; }
-interface Resource    { name: string; type: string; }
-interface Template    { contentType: string; name: string; description: string; }
+interface Resource { name: string; type: string; }
 
 interface FormData {
   // Step 1
@@ -44,12 +42,6 @@ interface FormData {
   topics: string[];
   // Step 6
   resources: Resource[];
-  resourceText: string;
-  // Step 7
-  templates: Template[];
-  // Step 8
-  teamMembers: TeamMember[];
-  inviteEmail: string;
 }
 
 const INITIAL: FormData = {
@@ -60,8 +52,7 @@ const INITIAL: FormData = {
   brandDescription: '', referenceLinks: [''],
   longWriterProfile: '', longWritingTone: 'Professional', longWritingLevel: 'Professional', longWordCount: 2000, longNewProfileName: '',
   shortWriterProfile: '', shortWritingTone: 'Casual', shortWritingLevel: 'Conversational', shortWordCount: 200, shortNewProfileName: '',
-  topics: [], resources: [], resourceText: '', templates: [],
-  teamMembers: [], inviteEmail: '',
+  topics: [], resources: [],
 };
 
 const STEPS = [
@@ -71,14 +62,10 @@ const STEPS = [
   { n: 4, label: 'Short Form Defaults',  icon: <Mic2 className="w-3.5 h-3.5" /> },
   { n: 5, label: 'Topics',               icon: <Tag className="w-3.5 h-3.5" /> },
   { n: 6, label: 'Resources',            icon: <Folder className="w-3.5 h-3.5" /> },
-  { n: 7, label: 'Templates',            icon: <Grid3X3 className="w-3.5 h-3.5" /> },
-  { n: 8, label: 'Team Access',          icon: <Users className="w-3.5 h-3.5" /> },
 ];
 
 const TONE_OPTIONS   = ['Professional', 'Casual', 'Friendly', 'Bold', 'Inspirational', 'Custom'];
 const LEVEL_OPTIONS  = ['Academic', 'Professional', 'Conversational', 'Simple'];
-const ROLE_OPTIONS   = ['Admin', 'Editor', 'Viewer'];
-const CONTENT_TYPES  = ['Clips & Shorts', 'Blog Posts', 'AI Text-to-Voice Video', 'Images & Carousels', 'Quote Cards', 'Carousel'];
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -92,7 +79,8 @@ export function ProjectCreationModal({ isOpen, onClose, onComplete }: ProjectCre
   const [step, setStep]     = useState(1);
   const [data, setData]     = useState<FormData>(INITIAL);
   const [topicInput, setTopicInput] = useState('');
-  const [openTemplate, setOpenTemplate] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const submittingRef = useRef(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Writer profiles fetched from DB
@@ -131,10 +119,13 @@ export function ProjectCreationModal({ isOpen, onClose, onComplete }: ProjectCre
     return true;
   };
 
-  const next = () => { if (step < 8) setStep(s => s + 1); };
+  const next = () => { if (step < 6) setStep(s => s + 1); };
   const back = () => { if (step > 1) setStep(s => s - 1); };
 
   const create = async () => {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
+    setSubmitting(true);
     // Save any new writer profiles before creating the project
     let longProfileId: string | null = null;
     let shortProfileId: string | null = null;
@@ -183,6 +174,11 @@ export function ProjectCreationModal({ isOpen, onClose, onComplete }: ProjectCre
       onComplete(project);
       setStep(1);
       setData(INITIAL);
+      setSubmitting(false);
+      submittingRef.current = false;
+    } else {
+      setSubmitting(false);
+      submittingRef.current = false;
     }
   };
 
@@ -190,6 +186,10 @@ export function ProjectCreationModal({ isOpen, onClose, onComplete }: ProjectCre
     const v = topicInput.trim();
     if (v && !data.topics.includes(v)) update({ topics: [...data.topics, v] });
     setTopicInput('');
+  };
+
+  const addTopicSuggestion = (v: string) => {
+    if (!data.topics.includes(v)) update({ topics: [...data.topics, v] });
   };
 
   const removeTopic = (t: string) => update({ topics: data.topics.filter(x => x !== t) });
@@ -202,19 +202,6 @@ export function ProjectCreationModal({ isOpen, onClose, onComplete }: ProjectCre
   };
   const removeLink = (i: number) =>
     update({ referenceLinks: data.referenceLinks.filter((_, idx) => idx !== i) });
-
-  const addMember = () => {
-    const email = data.inviteEmail.trim();
-    if (email && !data.teamMembers.find(m => m.email === email)) {
-      update({ teamMembers: [...data.teamMembers, { email, role: 'Editor' }], inviteEmail: '' });
-    }
-  };
-
-  const updateMemberRole = (email: string, role: string) =>
-    update({ teamMembers: data.teamMembers.map(m => m.email === email ? { ...m, role } : m) });
-
-  const removeMember = (email: string) =>
-    update({ teamMembers: data.teamMembers.filter(m => m.email !== email) });
 
   return (
     <div className="fixed inset-0 z-50 flex bg-black/70 backdrop-blur-sm">
@@ -264,13 +251,13 @@ export function ProjectCreationModal({ isOpen, onClose, onComplete }: ProjectCre
           {/* Progress */}
           <div className="px-5 py-4 border-t border-border">
             <div className="flex justify-between text-sm text-muted-foreground mb-2">
-              <span>Step {step} of 8</span>
-              <span>{Math.round(((step - 1) / 8) * 100)}%</span>
+              <span>Step {step} of 6</span>
+              <span>{Math.round(((step - 1) / 6) * 100)}%</span>
             </div>
             <div className="h-1 bg-secondary rounded-full overflow-hidden">
               <div
                 className="h-full bg-primary rounded-full transition-all duration-500"
-                style={{ width: `${((step - 1) / 8) * 100}%` }}
+                style={{ width: `${((step - 1) / 6) * 100}%` }}
               />
             </div>
           </div>
@@ -306,25 +293,11 @@ export function ProjectCreationModal({ isOpen, onClose, onComplete }: ProjectCre
                 topicInput={topicInput}
                 setTopicInput={setTopicInput}
                 addTopic={addTopic}
+                addTopicSuggestion={addTopicSuggestion}
                 removeTopic={removeTopic}
               />
             )}
             {step === 6 && <Step6 data={data} update={update} fileInputRef={fileInputRef} />}
-            {step === 7 && (
-              <Step7
-                openTemplate={openTemplate}
-                setOpenTemplate={setOpenTemplate}
-              />
-            )}
-            {step === 8 && (
-              <Step8
-                data={data}
-                update={update}
-                addMember={addMember}
-                updateMemberRole={updateMemberRole}
-                removeMember={removeMember}
-              />
-            )}
           </div>
 
           {/* Footer */}
@@ -337,7 +310,7 @@ export function ProjectCreationModal({ isOpen, onClose, onComplete }: ProjectCre
               Back
             </button>
             <div className="flex items-center gap-2">
-              {step < 8 ? (
+              {step < 6 ? (
                 <button
                   onClick={next}
                   disabled={!canAdvance()}
@@ -348,9 +321,17 @@ export function ProjectCreationModal({ isOpen, onClose, onComplete }: ProjectCre
               ) : (
                 <button
                   onClick={create}
-                  className="px-5 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-xl hover:bg-primary/90 transition-colors"
+                  disabled={submitting}
+                  className="px-5 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  Create Project
+                  {submitting ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Creating...
+                    </span>
+                  ) : (
+                    'Create Project'
+                  )}
                 </button>
               )}
             </div>
@@ -392,8 +373,6 @@ function getStepSubtitle(step: number) {
     4: 'Default settings for social media and short-form content',
     5: 'Content themes and focus areas',
     6: 'Upload reference materials and assets',
-    7: 'Visual templates per content type',
-    8: 'Invite collaborators to this project',
   };
   return map[step] ?? '';
 }
@@ -902,11 +881,12 @@ function Step4({ data, update, writerProfiles, profilesLoading }: {
 
 // ── Step 5: Topics ────────────────────────────────────────────────────────────
 
-function Step5({ topics, topicInput, setTopicInput, addTopic, removeTopic }: {
+function Step5({ topics, topicInput, setTopicInput, addTopic, addTopicSuggestion, removeTopic }: {
   topics: string[];
   topicInput: string;
   setTopicInput: (v: string) => void;
   addTopic: () => void;
+  addTopicSuggestion: (v: string) => void;
   removeTopic: (t: string) => void;
 }) {
   return (
@@ -963,7 +943,7 @@ function Step5({ topics, topicInput, setTopicInput, addTopic, removeTopic }: {
             !topics.includes(s) && (
               <button
                 key={s}
-                onClick={() => { if (!topics.includes(s)) { setTopicInput(s); } }}
+                onClick={() => addTopicSuggestion(s)}
                 className="px-3 py-1.5 border border-dashed border-border text-sm text-muted-foreground rounded-full hover:border-primary/40 hover:text-primary transition-all"
               >
                 + {s}
@@ -1037,17 +1017,6 @@ function Step6({ data, update, fileInputRef }: {
         />
       </div>
 
-      {/* Text Resource */}
-      <FormField label="Or paste text directly">
-        <textarea
-          value={data.resourceText}
-          onChange={e => update({ resourceText: e.target.value })}
-          placeholder="Paste product descriptions, talking points, briefs, or any text content..."
-          rows={4}
-          className={`${inputCls} resize-none`}
-        />
-      </FormField>
-
       {/* Uploaded Files */}
       {data.resources.length > 0 && (
         <div>
@@ -1066,132 +1035,6 @@ function Step6({ data, update, fileInputRef }: {
               </div>
             ))}
           </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── Step 7: Templates ─────────────────────────────────────────────────────────
-
-function Step7({ openTemplate, setOpenTemplate }: {
-  openTemplate: string | null;
-  setOpenTemplate: (t: string | null) => void;
-}) {
-  return (
-    <div className="space-y-3">
-      <InfoNote>
-        Templates define the visual style for each content type. You can add more or customize them later.
-      </InfoNote>
-
-      {CONTENT_TYPES.map(ct => (
-        <div key={ct} className="border border-border rounded-xl overflow-hidden">
-          <button
-            onClick={() => setOpenTemplate(openTemplate === ct ? null : ct)}
-            className="w-full flex items-center justify-between px-4 py-3 hover:bg-secondary/50 transition-colors"
-          >
-            <span className="text-sm font-medium text-foreground">{ct}</span>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">0 templates</span>
-              <ChevronRight className={`w-3.5 h-3.5 text-muted-foreground transition-transform ${openTemplate === ct ? 'rotate-90' : ''}`} />
-            </div>
-          </button>
-
-          {openTemplate === ct && (
-            <div className="border-t border-border p-4 bg-secondary/20">
-              <div className="flex flex-col items-center gap-3 py-4 text-center">
-                <div className="w-10 h-10 rounded-xl border-2 border-dashed border-border flex items-center justify-center">
-                  <Plus className="w-5 h-5 text-muted-foreground" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-foreground">No templates yet</p>
-                  <p className="text-sm text-muted-foreground mt-0.5">Add a template to define the visual style</p>
-                </div>
-                <button className="flex items-center gap-1.5 px-3 py-1.5 border border-primary/30 text-primary text-sm font-medium rounded-lg hover:bg-primary/10 transition-colors">
-                  <Plus className="w-3 h-3" />
-                  Add Template
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ── Step 8: Team Access ───────────────────────────────────────────────────────
-
-function Step8({ data, update, addMember, updateMemberRole, removeMember }: {
-  data: FormData;
-  update: (p: Partial<FormData>) => void;
-  addMember: () => void;
-  updateMemberRole: (email: string, role: string) => void;
-  removeMember: (email: string) => void;
-}) {
-  return (
-    <div className="space-y-5">
-      <InfoNote>
-        Team members will inherit all project defaults when creating content.
-      </InfoNote>
-
-      <FormField label="Invite by Email">
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-            <input
-              value={data.inviteEmail}
-              onChange={e => update({ inviteEmail: e.target.value })}
-              onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addMember())}
-              placeholder="colleague@company.com"
-              type="email"
-              className={`${inputCls} pl-9`}
-            />
-          </div>
-          <button
-            onClick={addMember}
-            className="px-4 py-2.5 bg-primary text-primary-foreground text-sm font-medium rounded-xl hover:bg-primary/90 transition-colors whitespace-nowrap"
-          >
-            Invite
-          </button>
-        </div>
-      </FormField>
-
-      {data.teamMembers.length > 0 ? (
-        <div className="space-y-2">
-          <p className="text-sm font-semibold text-foreground">{data.teamMembers.length} invite{data.teamMembers.length !== 1 ? 's' : ''} pending</p>
-          {data.teamMembers.map(member => (
-            <div
-              key={member.email}
-              className="flex items-center gap-3 px-4 py-3 bg-secondary border border-border rounded-xl"
-            >
-              <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center shrink-0">
-                <span className="text-sm font-bold text-primary">
-                  {member.email[0].toUpperCase()}
-                </span>
-              </div>
-              <span className="flex-1 text-sm text-foreground truncate">{member.email}</span>
-              <select
-                value={member.role}
-                onChange={e => updateMemberRole(member.email, e.target.value)}
-                className="text-sm bg-background border border-border rounded-lg px-2 py-1.5 text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-              >
-                {ROLE_OPTIONS.map(r => <option key={r}>{r}</option>)}
-              </select>
-              <button
-                onClick={() => removeMember(member.email)}
-                className="p-1.5 text-muted-foreground hover:text-destructive transition-colors"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="flex flex-col items-center gap-2 py-8 text-center">
-          <UserPlus className="w-8 h-8 text-muted-foreground/40" />
-          <p className="text-sm text-muted-foreground">No team members yet</p>
-          <p className="text-sm text-muted-foreground/60">You can always invite collaborators later from project settings</p>
         </div>
       )}
     </div>

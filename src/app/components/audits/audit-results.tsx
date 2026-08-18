@@ -51,7 +51,7 @@ const PLATFORM_ICONS: Record<Platform, React.ReactElement> = {
 }
 
 const CONTENT_TYPE_OPTIONS: ContentType[] = [
-  'short-clips', 'carousels', 'static-posts', 'blog-long-form', 'ai-text-video', 'quote-cards', 'social-posts',
+  'short-video', 'carousel', 'social-post', 'wechat-article',
 ]
 
 const FUNNEL_STAGES: FunnelStage[] = ['top', 'middle', 'bottom']
@@ -533,7 +533,7 @@ function DashboardViewComponent() {
           <div className="mt-4 p-3 bg-sky-500/10 border border-sky-500/20 rounded-lg flex items-start gap-2">
             <Info className="w-4 h-4 text-sky-400 flex-shrink-0 mt-0.5" />
             <p className="text-xs text-sky-300">
-              Zero quote cards posted in this period - high-performing format missing
+              Zero social posts in this period - high-performing format missing
             </p>
           </div>
         </div>

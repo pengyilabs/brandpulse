@@ -13,9 +13,13 @@ export interface BrandKit {
 }
 
 export async function getBrandKits(): Promise<BrandKit[]> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
   const { data, error } = await supabase
     .from('brand_kits')
     .select('*')
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
   if (error) {

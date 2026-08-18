@@ -50,12 +50,10 @@ export function ActionHub() {
   const [brandKitSaved, setBrandKitSaved] = useState(false)
   const [writerProfileSaved, setWriterProfileSaved] = useState(false)
   const [contentMix, setContentMix] = useState(() => ({
-    'short-clips': 40,
-    carousels: 25,
-    'quote-cards': 15,
-    'static-posts': 10,
-    'blog-long-form': 5,
-    'ai-text-video': 5,
+    'short-video': 40,
+    carousel: 25,
+    'social-post': 25,
+    'wechat-article': 10,
   }))
   const [funnelMix, setFunnelMix] = useState(() => ({
     awareness: 50,
