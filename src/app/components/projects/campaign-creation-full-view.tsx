@@ -5,7 +5,7 @@ import {
   Calendar, Target, ArrowLeft, Quote, Scissors,
   Wand2, Plus, Minus, Lightbulb, Users, ShoppingCart,
   AlertCircle, Zap, Layers, Cloud, Archive, HardDrive,
-  MessageCircle, Music2, Share2, Play,
+  MessageCircle, Music2, Share2, Play, Bookmark,
 } from "lucide-react";
 import { clsx } from "clsx";
 
@@ -1423,7 +1423,12 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
                     {stepItem.id === 5 && (
                       <div className="space-y-3">
                         <p className="text-sm text-muted-foreground">Select or add topics for your campaign content.</p>
-                        <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">From Project</div>
+                        <div className="flex items-center gap-2">
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/80 border border-border text-xs font-medium text-muted-foreground">
+                            <Bookmark className="w-3 h-3" />
+                            From project defaults
+                          </div>
+                        </div>
                         <div className="flex flex-wrap gap-2">
                           {topicsFromProject.map((topic) => (
                             <button
