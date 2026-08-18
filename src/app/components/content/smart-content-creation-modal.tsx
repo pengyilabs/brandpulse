@@ -2,8 +2,8 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import {
   X, Upload, Link as LinkIcon, FileText, Video, ImageIcon, LayoutGrid,
   Check, Sparkles, Music, Film, User, ChevronDown, Coins, Clock,
-  Target, Layers, Hash, Feather, ArrowLeft, ChevronRight, Quote,
-  Wand2, Play, Scissors, Star, Folder, Plus, Minus, AlignLeft, Type, Zap,
+  Target, Layers, Hash, Feather, ArrowLeft, ChevronRight,
+  Play, Folder, Plus, Minus, AlignLeft, Type, Zap,
   Share2, Instagram, Facebook, Linkedin, Twitter, Youtube,
   RefreshCw, Image, MessageCircle, Music2,
 } from "lucide-react";
@@ -70,13 +70,13 @@ interface SmartContentCreationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onComplete: (config: any) => void;
-  contentType?: "wechat-article" | "short-video" | "live-clip" | "ai-video" | "quote-card" | "social-post" | "carousel";
+  contentType?: "wechat-article" | "short-video" | "social-post" | "carousel";
   defaultCampaign?: string;
   defaultFile?: File;
   campaigns?: { id: string; name: string; description: string | null }[];
 }
 
-type ContentTypeId = "wechat-article" | "short-video" | "social-post" | "carousel" | "quote-card" | "ai-video" | "live-clip";
+type ContentTypeId = "wechat-article" | "short-video" | "social-post" | "carousel";
 type SocialPlatformId = "wechat" | "xiaohongshu" | "douyin" | "weibo" | "bilibili" | "youtube";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
@@ -207,34 +207,7 @@ const CONTENT_TYPES: ContentTypeDef[] = [
     description: "Multi-slide image-text posts for Xiaohongshu & WeChat",
     credits: 12,
   },
-  {
-    id: "quote-card",
-    label: "Quote Card",
-    sublabel: "引用卡片",
-    Icon: Quote,
-    color: "#A78BFA",
-    description: "Branded quote graphics from templates",
-    credits: 8,
-  },
-  {
-    id: "ai-video",
-    label: "AI Video",
-    sublabel: "AI生成视频",
-    Icon: Wand2,
-    color: "#EC4899",
-    description: "AI-generated video from text prompts",
-    credits: 30,
-  },
-  {
-    id: "live-clip",
-    label: "Live Stream Clip",
-    sublabel: "直播切片",
-    Icon: Scissors,
-    color: "#F59E0B",
-    description: "Extract and edit clips from live streams",
-    credits: 15,
-  },
-];
+  ];
 
 const WRITER_PROFILES = [
   "Velocity Athletics Team",
@@ -249,15 +222,6 @@ const WRITING_TONES = [
 ];
 
 const WRITING_LEVELS = ["Beginner", "Intermediate", "Advanced", "Expert"];
-
-const QUOTE_TEMPLATES = [
-  "Minimal Dark",
-  "Bold Gradient",
-  "Athletic Edge",
-  "Clean Modern",
-  "Motivational",
-  "Branded",
-];
 
 const STEP_LABELS = ["How to Create", "Sources & Assets", "Content Type", "Review & Configure"];
 const CREDIT_BALANCE = 147;
@@ -351,8 +315,7 @@ export function SmartContentCreationModal({
 
   // Step 3 - Content Type quantities
   const [quantities, setQuantities] = useState<Record<ContentTypeId, number>>({
-    "wechat-article": 0, "short-video": 0, "live-clip": 0,
-    "quote-card": 0, "ai-video": 0, "social-post": 0, "carousel": 0,
+    "wechat-article": 0, "short-video": 0, "social-post": 0, "carousel": 0,
   });
 
   const changeQty = (id: ContentTypeId, delta: number) => {
@@ -365,9 +328,6 @@ export function SmartContentCreationModal({
   const [platformsByType, setPlatformsByType] = useState<Record<ContentTypeId, Set<SocialPlatformId>>>({
     "wechat-article": new Set(),
     "short-video": new Set(),
-    "live-clip": new Set(),
-    "quote-card": new Set(),
-    "ai-video": new Set(),
     "social-post": new Set(),
     "carousel": new Set(),
   });
@@ -516,11 +476,6 @@ export function SmartContentCreationModal({
     return formatDate(d);
   }
 
-  // Quote Card specific
-  const [quoteText, setQuoteText] = useState("");
-  const [quoteSource, setQuoteSource] = useState("");
-  const [selectedTemplate, setSelectedTemplate] = useState(QUOTE_TEMPLATES[0]);
-
   // Short Clip specific
   const [sourceVideoRef, setSourceVideoRef] = useState("");
   const [clipDuration, setClipDuration] = useState("30");
@@ -607,18 +562,12 @@ export function SmartContentCreationModal({
     setQuantities({
       "wechat-article": initialType === "wechat-article" ? 1 : 0,
       "short-video": initialType === "short-video" ? 1 : 0,
-      "live-clip": initialType === "live-clip" ? 1 : 0,
-      "quote-card": initialType === "quote-card" ? 1 : 0,
-      "ai-video": initialType === "ai-video" ? 1 : 0,
       "social-post": initialType === "social-post" ? 1 : 0,
       "carousel": 0,
     });
     setPlatformsByType({
       "wechat-article": new Set(),
       "short-video": new Set(),
-      "live-clip": new Set(),
-      "quote-card": new Set(),
-      "ai-video": new Set(),
       "social-post": new Set(),
       "carousel": new Set(),
     });
@@ -697,7 +646,6 @@ if (quantities[t.id] > 0 && t.id !== "wechat-article") {
         ),
         title, topic, writerProfile, writingTone, writingLevel,
         wordCount, brandGuidelines, targetAudience,
-        quoteText, quoteSource, selectedTemplate,
         sourceVideoRef, clipDuration,
         grandTotal,
         uploadedFile, sourceUrl, selectedLibraryAssets, additionalFiles,
@@ -1275,7 +1223,7 @@ if (quantities[t.id] > 0 && t.id !== "wechat-article") {
 
           {/* ═══ Step 4: Review & Configure ═══ */}
           {step === 4 && (() => {
-            const hasTextTypes = quantities["wechat-article"] > 0 || quantities["social-post"] > 0 || quantities["quote-card"] > 0 || quantities["carousel"] > 0;
+            const hasTextTypes = quantities["wechat-article"] > 0 || quantities["social-post"] > 0 || quantities["carousel"] > 0;
             const batchTypes = CONTENT_TYPES.filter(t => quantities[t.id] > 0);
             const totalCost = CONTENT_TYPES.reduce((sum, t) => {
               const q = quantities[t.id] ?? 0;
@@ -1467,62 +1415,7 @@ if (quantities[t.id] > 0 && t.id !== "wechat-article") {
                 );
               })()}
 
-              {/* ── Quote Card ──────────────────────────────────────── */}
-              {quantities["quote-card"] > 0 && (() => {
-                const t = CONTENT_TYPES.find(x => x.id === "quote-card")!;
-                return (
-                  <div className="rounded-xl border border-border overflow-hidden">
-                    <div className="flex items-center gap-3 px-4 py-3 bg-secondary/40 border-b border-border">
-                      <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${t.color}1A`, border: `1px solid ${t.color}30` }}>
-                        <t.Icon className="w-3.5 h-3.5" style={{ color: t.color }} />
-                      </div>
-                      <span className="text-xs font-black uppercase tracking-wider text-muted-foreground/70">{t.label}</span>
-                      <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-md" style={{ backgroundColor: `${t.color}18`, color: t.color }}>×{quantities["quote-card"]}</span>
-                    </div>
-                    <div className="p-4 space-y-4">
-                      <div>
-                        <FieldLabel label="Quote Text" />
-                        <textarea
-                          value={quoteText}
-                          onChange={(e) => setQuoteText(e.target.value)}
-                          placeholder="Enter the quote you want to display..."
-                          rows={3}
-                          className="w-full px-4 py-3 bg-secondary border border-border rounded-xl text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 transition-all resize-none"
-                        />
-                      </div>
-                      <div>
-                        <FieldLabel label="Source Attribution" optional />
-                        <input
-                          type="text"
-                          value={quoteSource}
-                          onChange={(e) => setQuoteSource(e.target.value)}
-                          placeholder="e.g., Velocity Athletics Team"
-                          className="w-full px-4 py-3 bg-secondary border border-border rounded-xl text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 transition-all"
-                        />
-                      </div>
-                      <div>
-                        <FieldLabel label="Template" />
-                        <div className="grid grid-cols-3 gap-2">
-                          {QUOTE_TEMPLATES.map((tmpl) => (
-                            <button
-                              key={tmpl}
-                              onClick={() => setSelectedTemplate(tmpl)}
-                              className={clsx(
-                                "px-3 py-2 rounded-lg text-xs font-semibold border-2 transition-all",
-                                selectedTemplate === tmpl
-                                  ? "border-primary bg-primary/10 text-primary"
-                                  : "border-border bg-secondary text-muted-foreground hover:text-foreground hover:bg-card"
-                              )}
-                            >
-                              {tmpl}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })()}
+              
 
               {/* ── Social Post ─────────────────────────────────────── */}
               {quantities["social-post"] > 0 && (() => {
@@ -1588,40 +1481,7 @@ if (quantities[t.id] > 0 && t.id !== "wechat-article") {
                 );
               })()}
 
-              {/* ── Auto-resolved types (no extra config needed) ─────── */}
-              {(quantities["live-clip"] > 0 || quantities["ai-video"] > 0) && (
-                <div className="rounded-xl border border-border overflow-hidden">
-                  <div className="px-4 py-3 bg-secondary/40 border-b border-border">
-                    <span className="text-xs font-black uppercase tracking-wider text-muted-foreground/60">Auto-Resolved</span>
-                  </div>
-                  <div className="p-4 space-y-2">
-                    {quantities["live-clip"] > 0 && (() => {
-                      const t = CONTENT_TYPES.find(x => x.id === "live-clip")!;
-                      return (
-                        <div className="flex items-center gap-3 py-1">
-                          <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${t.color}1A`, border: `1px solid ${t.color}30` }}>
-                            <t.Icon className="w-3.5 h-3.5" style={{ color: t.color }} />
-                          </div>
-                          <span className="text-sm font-semibold text-foreground flex-1">{t.label} <span className="text-muted-foreground font-normal">×{quantities["live-clip"]}</span></span>
-                          <span className="text-xs text-muted-foreground/60">Curated from sources automatically</span>
-                        </div>
-                      );
-                    })()}
-                    {quantities["ai-video"] > 0 && (() => {
-                      const t = CONTENT_TYPES.find(x => x.id === "ai-video")!;
-                      return (
-                        <div className="flex items-center gap-3 py-1">
-                          <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${t.color}1A`, border: `1px solid ${t.color}30` }}>
-                            <t.Icon className="w-3.5 h-3.5" style={{ color: t.color }} />
-                          </div>
-                          <span className="text-sm font-semibold text-foreground flex-1">{t.label} <span className="text-muted-foreground font-normal">×{quantities["ai-video"]}</span></span>
-                          <span className="text-xs text-muted-foreground/60">Generated from topic & guidelines</span>
-                        </div>
-                      );
-                    })()}
-                  </div>
-                </div>
-              )}
+              
 
               <div className="border-t border-border/60" />
 
@@ -1680,12 +1540,6 @@ if (quantities[t.id] > 0 && t.id !== "wechat-article") {
                               {sourceVideoRef && <span className="text-[11px] text-muted-foreground/60 truncate max-w-[200px]">{sourceVideoRef}</span>}
                             </div>
                           )}
-                          {t.id === "quote-card" && (
-                            <div className="flex items-center gap-3 flex-wrap">
-                              <span className="text-[11px] text-muted-foreground flex items-center gap-1"><LayoutGrid className="w-3 h-3" />{selectedTemplate}</span>
-                              {quoteText && <span className="text-[11px] text-muted-foreground/60 italic truncate max-w-[220px]">"{quoteText.slice(0, 60)}{quoteText.length > 60 ? "…" : ""}"</span>}
-                            </div>
-                          )}
                           {(t.id === "social-post" || t.id === "carousel") && selectedPlatforms.size > 0 && (
                             <div className="flex items-center gap-2 flex-wrap mt-1">
                               {SOCIAL_PLATFORMS.filter(p => selectedPlatforms.has(p.id)).map(p => {
@@ -1700,13 +1554,7 @@ if (quantities[t.id] > 0 && t.id !== "wechat-article") {
                               })}
                             </div>
                           )}
-                          {t.id === "live-clip" && (
-                            <span className="text-[11px] text-muted-foreground flex items-center gap-1"><Star className="w-3 h-3" />60–90s compilation, auto-curated</span>
-                          )}
-                          {t.id === "ai-video" && (
-                            <span className="text-[11px] text-muted-foreground flex items-center gap-1"><Wand2 className="w-3 h-3" />AI-generated from topic & guidelines</span>
-                          )}
-                        </div>
+                          </div>
                       </div>
                     </div>
                   );
@@ -1738,7 +1586,7 @@ if (quantities[t.id] > 0 && t.id !== "wechat-article") {
                     value: (() => {
                       const mins = batchTypes.reduce((sum, t) => {
                         const q = getTypeItemCount(t.id);
-                        const perItem = t.id === "wechat-article" ? 3 : t.id === "short-video" ? 5 : t.id === "live-clip" ? 2 : t.id === "social-post" ? 1 : 1;
+                        const perItem = t.id === "wechat-article" ? 3 : t.id === "short-video" ? 5 : t.id === "social-post" ? 1 : 1;
                         return sum + q * perItem;
                       }, 0);
                       return `~${mins} min`;

@@ -9,7 +9,7 @@ import { format } from 'date-fns';
 
 // ─── Shared types (mirror of calendar-view types) ────────────────────────────
 
-type ContentType = 'wechat-article' | 'short-video' | 'social-post' | 'carousel' | 'quote-card' | 'ai-video' | 'live-clip';
+type ContentType = 'wechat-article' | 'short-video' | 'social-post' | 'carousel';
 type Platform = 'wechat' | 'xiaohongshu' | 'douyin' | 'weibo' | 'bilibili' | 'youtube';
 type Status = 'draft' | 'generating' | 'review' | 'approved' | 'published' | 'rejected';
 
@@ -32,9 +32,6 @@ const CONTENT_TYPE_ICON_MAP: Record<ContentType, React.ReactElement> = {
   'short-video':    <Film        className="w-4 h-4" />,
   'social-post':    <Share2      className="w-4 h-4" />,
   'carousel':       <LayoutGrid  className="w-4 h-4" />,
-  'quote-card':     <Quote       className="w-4 h-4" />,
-  'ai-video':       <Wand2       className="w-4 h-4" />,
-  'live-clip':      <Scissors    className="w-4 h-4" />,
 };
 
 const CONTENT_TYPE_LABEL: Record<ContentType, string> = {
@@ -42,9 +39,6 @@ const CONTENT_TYPE_LABEL: Record<ContentType, string> = {
   'short-video':    'Short Video',
   'social-post':    'Social Post',
   'carousel':       'Carousel',
-  'quote-card':     'Quote Card',
-  'ai-video':       'AI Video',
-  'live-clip':      'Live Stream Clip',
 };
 
 const PLATFORM_ICONS: Record<Platform, React.ReactElement> = {
@@ -129,25 +123,6 @@ Slide 5: 夏季饮食搭配建议
 Slide 6: 常见误区与注意事项
 
 #夏季训练 #运动指南 #健身科普`,
-  'quote-card': `"身体能够达到的，取决于你的信念。" 
-
-—— 强者的信条
-
-#激励 #信念 #运动精神 #突破自我`,
-  'ai-video': `【AI生成视频】夏季运动品牌宣传片
-
-场景1: 运动员在日出时训练
-场景2: 产品特写与动态转场
-场景3: 社区跑团活动精彩瞬间
-场景4: 品牌理念与行动号召
-
-时长：60秒 | 风格：电影质感 | 音乐：动感电子`,
-  'live-clip': `直播精彩片段：夏季训练营特别场
-
-主持人分享夏季训练核心要点，现场展示正确跑步姿势和错误示范。
-
-时长：5分钟
-来源：品牌直bō间 2026年7月场`,
 };
 
 const MOCK_TAGS: Record<ContentType, string[]> = {
@@ -155,9 +130,6 @@ const MOCK_TAGS: Record<ContentType, string[]> = {
   'short-video':    ['跑步', '夏季训练', '健身', '运动科普', '跑步技巧'],
   'social-post':    ['夏季系列', '运动装备', '训练', '突破自我', '新品上市'],
   'carousel':       ['夏季训练', '运动指南', '健身科普', '训练计划', '装备推荐'],
-  'quote-card':     ['激励', '信念', '运动精神', '突破自我', '名言'],
-  'ai-video':       ['AIVideo', '品牌宣传', '电影质感', '夏季系列', '运动品牌'],
-  'live-clip':      ['直播切片', '训练营', '跑步姿势', '夏季训练', '运动教学'],
 };
 
 // ─── PostDetailModal ─────────────────────────────────────────────────────────
