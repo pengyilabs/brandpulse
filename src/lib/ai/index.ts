@@ -3,23 +3,24 @@ import { ImageGenerationProvider } from './providers/ImageGenerationProvider';
 import { OpenRouterTextProvider } from './providers/OpenRouterTextProvider';
 import { OpenRouterImageProvider } from './providers/OpenRouterImageProvider';
 
-const EDGE_FUNCTION_URL = import.meta.env.VITE_SUPABASE_URL
-  ? `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-proxy`
-  : '';
+// Netlify Function URL — uses relative path so it works in dev and prod
+// Local dev with Netlify Dev: http://localhost:8888/.netlify/functions/ai-proxy
+// Production: https://brandpulsecn.netlify.app/.netlify/functions/ai-proxy
+const PROXY_URL = '/.netlify/functions/ai-proxy';
 
 let textProvider: TextGenerationProvider | null = null;
 let imageProvider: ImageGenerationProvider | null = null;
 
 export function getTextProvider(): TextGenerationProvider {
   if (!textProvider) {
-    textProvider = new OpenRouterTextProvider(EDGE_FUNCTION_URL);
+    textProvider = new OpenRouterTextProvider(PROXY_URL);
   }
   return textProvider;
 }
 
 export function getImageProvider(): ImageGenerationProvider {
   if (!imageProvider) {
-    imageProvider = new OpenRouterImageProvider(EDGE_FUNCTION_URL);
+    imageProvider = new OpenRouterImageProvider(PROXY_URL);
   }
   return imageProvider;
 }
