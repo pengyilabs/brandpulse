@@ -694,10 +694,10 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contentTypeCounts, platformsByType, totalItems]);
 
-  // Generate scheduled items — runs as soon as dates + content are configured
+  // Generate scheduled items — runs as soon as dates + content are configured (from Step 3+)
   useEffect(() => {
     const { start, end } = effectiveDates;
-    if (!start || !end || totalItems === 0) {
+    if (!start || !end || totalItems === 0 || currentStep < 3) {
       setScheduledItems([]);
       return;
     }
@@ -708,6 +708,7 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
     const dayCount = Math.ceil((endD.getTime() - startD.getTime()) / (1000 * 60 * 60 * 24));
     const total = CONTENT_TYPES.reduce((sum, t) => sum + getTypeItemCount(t.id), 0);
 
+    // Build interleaved items: for each position, cycle through content types
     const allItems: { typeId: ContentTypeId; label: string; idx: number; platform?: SocialPlatformId }[] = [];
     CONTENT_TYPES.forEach((type) => {
       const qty = contentTypeCounts[type.id];
@@ -720,7 +721,22 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
       }
     });
 
-    allItems.forEach((item, i) => {
+    // Interleave items so content types are evenly spread across the calendar
+    const typeIds = [...new Set(allItems.map(item => item.typeId))];
+    const itemsByType: Record<string, typeof allItems> = {};
+    typeIds.forEach(id => { itemsByType[id] = []; });
+    allItems.forEach(item => { itemsByType[item.typeId].push(item); });
+    const maxLen = Math.max(...typeIds.map(id => itemsByType[id].length));
+    const interleaved: typeof allItems = [];
+    for (let round = 0; round < maxLen; round++) {
+      typeIds.forEach(id => {
+        if (round < itemsByType[id].length) {
+          interleaved.push(itemsByType[id][round]);
+        }
+      });
+    }
+
+    interleaved.forEach((item, i) => {
       const dayOffset = total <= 1 ? 0 : Math.round((i / (total - 1)) * dayCount);
       const itemDate = new Date(startD);
       itemDate.setDate(itemDate.getDate() + Math.min(dayOffset, dayCount));
@@ -737,7 +753,7 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
     });
 
     setScheduledItems(items);
-  }, [effectiveDates, contentTypeCounts, platformsByType, funnelAssignments]);
+  }, [effectiveDates, contentTypeCounts, platformsByType, funnelAssignments, currentStep]);
 
   if (!isOpen) return null;
 
