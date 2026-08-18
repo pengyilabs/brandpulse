@@ -3256,7 +3256,13 @@ function CampaignLaunchModal({ open, onClose, onCreateNew, onDuplicate }: {
 
             <button
               onClick={() => setMode("existing")}
-              className="group flex flex-col items-center gap-3 px-4 py-6 rounded-xl border border-border hover:border-primary/40 hover:bg-primary/5 transition-all text-center"
+              disabled={PREVIOUS_CAMPAIGNS.length === 0}
+              className={clsx(
+                "group flex flex-col items-center gap-3 px-4 py-6 rounded-xl border transition-all text-center",
+                PREVIOUS_CAMPAIGNS.length === 0
+                  ? "border-border/50 opacity-50 cursor-not-allowed"
+                  : "border-border hover:border-primary/40 hover:bg-primary/5"
+              )}
             >
               <div className="w-12 h-12 rounded-xl bg-secondary border border-border flex items-center justify-center group-hover:border-primary/30 transition-colors">
                 <Flag className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
