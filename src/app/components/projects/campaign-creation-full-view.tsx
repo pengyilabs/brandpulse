@@ -2,12 +2,13 @@ import React, { useState, useRef, useMemo, useEffect } from "react";
 import {
   X, Upload, Link as LinkIcon, FileText, Video, ImageIcon, LayoutGrid, Film,
   Check, Flag, ChevronDown, ChevronUp,
-  Calendar, Target, ArrowLeft, Quote, Scissors,
+Calendar, Target, ArrowLeft, Quote, Scissors,
   Wand2, Plus, Minus, Lightbulb, Users, ShoppingCart,
   AlertCircle, Zap, Layers, Cloud, Archive, HardDrive,
-  MessageCircle, Music2, Share2, Play,
+  MessageCircle, Music2, Share2, Play, Bookmark,
 } from "lucide-react";
 import { clsx } from "clsx";
+import { createContentItem } from '../../../lib/services/content-items-service';
 
 // Social platforms
 type SocialPlatformId = "wechat" | "xiaohongshu" | "douyin" | "weibo" | "bilibili";
@@ -37,7 +38,7 @@ const SOCIAL_PLATFORMS: SocialPlatform[] = [
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type ContentTypeId = "wechat-article" | "short-video" | "social-post" | "carousel" | "quote-card" | "ai-video" | "live-clip";
+type ContentTypeId = "wechat-article" | "short-video" | "social-post" | "carousel";
 type FunnelStage = "awareness" | "consideration" | "conversion";
 
 interface ContentTypeDef {
@@ -67,9 +68,6 @@ const CONTENT_TYPES: ContentTypeDef[] = [
   { id: "short-video", label: "Short Video", sublabel: "短视频", description: "Short-form video for Douyin, Xiaohongshu & Bilibili", Icon: Film, color: "#010101", credits: 15, hasPlatforms: true },
   { id: "social-post", label: "Social Post", sublabel: "社交帖子", description: "Platform-native posts for WeChat Moments, Weibo & more", Icon: Share2, color: "#06B6D4", credits: 10, hasPlatforms: true },
   { id: "carousel", label: "Carousel", sublabel: "图文/轮播", description: "Multi-slide image-text posts for Xiaohongshu & WeChat", Icon: LayoutGrid, color: "#8B5CF6", credits: 12, hasPlatforms: true },
-  { id: "quote-card", label: "Quote Card", sublabel: "引用卡片", description: "Branded quote graphics from templates", Icon: Quote, color: "#A78BFA", credits: 8, hasPlatforms: true },
-  { id: "ai-video", label: "AI Video", sublabel: "AI生视频", description: "AI-generated from topic & guidelines", Icon: Wand2, color: "#EC4899", credits: 30, hasPlatforms: true },
-  { id: "live-clip", label: "Live Clip", sublabel: "直播剪辑", description: "Short clips edited from live streams", Icon: Scissors, color: "#60A5FA", credits: 15, hasPlatforms: true },
 ];
 
 const FUNNEL_STAGES = [
@@ -135,7 +133,6 @@ const STEP_CONFIG = [
   { id: 3, label: "Content Type Mix" },
   { id: 4, label: "Funnel Stage" },
   { id: 5, label: "Topics" },
-  { id: 6, label: "Review" },
 ];
 
 // ─── Previous Campaign Templates (for Duplicate Existing) ─────────────────────
@@ -143,7 +140,6 @@ const STEP_CONFIG = [
 export interface PreviousCampaign {
   id: string;
   name: string;
-  description: string;
   color: string;
   dateRange: string;
   contentTypeCounts: Record<ContentTypeId, number>;
@@ -153,68 +149,7 @@ export interface PreviousCampaign {
   durationUnit: "days" | "weeks" | "months";
 }
 
-export const PREVIOUS_CAMPAIGNS: PreviousCampaign[] = [
-  {
-    id: "velocity-summer",
-    name: "Velocity Summer Launch",
-    description: "High-energy summer product launch with athlete stories and training content",
-    color: "#F97316",
-    dateRange: "Jun 1 – Jun 28, 2026",
-    contentTypeCounts: { "wechat-article": 2, "short-video": 6, "live-clip": 2, "quote-card": 3, "social-post": 5, "ai-video": 1, "carousel": 0 },
-    funnelPct: { awareness: 50, consideration: 30, conversion: 20 },
-    topics: ["Performance Innovation", "Athlete Stories", "Product Launches"],
-    durationValue: "4",
-    durationUnit: "weeks",
-  },
-  {
-    id: "brand-awareness-q1",
-    name: "Brand Awareness Q1",
-    description: "Top-of-funnel brand building campaign focused on education and community",
-    color: "#8B5CF6",
-    dateRange: "Jan 6 – Feb 2, 2026",
-    contentTypeCounts: { "wechat-article": 4, "short-video": 3, "live-clip": 1, "quote-card": 4, "social-post": 6, "ai-video": 0, "carousel": 0 },
-    funnelPct: { awareness: 70, consideration: 20, conversion: 10 },
-    topics: ["Performance Innovation", "Training Tips", "Community Engagement"],
-    durationValue: "4",
-    durationUnit: "weeks",
-  },
-  {
-    id: "product-demo-series",
-    name: "Product Demo Series",
-    description: "Mid-funnel consideration campaign featuring product walkthroughs and comparisons",
-    color: "#06B6D4",
-    dateRange: "Mar 2 – Mar 29, 2026",
-    contentTypeCounts: { "wechat-article": 3, "short-video": 4, "live-clip": 2, "quote-card": 2, "social-post": 4, "ai-video": 2, "carousel": 0 },
-    funnelPct: { awareness: 30, consideration: 50, conversion: 20 },
-    topics: ["Product Launches", "Training Tips"],
-    durationValue: "4",
-    durationUnit: "weeks",
-  },
-  {
-    id: "conversion-sprint",
-    name: "Q2 Conversion Sprint",
-    description: "Bottom-of-funnel campaign driving sign-ups with offers and social proof",
-    color: "#4B56F2",
-    dateRange: "Apr 1 – Apr 14, 2026",
-    contentTypeCounts: { "wechat-article": 1, "short-video": 5, "live-clip": 1, "quote-card": 3, "social-post": 7, "ai-video": 1, "carousel": 0 },
-    funnelPct: { awareness: 20, consideration: 30, conversion: 50 },
-    topics: ["Athlete Stories", "Product Launches"],
-    durationValue: "2",
-    durationUnit: "weeks",
-  },
-  {
-    id: "wellness-monthly",
-    name: "Wellness Brand Monthly",
-    description: "Ongoing wellness and lifestyle content with sustainability messaging",
-    color: "#EC4899",
-    dateRange: "May 1 – May 31, 2026",
-    contentTypeCounts: { "wechat-article": 3, "short-video": 4, "live-clip": 1, "quote-card": 5, "social-post": 8, "ai-video": 0, "carousel": 0 },
-    funnelPct: { awareness: 55, consideration: 30, conversion: 15 },
-    topics: ["Performance Innovation", "Athlete Stories", "Training Tips", "Product Launches"],
-    durationValue: "1",
-    durationUnit: "months",
-  },
-];
+export const PREVIOUS_CAMPAIGNS: PreviousCampaign[] = [];
 
 // ─── Mini Donut Chart ─────────────────────────────────────────────────────────
 
@@ -580,9 +515,11 @@ interface CampaignCreationFullViewProps {
   onComplete: (config: any) => void;
   initialDuplicate?: PreviousCampaign | null;
   projectTopics?: string[];
+  projectId: string;
+  onNavigateToCalendar?: () => void;
 }
 
-export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialDuplicate, projectTopics }: CampaignCreationFullViewProps) {
+export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialDuplicate, projectTopics, projectId, onNavigateToCalendar }: CampaignCreationFullViewProps) {
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const [expandedStep, setExpandedStep] = useState<number>(1);
@@ -591,9 +528,17 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
 
   // Step 1 - Campaign Details
   const [campaignName, setCampaignName] = useState("");
-  const [campaignDescription, setCampaignDescription] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [startDate, setStartDate] = useState(() => {
+    const d = new Date();
+    return d.toISOString().split("T")[0];
+  });
+  const [endDate, setEndDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 28);
+    const day = d.getDay();
+    if (day !== 0) d.setDate(d.getDate() + (7 - day));
+    return d.toISOString().split("T")[0];
+  });
   const [dateMode, setDateMode] = useState<"date-range" | "duration">("duration");
   const [durationValue, setDurationValue] = useState("4");
   const [durationUnit, setDurationUnit] = useState<"days" | "weeks" | "months">("weeks");
@@ -604,6 +549,11 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
   const [selectedLibraryItems, setSelectedLibraryItems] = useState<Set<string>>(new Set());
   const [showLibraryModal, setShowLibraryModal] = useState(false);
   const [libraryDraft, setLibraryDraft] = useState<Set<string>>(new Set());
+  // Mock resources for the selection modal
+  const [resources] = useState<{ id: string; name: string; size: string; type: string }[]>(
+    PROJECT_LIBRARY.map(item => ({ ...item }))
+  );
+  const resourceFileInputRef = useRef<HTMLInputElement>(null);
   // Library tabs
   const [librarySource, setLibrarySource] = useState<LibrarySource>("library");
   const [selectedDriveFiles, setSelectedDriveFiles] = useState<Set<string>>(new Set());
@@ -617,18 +567,12 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
     "short-video": 4,
     "social-post": 3,
     "carousel": 0,
-    "quote-card": 2,
-    "ai-video": 0,
-    "live-clip": 1,
   });
   const [platformsByType, setPlatformsByType] = useState<Record<ContentTypeId, Set<SocialPlatformId>>>({
-    "wechat-article": new Set(),
-    "short-video": new Set(["douyin", "xiaohongshu"]),
-    "social-post": new Set(["wechat", "weibo"]),
-    "carousel": new Set(),
-    "quote-card": new Set(),
-    "ai-video": new Set(),
-    "live-clip": new Set(),
+    "wechat-article": new Set(["wechat"]),
+    "short-video": new Set(["douyin", "xiaohongshu", "bilibili", "weibo", "wechat"]),
+    "social-post": new Set(["wechat", "weibo", "xiaohongshu", "douyin", "bilibili"]),
+    "carousel": new Set(["xiaohongshu", "wechat", "weibo"]),
   });
 
   const togglePlatformForType = (typeId: ContentTypeId, platformId: SocialPlatformId) => {
@@ -669,7 +613,6 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
   const applyDuplicate = (campaign: PreviousCampaign) => {
     setSelectedDuplicate(campaign);
     setCampaignName(`${campaign.name} (Copy)`);
-    setCampaignDescription(campaign.description);
     setContentTypeCounts(campaign.contentTypeCounts);
     setFunnelPct(campaign.funnelPct);
     setSelectedTopics(new Set(campaign.topics));
@@ -750,10 +693,10 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contentTypeCounts, platformsByType, totalItems]);
 
-  // Generate scheduled items — runs as soon as dates + content are configured
+  // Generate scheduled items — runs as soon as dates + content are configured (from Step 3+)
   useEffect(() => {
     const { start, end } = effectiveDates;
-    if (!start || !end || totalItems === 0) {
+if (!start || !end || totalItems === 0 || currentStep < 3) {
       setScheduledItems([]);
       return;
     }
@@ -764,6 +707,7 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
     const dayCount = Math.ceil((endD.getTime() - startD.getTime()) / (1000 * 60 * 60 * 24));
     const total = CONTENT_TYPES.reduce((sum, t) => sum + getTypeItemCount(t.id), 0);
 
+    // Build interleaved items: for each position, cycle through content types
     const allItems: { typeId: ContentTypeId; label: string; idx: number; platform?: SocialPlatformId }[] = [];
     CONTENT_TYPES.forEach((type) => {
       const qty = contentTypeCounts[type.id];
@@ -776,7 +720,22 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
       }
     });
 
-    allItems.forEach((item, i) => {
+    // Interleave items so content types are evenly spread across the calendar
+    const typeIds = [...new Set(allItems.map(item => item.typeId))];
+    const itemsByType: Record<string, typeof allItems> = {};
+    typeIds.forEach(id => { itemsByType[id] = []; });
+    allItems.forEach(item => { itemsByType[item.typeId].push(item); });
+    const maxLen = Math.max(...typeIds.map(id => itemsByType[id].length));
+    const interleaved: typeof allItems = [];
+    for (let round = 0; round < maxLen; round++) {
+      typeIds.forEach(id => {
+        if (round < itemsByType[id].length) {
+          interleaved.push(itemsByType[id][round]);
+        }
+      });
+    }
+
+    interleaved.forEach((item, i) => {
       const dayOffset = total <= 1 ? 0 : Math.round((i / (total - 1)) * dayCount);
       const itemDate = new Date(startD);
       itemDate.setDate(itemDate.getDate() + Math.min(dayOffset, dayCount));
@@ -793,7 +752,7 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
     });
 
     setScheduledItems(items);
-  }, [effectiveDates, contentTypeCounts, platformsByType, funnelAssignments]);
+  }, [effectiveDates, contentTypeCounts, platformsByType, funnelAssignments, currentStep]);
 
   if (!isOpen) return null;
 
@@ -804,7 +763,7 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
         : (parseInt(durationValue) > 0);
       return campaignName.trim() && hasSchedule;
     }
-    if (currentStep === 2) return uploadedFile !== null || sourceUrl.trim();
+if (currentStep === 2) return selectedLibraryItems.size > 0 || uploadedFile !== null || sourceUrl.trim();
     if (currentStep === 3) return totalItems > 0;
     if (currentStep === 4) return true;
     if (currentStep === 5) return selectedTopics.size > 0;
@@ -818,9 +777,7 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
       setCurrentStep(nextStep);
       setExpandedStep(nextStep);
     } else if (currentStep === 5) {
-      // Step 5 → open the review modal (step 6)
-      setCurrentStep(6);
-      setExpandedStep(6);
+      // Step 5 → open the review modal directly
       setShowReviewModal(true);
     } else {
       onComplete({
@@ -830,10 +787,16 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
         uploadedFile,
         sourceUrl,
         contentTypeCounts,
+        platformsByType: Object.fromEntries(
+          Object.entries(platformsByType).map(([k, v]) => [k, Array.from(v)])
+        ),
         funnelAssignments,
+        funnelPct,
         selectedTopics: Array.from(selectedTopics),
+        customTopics,
         totalItems,
         totalCredits,
+        scheduledItems,
       });
     }
   };
@@ -952,9 +915,6 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
         "short-video": 0,
         "social-post": 0,
         "carousel": 0,
-        "quote-card": 0,
-        "ai-video": 0,
-        "live-clip": 0,
       };
 
       updatedItems.forEach(item => {
@@ -1036,8 +996,8 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
             ))}
           </div>
           <div className="flex justify-between mt-2">
-            <span className="text-xs text-muted-foreground">Step {currentStep} of 6</span>
-            <span className="text-xs text-muted-foreground">{Math.round((completedSteps.size / 6) * 100)}% complete</span>
+            <span className="text-xs text-muted-foreground">Step {currentStep} of 5</span>
+            <span className="text-xs text-muted-foreground">{Math.round((completedSteps.size / 5) * 100)}% complete</span>
           </div>
         </div>
 
@@ -1101,16 +1061,6 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
                             className="w-full px-4 py-2.5 bg-background border border-border rounded-lg text-sm"
                           />
                         </div>
-                        <div>
-                          <label className="text-sm font-bold text-foreground block mb-2">Description</label>
-                          <textarea
-                            value={campaignDescription}
-                            onChange={(e) => setCampaignDescription(e.target.value)}
-                            placeholder="Brief description of the campaign goals and messaging..."
-                            rows={3}
-                            className="w-full px-4 py-2.5 bg-background border border-border rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/30"
-                          />
-                        </div>
                         {/* ── Schedule Mode Switcher ── */}
                         <div>
                           <label className="text-sm font-bold text-foreground block mb-2">Schedule</label>
@@ -1163,46 +1113,60 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
                             </div>
                           </div>
 
-                          {/* Duration Panel */}
-                          <div className={clsx("mt-3 transition-all", dateMode !== "duration" && "opacity-40 pointer-events-none select-none")}>
-                            <div className="flex gap-2">
-                              <input
-                                type="number"
-                                min="1"
-                                max="365"
-                                value={durationValue}
-                                onChange={(e) => setDurationValue(e.target.value)}
-                                disabled={dateMode !== "duration"}
-                                className="flex-1 px-4 py-2.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                              />
-                              <div className="flex rounded-lg border border-border overflow-hidden">
-                                {(["days", "weeks", "months"] as const).map((unit) => (
-                                  <button
-                                    key={unit}
-                                    onClick={() => setDurationUnit(unit)}
-                                    disabled={dateMode !== "duration"}
-                                    className={clsx(
-                                      "px-3 py-2.5 text-sm font-medium capitalize transition-colors",
-                                      durationUnit === unit
-                                        ? "bg-primary text-primary-foreground"
-                                        : "bg-background text-muted-foreground hover:text-foreground"
-                                    )}
-                                  >
-                                    {unit.charAt(0).toUpperCase() + unit.slice(1)}
-                                  </button>
-                                ))}
+                          {/* Duration Panel - hidden when date-range mode */}
+                          {dateMode === "duration" ? (
+                            <div className="mt-3 transition-all">
+                              <div className="flex gap-2">
+                                <input
+                                  type="number"
+                                  min="1"
+                                  max="365"
+                                  value={durationValue}
+                                  onChange={(e) => setDurationValue(e.target.value)}
+                                  disabled={dateMode !== "duration"}
+                                  className="flex-1 px-4 py-2.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                />
+                                <div className="flex rounded-lg border border-border overflow-hidden">
+                                  {(["days", "weeks", "months"] as const).map((unit) => (
+                                    <button
+                                      key={unit}
+                                      onClick={() => setDurationUnit(unit)}
+                                      disabled={dateMode !== "duration"}
+                                      className={clsx(
+                                        "px-3 py-2.5 text-sm font-medium capitalize transition-colors",
+                                        durationUnit === unit
+                                          ? "bg-primary text-primary-foreground"
+                                          : "bg-background text-muted-foreground hover:text-foreground"
+                                      )}
+                                    >
+                                      {unit.charAt(0).toUpperCase() + unit.slice(1)}
+                                    </button>
+                                  ))}
+                                </div>
                               </div>
+                              {dateMode === "duration" && durationUnit === "weeks" && (
+                                <p className="mt-1.5 text-xs text-muted-foreground">
+                                  Ends{" "}
+                                  <span className="text-primary font-semibold">
+                                    {fmtDateDisplay(effectiveDates.end)}
+                                  </span>
+                                  {" "}· snapped to Sunday
+                                </p>
+                              )}
                             </div>
-                            {dateMode === "duration" && durationUnit === "weeks" && (
-                              <p className="mt-1.5 text-xs text-muted-foreground">
-                                Ends{" "}
-                                <span className="text-primary font-semibold">
-                                  {fmtDateDisplay(effectiveDates.end)}
-                                </span>
-                                {" "}· snapped to Sunday
-                              </p>
-                            )}
-                          </div>
+                          ) : dateMode === "date-range" && effectiveDates.start && effectiveDates.end ? (
+                            <p className="mt-3 text-sm text-muted-foreground">
+                              Duration:{" "}
+                              <span className="font-semibold text-foreground">
+                                {(() => {
+                                  const s = new Date(effectiveDates.start + "T00:00:00");
+                                  const e = new Date(effectiveDates.end + "T00:00:00");
+                                  return Math.ceil((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24));
+                                })()}
+                              </span>{" "}
+                              days
+                            </p>
+                          ) : null}
                         </div>
                       </>
                     )}
@@ -1210,39 +1174,14 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
                     {/* Step 2: Source Material */}
                     {stepItem.id === 2 && (
                       <>
-                        {/* Upload drop zone */}
-                        <div className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
-                          <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                          <input type="file" onChange={(e) => setUploadedFile(e.target.files?.[0] || null)} className="hidden" id="file-upload" />
-                          <label htmlFor="file-upload" className="text-sm text-foreground font-medium cursor-pointer block">
-                            {uploadedFile ? uploadedFile.name : "Drag & drop or click to browse"}
-                          </label>
-                          <p className="text-xs text-muted-foreground mt-1">Upload video, podcast, or document</p>
-                        </div>
-
-                        {/* URL input */}
-                        <div>
-                          <label className="text-sm font-bold text-foreground block mb-2">Paste a link</label>
-                          <div className="relative">
-                            <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                            <input
-                              type="url"
-                              value={sourceUrl}
-                              onChange={(e) => setSourceUrl(e.target.value)}
-                              placeholder="https://youtube.com/watch?v=... or podcast URL"
-                              className="w-full pl-9 pr-4 py-2.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Add Resources button — opens the same dialog as the Resources page */}
+{/* Add Resources button — opens the resource selection modal */}
                         <div>
                           <button
-                            onClick={() => { setLibraryDraft(new Set(selectedLibraryItems)); setLibrarySource("library"); setShowLibraryModal(true); }}
-                            className="w-full flex items-center justify-between px-4 py-2.5 border border-border rounded-lg hover:border-primary/50 hover:bg-accent/30 transition-colors"
+                            onClick={() => { setLibraryDraft(new Set(selectedLibraryItems)); setShowLibraryModal(true); }}
+                            className="w-full flex items-center justify-between px-4 py-3 border-2 border-dashed border-border rounded-lg hover:border-primary/50 hover:bg-accent/30 transition-colors"
                           >
                             <div className="flex items-center gap-2 text-sm text-foreground font-medium">
-                              <Plus className="w-4 h-4 text-muted-foreground" />
+                              <Plus className="w-5 h-5 text-muted-foreground" />
                               Add Resources
                             </div>
                             {selectedLibraryItems.size > 0 && (
@@ -1376,21 +1315,6 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
                           );
                         })}
 
-                        {/* Distribution bar */}
-                        {totalItems > 0 && (
-                          <div className="p-3 border border-border rounded-xl bg-background/60">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Mix distribution</span>
-                              <span className="text-[11px] text-muted-foreground">{totalItems} items · {totalCredits} credits</span>
-                            </div>
-                            <div className="flex h-2.5 w-full rounded-full overflow-hidden bg-secondary border border-border">
-                              {contentTypeDistribution.filter(d => d.count > 0).map(d => (
-                                <div key={d.id} style={{ width: `${d.percentage}%`, backgroundColor: d.color }} className="h-full first:rounded-l-full last:rounded-r-full" />
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
                         <div className="pt-3 border-t border-border flex justify-between items-center">
                           <div>
                             <div className="flex items-center gap-2">
@@ -1400,10 +1324,6 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
                             <span className="text-[11px] text-muted-foreground">Quantity × platforms = total deliverables</span>
                           </div>
                           <span className="text-lg font-bold text-primary tabular-nums">{totalItems}</span>
-                        </div>
-                        <div className="flex justify-between items-center -mt-1">
-                          <span className="text-sm font-bold text-foreground">Total Credits</span>
-                          <span className="text-lg font-bold text-primary tabular-nums">{totalCredits}</span>
                         </div>
                       </div>
                     )}
@@ -1474,7 +1394,12 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
                     {stepItem.id === 5 && (
                       <div className="space-y-3">
                         <p className="text-sm text-muted-foreground">Select or add topics for your campaign content.</p>
-                        <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">From Project</div>
+                        <div className="flex items-center gap-2">
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/80 border border-border text-xs font-medium text-muted-foreground">
+                            <Bookmark className="w-3 h-3" />
+                            From project defaults
+                          </div>
+                        </div>
                         <div className="flex flex-wrap gap-2">
                           {topicsFromProject.map((topic) => (
                             <button
@@ -1789,9 +1714,6 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
                     {effStart && effEnd && (
                       <div className="text-xs text-muted-foreground">{effStart} → {effEnd}</div>
                     )}
-                    {campaignDescription && (
-                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{campaignDescription}</p>
-                    )}
                   </div>
                 </div>
 
@@ -1874,14 +1796,31 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
                 </button>
                 <div className="flex-1" />
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     setShowReviewModal(false);
                     onComplete({
                       campaignName, startDate, endDate, uploadedFile, sourceUrl,
-                      contentTypeCounts, funnelAssignments,
+                      contentTypeCounts,
+                      platformsByType: Object.fromEntries(
+                        Object.entries(platformsByType).map(([k, v]) => [k, Array.from(v)])
+                      ),
+                      funnelAssignments, funnelPct,
                       selectedTopics: Array.from(selectedTopics),
+                      customTopics,
                       totalItems, totalCredits,
+                      scheduledItems,
                     });
+                    // Create content items for each scheduled item
+                    for (const item of scheduledItems) {
+                      await createContentItem(projectId, {
+                        platform: item.platform || '',
+                        content_type: item.typeId,
+                        scheduled_at: item.date,
+                        campaign_id: null,
+                        title: item.topic,
+                      });
+                    }
+                    onNavigateToCalendar?.();
                   }}
                   className="flex items-center gap-2 px-6 py-2.5 bg-[#4B56F2] hover:bg-[#4B56F2]/90 text-white rounded-xl font-bold text-sm transition-colors"
                 >
@@ -1894,7 +1833,7 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
         );
       })()}
 
-      {/* Add Resources Modal — same dialog as the Resources page */}
+      {/* Add Resources Modal — simplified resource selection dialog */}
       {showLibraryModal && (
         <div
           className="fixed inset-0 z-[60] flex items-center justify-center p-4"
@@ -1902,14 +1841,14 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
         >
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
           <div
-            className="relative bg-card border border-border rounded-2xl shadow-2xl w-full max-w-[900px] max-h-[90vh] flex flex-col overflow-hidden"
+            className="relative bg-card border border-border rounded-2xl shadow-2xl w-full max-w-[600px] max-h-[90vh] flex flex-col overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="px-8 py-6 flex-shrink-0 flex items-start justify-between">
+            <div className="px-8 py-6 flex-shrink-0 flex items-start justify-between border-b border-border">
               <div>
-                <h2 className="text-2xl font-bold text-foreground leading-tight">Add Resources</h2>
-                <p className="text-sm text-muted-foreground mt-1.5">Pick from your library, upload from device, or import from the cloud</p>
+                <h2 className="text-2xl font-bold text-foreground leading-tight">Select Resources</h2>
+                <p className="text-sm text-muted-foreground mt-1.5">Choose from your existing resources or upload new ones</p>
               </div>
               <button
                 onClick={() => setShowLibraryModal(false)}
@@ -1919,218 +1858,106 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
               </button>
             </div>
 
-            {/* Body: sidebar + content */}
-            <div className="flex flex-1 min-h-0 overflow-hidden">
-              {/* Sidebar */}
-              <div className="w-[200px] flex-shrink-0 border-r border-border px-4 py-3 flex flex-col gap-1">
-                {([
-                  { key: "library" as LibrarySource, Icon: Layers, label: "My Library" },
-                  { key: "device" as LibrarySource, Icon: Upload, label: "Upload from Device" },
-                  { key: "google-drive" as LibrarySource, Icon: Cloud, label: "Google Drive" },
-                  { key: "dropbox" as LibrarySource, Icon: Archive, label: "Dropbox" },
-                ]).map(({ key, Icon: SIcon, label }) => (
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto px-8 py-6">
+              {resources.length === 0 ? (
+                /* Empty state */
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="w-16 h-16 rounded-full bg-secondary/60 flex items-center justify-center mb-4">
+                    <FileText className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <p className="text-sm font-semibold text-foreground mb-2">No resources yet</p>
+                  <p className="text-xs text-muted-foreground mb-6">Upload your first resource to get started.</p>
+                  <input
+                    ref={resourceFileInputRef}
+                    type="file"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) {
+                        const file = e.target.files[0];
+                        const newId = `resource-${Date.now()}`;
+                        // Add to resources (mock)
+                        setShowLibraryModal(false);
+                      }
+                    }}
+                  />
                   <button
-                    key={key}
-                    onClick={() => setLibrarySource(key)}
-                    className={clsx(
-                      "flex items-center gap-3 rounded-lg px-4 py-3 text-sm transition-colors text-left",
-                      librarySource === key
-                        ? "bg-primary/10 text-primary font-semibold"
-                        : "text-foreground font-medium hover:bg-accent/40"
-                    )}
+                    onClick={() => resourceFileInputRef.current?.click()}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-colors"
                   >
-                    <SIcon className="w-5 h-5 flex-shrink-0" />
-                    {label}
+                    <Upload className="w-4 h-4" />
+                    Upload Resource
                   </button>
-                ))}
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 overflow-y-auto px-8 py-6 flex flex-col gap-6">
-                {/* My Library */}
-                {librarySource === "library" && (
-                  <div className="flex flex-col gap-3">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Your Resources</p>
-                      {libraryDraft.size > 0 && (
-                        <span className="text-xs font-semibold text-primary">{libraryDraft.size} selected</span>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      {PROJECT_LIBRARY.map((item) => {
-                        const isSelected = libraryDraft.has(item.id);
-                        return (
-                          <button
-                            key={item.id}
-                            onClick={() => {
-                              const next = new Set(libraryDraft);
-                              if (next.has(item.id)) next.delete(item.id);
-                              else next.add(item.id);
-                              setLibraryDraft(next);
-                            }}
-                            className={clsx(
-                              "flex items-center gap-3 border rounded-lg p-3 transition-colors cursor-pointer text-left w-full",
-                              isSelected
-                                ? "border-primary bg-primary/10"
-                                : "border-border bg-secondary/40 hover:border-primary/40"
-                            )}
-                          >
-                            <div className={clsx(
-                              "flex items-center justify-center w-5 h-5 rounded border flex-shrink-0 transition-colors",
-                              isSelected ? "bg-primary border-primary" : "bg-transparent border-muted-foreground/40"
-                            )}>
-                              {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
-                            </div>
-                            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-background border border-border flex-shrink-0">
-                              <FileText className="w-5 h-5 text-muted-foreground" />
-                            </div>
-                            <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-                              <p className="text-xs font-semibold text-foreground truncate">{item.name}</p>
-                              <p className="text-[10px] text-muted-foreground">{item.size}</p>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Upload from Device */}
-                {librarySource === "device" && (
-                  <>
-                    <label className="border-2 border-dashed border-border rounded-xl bg-background/60 h-[120px] flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors">
-                      <input ref={extraFileInputRef} type="file" multiple className="hidden" onChange={(e) => setExtraUploads(a => [...a, ...Array.from(e.target.files || [])])} />
-                      <Upload className="w-8 h-8 text-muted-foreground mb-2" />
-                      <p className="text-foreground text-sm font-semibold">Click or drag to upload</p>
-                      <p className="text-[11px] text-muted-foreground mt-1">Video, audio, docs, images</p>
-                    </label>
-                    {extraUploads.length > 0 && (
-                      <div className="flex flex-col gap-2">
-                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Added this session</p>
-                        {extraUploads.map((f, i) => (
-                          <div key={i} className="flex items-center gap-3 border border-border rounded-lg bg-secondary/40 p-3">
-                            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-background border border-border flex-shrink-0">
-                              <FileText className="w-5 h-5 text-muted-foreground" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-semibold text-foreground truncate">{f.name}</p>
-                              <p className="text-[10px] text-muted-foreground">{f.size > 1048576 ? `${(f.size / 1048576).toFixed(1)} MB` : `${(f.size / 1024).toFixed(0)} KB`}</p>
-                            </div>
-                            <button
-                              onClick={() => setExtraUploads(a => a.filter((_, idx) => idx !== i))}
-                              className="text-muted-foreground hover:text-red-400 text-lg leading-none px-1"
-                            >×</button>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    {resources.map((item) => {
+                      const isSelected = libraryDraft.has(item.id);
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => {
+                            const next = new Set(libraryDraft);
+                            if (next.has(item.id)) next.delete(item.id);
+                            else next.add(item.id);
+                            setLibraryDraft(next);
+                          }}
+                          className={clsx(
+                            "flex items-center gap-3 border rounded-xl p-4 transition-all cursor-pointer text-left w-full",
+                            isSelected
+                              ? "border-primary bg-primary/[0.08] ring-1 ring-primary/30"
+                              : "border-border bg-secondary/30 hover:border-primary/40 hover:bg-secondary/50"
+                          )}
+                        >
+                          <div className={clsx(
+                            "flex items-center justify-center w-5 h-5 rounded border flex-shrink-0 transition-all",
+                            isSelected ? "bg-primary border-primary" : "bg-transparent border-muted-foreground/40"
+                          )}>
+                            {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
                           </div>
-                        ))}
-                      </div>
-                    )}
-                  </>
-                )}
-
-                {/* Google Drive */}
-                {librarySource === "google-drive" && (
-                  <div className="flex flex-col gap-3">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Google Drive Files</p>
-                      {selectedDriveFiles.size > 0 && (
-                        <span className="text-xs font-semibold text-primary">{selectedDriveFiles.size} selected</span>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      {DRIVE_FILES.map((file) => {
-                        const isSelected = selectedDriveFiles.has(file.id);
-                        return (
-                          <button
-                            key={file.id}
-                            onClick={() => {
-                              const next = new Set(selectedDriveFiles);
-                              if (next.has(file.id)) next.delete(file.id);
-                              else next.add(file.id);
-                              setSelectedDriveFiles(next);
-                              const d = new Set(libraryDraft);
-                              if (d.has(file.id)) d.delete(file.id); else d.add(file.id);
-                              setLibraryDraft(d);
-                            }}
-                            className={clsx(
-                              "flex items-center gap-3 border rounded-lg p-3 transition-colors cursor-pointer text-left w-full",
-                              isSelected ? "border-primary bg-primary/10" : "border-border bg-secondary/40 hover:border-primary/40"
-                            )}
-                          >
-                            <div className={clsx(
-                              "flex items-center justify-center w-5 h-5 rounded border flex-shrink-0 transition-colors",
-                              isSelected ? "bg-primary border-primary" : "bg-transparent border-muted-foreground/40"
-                            )}>
-                              {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
-                            </div>
-                            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-background border border-border flex-shrink-0">
-                              <Cloud className="w-5 h-5 text-sky-500" />
-                            </div>
-                            <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-                              <p className="text-xs font-semibold text-foreground truncate">{file.name}</p>
-                              <p className="text-[10px] text-muted-foreground">{file.size} · {file.modified}</p>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
+                          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-background border border-border flex-shrink-0">
+                            <FileText className="w-5 h-5 text-muted-foreground" />
+                          </div>
+                          <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                            <p className="text-sm font-semibold text-foreground truncate">{item.name}</p>
+                            <p className="text-xs text-muted-foreground">{item.size}</p>
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
-                )}
 
-                {/* Dropbox */}
-                {librarySource === "dropbox" && (
-                  <div className="flex flex-col gap-3">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Dropbox Files</p>
-                      {selectedDropboxFiles.size > 0 && (
-                        <span className="text-xs font-semibold text-primary">{selectedDropboxFiles.size} selected</span>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      {DROPBOX_FILES.map((file) => {
-                        const isSelected = selectedDropboxFiles.has(file.id);
-                        return (
-                          <button
-                            key={file.id}
-                            onClick={() => {
-                              const next = new Set(selectedDropboxFiles);
-                              if (next.has(file.id)) next.delete(file.id);
-                              else next.add(file.id);
-                              setSelectedDropboxFiles(next);
-                              const d = new Set(libraryDraft);
-                              if (d.has(file.id)) d.delete(file.id); else d.add(file.id);
-                              setLibraryDraft(d);
-                            }}
-                            className={clsx(
-                              "flex items-center gap-3 border rounded-lg p-3 transition-colors cursor-pointer text-left w-full",
-                              isSelected ? "border-primary bg-primary/10" : "border-border bg-secondary/40 hover:border-primary/40"
-                            )}
-                          >
-                            <div className={clsx(
-                              "flex items-center justify-center w-5 h-5 rounded border flex-shrink-0 transition-colors",
-                              isSelected ? "bg-primary border-primary" : "bg-transparent border-muted-foreground/40"
-                            )}>
-                              {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
-                            </div>
-                            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-background border border-border flex-shrink-0">
-                              <Archive className="w-5 h-5 text-indigo-500" />
-                            </div>
-                            <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-                              <p className="text-xs font-semibold text-foreground truncate">{file.name}</p>
-                              <p className="text-[10px] text-muted-foreground">{file.size} · {file.modified}</p>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
+                  {/* Upload New button */}
+                  <input
+                    ref={resourceFileInputRef}
+                    type="file"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) {
+                        const file = e.target.files[0];
+                        const newId = `resource-${Date.now()}`;
+                        const newResource = { id: newId, name: file.name, size: `${(file.size / 1024).toFixed(0)} KB`, type: file.name.split('.').pop() || 'file' };
+                        // Note: in a real app this would upload to storage
+                        setShowLibraryModal(false);
+                      }
+                    }}
+                  />
+                  <button
+                    onClick={() => resourceFileInputRef.current?.click()}
+                    className="w-full mt-4 flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-border rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-accent/30 transition-all"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Upload New
+                  </button>
+                </>
+              )}
             </div>
 
             {/* Footer */}
             <div className="flex-shrink-0 flex items-center justify-between border-t border-border bg-secondary/40 px-8 py-5">
               <button
-                onClick={() => { setShowLibraryModal(false); setLibrarySource("library"); }}
+                onClick={() => { setShowLibraryModal(false); }}
                 className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
               >
                 Cancel
@@ -2143,7 +1970,7 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
                 )}
                 disabled={libraryDraft.size === 0}
               >
-                {libraryDraft.size > 0 ? `Add ${libraryDraft.size} Resource${libraryDraft.size > 1 ? 's' : ''}` : 'Add Resources'}
+                {libraryDraft.size > 0 ? `Confirm (${libraryDraft.size})` : 'Select Resources'}
               </button>
             </div>
           </div>

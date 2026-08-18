@@ -1,5 +1,5 @@
 export type Platform = 'youtube' | 'xiaohongshu' | 'weibo' | 'douyin' | 'wechat' | 'bilibili'
-export type ContentType = 'short-clips' | 'carousels' | 'static-posts' | 'blog-long-form' | 'ai-text-video' | 'quote-cards' | 'social-posts'
+export type ContentType = 'short-video' | 'carousel' | 'social-post' | 'wechat-article'
 export type FunnelStage = 'top' | 'middle' | 'bottom'
 
 export interface AuditPlatform {
@@ -51,23 +51,17 @@ export interface Audit {
 }
 
 const CONTENT_TYPE_LABELS: Record<ContentType, string> = {
-  'short-clips': 'Short Clips',
-  carousels: 'Carousels',
-  'static-posts': 'Static Posts',
-  'blog-long-form': 'Blog Long-form',
-  'ai-text-video': 'AI Text Video',
-  'quote-cards': 'Quote Cards',
-  'social-posts': 'Social Posts',
+  'short-video': 'Short Video',
+  carousel: 'Carousel',
+  'social-post': 'Social Post',
+  'wechat-article': 'WeChat Article',
 }
 
 const CONTENT_TYPE_COLORS: Record<ContentType, string> = {
-  'short-clips': '#4B56F2',
-  carousels: '#06b6d4',
-  'static-posts': '#8b5cf6',
-  'blog-long-form': '#f59e0b',
-  'ai-text-video': '#ec4899',
-  'quote-cards': '#ef4444',
-  'social-posts': '#3b82f6',
+  'short-video': '#4B56F2',
+  carousel: '#06b6d4',
+  'social-post': '#3b82f6',
+  'wechat-article': '#07C160',
 }
 
 const FUNNEL_LABELS: Record<FunnelStage, string> = {
@@ -128,13 +122,10 @@ export const MOCK_AUDIT: Audit = {
   engagements: '18.7M',
   funnelBreakdown: { top: 72, middle: 20, bottom: 8 },
   contentTypeDistribution: {
-    'short-clips': 45,
-    carousels: 32,
-    'static-posts': 28,
-    'blog-long-form': 12,
-    'ai-text-video': 8,
-    'quote-cards': 0,
-    'social-posts': 28,
+    'short-video': 45,
+    carousel: 32,
+    'social-post': 56,
+    'wechat-article': 12,
   },
   topicCloud: [
     { name: 'Summer Fashion', size: 'large' },
@@ -154,13 +145,10 @@ export const MOCK_AUDIT: Audit = {
     { rank: 5, topic: 'Product Launch', score: 4.8 },
   ],
   engagementByContentType: [
-    { type: 'short-clips', percentage: 34 },
-    { type: 'carousels', percentage: 22 },
-    { type: 'social-posts', percentage: 16 },
-    { type: 'quote-cards', percentage: 11 },
-    { type: 'static-posts', percentage: 8 },
-    { type: 'blog-long-form', percentage: 6 },
-    { type: 'ai-text-video', percentage: 3 },
+    { type: 'short-video', percentage: 34 },
+    { type: 'carousel', percentage: 22 },
+    { type: 'social-post', percentage: 24 },
+    { type: 'wechat-article', percentage: 20 },
   ],
   engagementByFunnelStage: [
     { stage: 'top', percentage: 52 },
@@ -169,7 +157,6 @@ export const MOCK_AUDIT: Audit = {
   ],
   ctaBreakdown: { with: 23, without: 77 },
   criticalGaps: [
-    'Missing Quote Card formats',
     'Low conversion stage content',
     'Insufficient CTAs on TikTok',
   ],
@@ -178,7 +165,6 @@ export const MOCK_AUDIT: Audit = {
     'Repetitive Summer Fashion tags',
   ],
   recommendedActions: [
-    'Introduce 2 quote cards weekly',
     'Repurpose Awareness to Mid-funnel',
     'Add direct links to bio in carousels',
   ],
@@ -187,7 +173,7 @@ export const MOCK_AUDIT: Audit = {
       id: 'top-1',
       title: 'Weekly Motivation',
       platform: 'youtube',
-      contentType: 'short-clips',
+      contentType: 'short-video',
       engagement: 9840,
       date: new Date(2025, 2, 15),
       hook: '"Your only limit is your mind." 6-second hook that exploded in views.',
@@ -196,7 +182,7 @@ export const MOCK_AUDIT: Audit = {
       id: 'top-2',
       title: 'Summer Training Tips',
       platform: 'xiaohongshu',
-      contentType: 'carousels',
+      contentType: 'carousel',
       engagement: 8720,
       date: new Date(2025, 2, 10),
       hook: '5-slide carousel with before/after transformation. 8.7K likes.',
@@ -205,7 +191,7 @@ export const MOCK_AUDIT: Audit = {
       id: 'top-3',
       title: 'Performance Tech Explained',
       platform: 'youtube',
-      contentType: 'short-clips',
+      contentType: 'short-video',
       engagement: 7650,
       date: new Date(2025, 1, 28),
       hook: 'Product demo short clip with text overlays. 7.6K interactions.',
@@ -214,7 +200,7 @@ export const MOCK_AUDIT: Audit = {
       id: 'top-4',
       title: 'New Arrivals Showcase',
       platform: 'xiaohongshu',
-      contentType: 'carousels',
+      contentType: 'carousel',
       engagement: 6980,
       date: new Date(2025, 1, 20),
       hook: 'Product launch carousel with swipe-to-shop. 6.9K saves.',
@@ -223,7 +209,7 @@ export const MOCK_AUDIT: Audit = {
       id: 'top-5',
       title: 'Running Form Tips',
       platform: 'youtube',
-      contentType: 'short-clips',
+      contentType: 'short-video',
       engagement: 6240,
       date: new Date(2025, 0, 15),
       hook: 'Tutorial-style short clip with on-screen graphics. 6.2K shares.',
@@ -232,7 +218,7 @@ export const MOCK_AUDIT: Audit = {
       id: 'top-6',
       title: 'Brand Announcement',
       platform: 'weibo',
-      contentType: 'static-posts',
+      contentType: 'social-post',
       engagement: 5890,
       date: new Date(2025, 0, 8),
       hook: 'Bold typography announcement with brand colors. 5.8K comments.',
@@ -241,13 +227,10 @@ export const MOCK_AUDIT: Audit = {
 }
 
 const POST_TITLES: Record<ContentType, string[]> = {
-  'short-clips': ['Weekly Motivation', 'Running Form Tips', 'Performance Tech Explained'],
-  carousels: ['Summer Training Tips', 'Summer Sale Preview', 'New Arrivals Showcase'],
-  'static-posts': ['Brand Announcement', 'Seasonal Greeting', 'Community Spotlight'],
-  'blog-long-form': ['Deep Dive: Training Science', 'Seasonal Gear Guide', 'Behind the Brand Story'],
-  'ai-text-video': ['Product Demo', 'Tutorial Series', 'Explainer Video'],
-  'quote-cards': ['Motivation Monday', 'Wisdom Wednesday', 'Thoughtful Thursday'],
-  'social-posts': ['Quick Update', 'Community Post', 'Shareable Moment'],
+  'short-video': ['Weekly Motivation', 'Running Form Tips', 'Performance Tech Explained'],
+  carousel: ['Summer Training Tips', 'Summer Sale Preview', 'New Arrivals Showcase'],
+  'social-post': ['Brand Announcement', 'Seasonal Greeting', 'Community Spotlight', 'Quick Update', 'Community Post', 'Shareable Moment'],
+  'wechat-article': ['Deep Dive: Training Science', 'Seasonal Gear Guide', 'Behind the Brand Story'],
 }
 
 function seededRandom(seed: number): () => number {
@@ -261,7 +244,7 @@ function seededRandom(seed: number): () => number {
 export function generateAuditPosts(audit: Audit): AuditPost[] {
   const posts: AuditPost[] = []
   const rand = seededRandom(42)
-  const contentTypes: ContentType[] = ['short-clips', 'carousels', 'static-posts', 'blog-long-form', 'ai-text-video', 'quote-cards', 'social-posts']
+  const contentTypes: ContentType[] = ['short-video', 'carousel', 'social-post', 'wechat-article']
   const funnelStages: FunnelStage[] = ['top', 'middle', 'bottom']
 
   const startDate = audit.dateRange.start

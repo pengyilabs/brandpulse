@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
-import { X, ChevronDown, Search, Upload, Sparkles, Palette, User, FileText, ImageIcon, Loader2 } from "lucide-react";
+import { X, ChevronDown, Search, Upload, Sparkles, Palette, User, FileText, ImageIcon, Loader2, Film, Share2, LayoutGrid, Lightbulb, Users, ShoppingCart, MessageCircle, Music2, Play } from "lucide-react";
 import svgPathsShortClip from "@/imports/PostContentContainer-3/svg-ehzova85ar";
 import svgPathsLongForm from "@/imports/PostContentContainer-6/svg-zh0484zckq";
 import { BrandLogo } from "../ui/brand-logo";
@@ -20,10 +20,13 @@ interface ContentEditModalProps {
     contentType: string;
     intentStage: string;
     topic: string;
+    topics?: string[];
+    funnelStage?: string;
     date: string;
     status: "draft" | "approved" | "rejected" | "generating";
     title?: string;
     platform?: string;
+    draftPostContent?: string;
   };
   onUpdate: (updates: any) => void;
   availableContentTypes: string[];
@@ -37,8 +40,6 @@ type ContentCategory =
   | "long-form"
   | "short-video"
   | "highlight"
-  | "quote-card"
-  | "ai-video"
   | "other";
 
 function categorize(ct: string): ContentCategory {
@@ -46,8 +47,6 @@ function categorize(ct: string): ContentCategory {
   if (s.includes("long") || s.includes("blog") || s.includes("article")) return "long-form";
   if (s.includes("short") || s.includes("clip")) return "short-video";
   if (s.includes("highlight") || s.includes("reel")) return "highlight";
-  if (s.includes("quote")) return "quote-card";
-  if (s.includes("ai") || s.includes("text-to")) return "ai-video";
   return "other";
 }
 
@@ -55,9 +54,30 @@ const CATEGORY_META: Record<ContentCategory, { sublabel: string; color: string }
   "long-form":   { sublabel: "Long Form",       color: "#60A5FA" },
   "short-video": { sublabel: "Short Clip",     color: "#4B56F2" },
   "highlight":   { sublabel: "Highlight Reel",  color: "#F59E0B" },
-  "quote-card":  { sublabel: "Quote Card",  color: "#A78BFA" },
-  "ai-video":    { sublabel: "Text to AI Video",      color: "#4B56F2" },
   "other":       { sublabel: "Social Post",             color: "#60A5FA" },
+};
+
+// ─── Content Type, Funnel Stage & Platform metadata ──────────────────────────
+
+const CONTENT_TYPE_META: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
+  "wechat-article": { label: "WeChat Article", color: "#07C160", icon: FileText },
+  "short-video":    { label: "Short Video",    color: "#010101", icon: Film },
+  "social-post":    { label: "Social Post",    color: "#06B6D4", icon: Share2 },
+  "carousel":       { label: "Carousel",       color: "#8B5CF6", icon: LayoutGrid },
+};
+
+const FUNNEL_STAGE_META: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
+  "awareness":      { label: "Awareness",      color: "#3B82F6", icon: Lightbulb },
+  "consideration":  { label: "Consideration",  color: "#F59E0B", icon: Users },
+  "conversion":     { label: "Conversion",     color: "#4B56F2", icon: ShoppingCart },
+};
+
+const PLATFORM_META: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
+  "wechat":        { label: "WeChat",        color: "#07C160", icon: MessageCircle },
+  "xiaohongshu":   { label: "Xiaohongshu",   color: "#FF2442", icon: LayoutGrid },
+  "douyin":        { label: "Douyin",        color: "#010101", icon: Music2 },
+  "weibo":         { label: "Weibo",         color: "#E6162D", icon: Share2 },
+  "bilibili":      { label: "Bilibili",      color: "#00A1D6", icon: Play },
 };
 
 // ─── Shared icons (from Figma svg paths) ─────────────────────────────────────
@@ -541,14 +561,6 @@ function ConfigurationSection({ category, fields, setField, selectedBrandKitName
           </>
         )}
 
-        {/* AI video specific */}
-        {category === "ai-video" && (
-          <div>
-            <ConfigFieldLabel>Video Duration (seconds)</ConfigFieldLabel>
-            <ConfigInput value={fields.videoDuration ?? "60"} onChange={(v) => setField("videoDuration", v)} placeholder="60" type="number" />
-          </div>
-        )}
-
         {/* Brand Guidelines — all types */}
         <div>
           <ConfigFieldLabel projectDefault>Brand Guidelines</ConfigFieldLabel>
@@ -793,10 +805,6 @@ function PreviewPanel({ category, fields, platform }: {
       ? fields.content || ""
       : category === "short-video" || category === "highlight"
       ? fields.caption || ""
-      : category === "ai-video"
-      ? fields.script || ""
-      : category === "quote-card"
-      ? fields.quoteText || ""
       : "";
 
   // Split body into paragraphs for rendering
@@ -923,69 +931,6 @@ function PreviewPanel({ category, fields, platform }: {
           <div className="p-[12px]">
             {title && <p className="text-[#fafafa] text-[11px] font-bold leading-[15px] line-clamp-1 mb-[4px]">{title}</p>}
             {bodyText && <p className="text-[#a1a1aa] text-[9px] leading-[13px] line-clamp-2">{bodyText}</p>}
-          </div>
-        </div>
-      )}
-
-      {/* ─ Quote Card Preview ── */}
-      {category === "quote-card" && (
-        <div className="bg-[#0a0a0a] w-[271px] rounded-[8px] overflow-hidden shrink-0 border border-[rgba(255,255,255,0.06)]">
-          <div className="w-full aspect-square bg-gradient-to-br from-[#1a1a1a] via-[#141414] to-[#0f0f0f] flex flex-col items-center justify-center p-[24px] relative">
-            {/* Decorative quote mark */}
-            <div className="text-[#4B56F2] text-[48px] leading-none font-black absolute top-[16px] left-[20px] opacity-30">"</div>
-            {/* Quote text */}
-            {bodyText ? (
-              <p className="text-[#fafafa] text-[13px] leading-[20px] italic text-center line-clamp-6 relative z-10">
-                {bodyText}
-              </p>
-            ) : (
-              <div className="flex flex-col gap-[6px] w-full relative z-10">
-                {[90, 100, 80].map((w, i) => (
-                  <div key={i} className="h-[8px] bg-[#222] rounded-full mx-auto" style={{ width: `${w}%` }} />
-                ))}
-              </div>
-            )}
-            {/* Author */}
-            {fields.author && (
-              <div className="mt-[16px] text-center relative z-10">
-                <div className="w-[24px] h-px bg-[#4B56F2] mx-auto mb-[6px]" />
-                <p className="text-[#a1a1aa] text-[10px] font-medium">— {fields.author}</p>
-              </div>
-            )}
-            {/* Tags */}
-            {tags.length > 0 && (
-              <p className="text-[#4B56F2] text-[9px] mt-[8px] text-center relative z-10">
-                {tags.map((t) => `#${t}`).join(" ")}
-              </p>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ── AI Video Preview ── */}
-      {category === "ai-video" && (
-        <div className="bg-[#0a0a0a] w-[180px] rounded-[12px] overflow-hidden shrink-0 border border-[rgba(255,255,255,0.06)] mx-auto">
-          {/* Video area - vertical aspect ratio */}
-          <div className="w-full aspect-[9/16] bg-gradient-to-b from-[#1a1a1a] to-[#0f0f0f] flex flex-col items-center justify-center gap-[8px] relative">
-            {/* AI sparkle icon */}
-            <div className="size-[40px] rounded-full bg-[rgba(75,86,242,0.15)] border border-[rgba(75,86,242,0.3)] flex items-center justify-center">
-              <AIGenerateIcon />
-            </div>
-            <p className="text-[#4B56F2] text-[10px] font-medium">AI-Generated Video</p>
-            <p className="text-[#a1a1aa] text-[8px] text-center px-[12px]">Will be generated from script and references</p>
-            {/* Duration badge */}
-            <div className="absolute bottom-[8px] right-[8px] bg-[rgba(0,0,0,0.7)] rounded-[4px] px-[6px] py-[2px]">
-              <span className="text-white text-[9px] font-medium">{fields.videoDuration || "60"}s</span>
-            </div>
-            {/* AI badge */}
-            <div className="absolute top-[8px] left-[8px] bg-[rgba(139,92,246,0.8)] rounded-[4px] px-[6px] py-[2px]">
-              <span className="text-white text-[9px] font-medium">AI</span>
-            </div>
-          </div>
-          {/* Script preview */}
-          <div className="p-[10px]">
-            {title && <p className="text-[#fafafa] text-[10px] font-bold leading-[14px] line-clamp-1 mb-[4px]">{title}</p>}
-            {bodyText && <p className="text-[#a1a1aa] text-[9px] leading-[13px] line-clamp-3">{bodyText}</p>}
           </div>
         </div>
       )}
@@ -1203,109 +1148,6 @@ function HighlightFields({ fields, setField, isApproved, selectedBrandKitName, s
       <TagsSection tags={fields.tags ?? []} onChange={(v) => setField("tags", v as any)} isApproved={isApproved} />
       <ResourcesSection linkValue={fields.sourceLink ?? ""} onLinkChange={(v) => setField("sourceLink", v)} isApproved={isApproved} selectedCount={fields.selectedResources?.length ?? 0} onOpenPicker={() => setShowResourcePicker(true)} />
       <ConfigurationSection category="highlight" fields={fields} setField={setField as any} isApproved={isApproved} selectedBrandKitName={selectedBrandKitName} setShowBrandKitPicker={setShowBrandKitPicker} selectedWriterProfileName={selectedWriterProfileName} setShowWriterProfilePicker={setShowWriterProfilePicker} />
-    </>
-  );
-}
-
-function QuoteCardFields({ fields, setField, isApproved, selectedBrandKitName, setShowBrandKitPicker, selectedWriterProfileName, setShowWriterProfilePicker }: {
-  fields: Record<string, any>;
-  setField: (k: string, v: string | string[]) => void;
-  isApproved?: boolean;
-  selectedBrandKitName: string;
-  setShowBrandKitPicker: (v: boolean) => void;
-  selectedWriterProfileName: string;
-  setShowWriterProfilePicker: (v: boolean) => void;
-}) {
-  return (
-    <>
-      <div className="flex flex-col items-start pt-[16px] shrink-0 w-full">
-        <FieldLabel>Title*</FieldLabel>
-        {isApproved ? (
-          <ReadOnlyText value={fields.title ?? ""} />
-        ) : (
-          <Input value={fields.title ?? ""} onChange={(v) => setField("title", v)} placeholder="Enter quote card title" />
-        )}
-      </div>
-
-      <PublishDateTimeRow
-        date={fields.date ?? ""} time={fields.time ?? "09:00"}
-        onDate={(v) => setField("date", v)} onTime={(v) => setField("time", v)}
-        isApproved={isApproved}
-      />
-
-      <div className="flex flex-col items-start pt-[20px] shrink-0 w-full">
-        <FieldLabel>Quote Text</FieldLabel>
-        {isApproved ? (
-          <ReadOnlyText value={fields.quoteText ?? ""} />
-        ) : (
-          <Textarea
-            value={fields.quoteText ?? ""}
-            onChange={(v) => setField("quoteText", v)}
-            placeholder="Enter the quote to display on the card..."
-            minRows={4}
-          />
-        )}
-      </div>
-
-      <div className="flex flex-col items-start pt-[16px] shrink-0 w-full">
-        <FieldLabel>Author Attribution</FieldLabel>
-        {isApproved ? (
-          <ReadOnlyText value={fields.author ?? ""} />
-        ) : (
-          <Input value={fields.author ?? ""} onChange={(v) => setField("author", v)} placeholder="e.g., Gurudev Shri Amritji" />
-        )}
-      </div>
-
-      <TagsSection tags={fields.tags ?? []} onChange={(v) => setField("tags", v as any)} isApproved={isApproved} />
-      <ConfigurationSection category="quote-card" fields={fields} setField={setField as any} isApproved={isApproved} selectedBrandKitName={selectedBrandKitName} setShowBrandKitPicker={setShowBrandKitPicker} selectedWriterProfileName={selectedWriterProfileName} setShowWriterProfilePicker={setShowWriterProfilePicker} />
-    </>
-  );
-}
-
-function AIVideoFields({ fields, setField, isApproved, selectedBrandKitName, setShowBrandKitPicker, selectedWriterProfileName, setShowWriterProfilePicker, setShowResourcePicker }: {
-  fields: Record<string, any>;
-  setField: (k: string, v: string | string[]) => void;
-  isApproved?: boolean;
-  selectedBrandKitName: string;
-  setShowBrandKitPicker: (v: boolean) => void;
-  selectedWriterProfileName: string;
-  setShowWriterProfilePicker: (v: boolean) => void;
-  setShowResourcePicker: (v: boolean) => void;
-}) {
-  return (
-    <>
-      <div className="flex flex-col items-start pt-[16px] shrink-0 w-full">
-        <FieldLabel>Title*</FieldLabel>
-        {isApproved ? (
-          <ReadOnlyText value={fields.title ?? ""} />
-        ) : (
-          <Input value={fields.title ?? ""} onChange={(v) => setField("title", v)} placeholder="Enter AI video title" />
-        )}
-      </div>
-
-      <PublishDateTimeRow
-        date={fields.date ?? ""} time={fields.time ?? "09:00"}
-        onDate={(v) => setField("date", v)} onTime={(v) => setField("time", v)}
-        isApproved={isApproved}
-      />
-
-      <div className="flex flex-col items-start pt-[20px] shrink-0 w-full">
-        <FieldLabel>Script / Prompt</FieldLabel>
-        {isApproved ? (
-          <ReadOnlyText value={fields.script ?? ""} />
-        ) : (
-          <Textarea
-            value={fields.script ?? ""}
-            onChange={(v) => setField("script", v)}
-            placeholder="Write the script or prompt for AI video generation..."
-            minRows={5}
-          />
-        )}
-      </div>
-
-      <TagsSection tags={fields.tags ?? []} onChange={(v) => setField("tags", v as any)} isApproved={isApproved} />
-      <ResourcesSection linkValue={fields.sourceLink ?? ""} onLinkChange={(v) => setField("sourceLink", v)} isApproved={isApproved} selectedCount={fields.selectedResources?.length ?? 0} onOpenPicker={() => setShowResourcePicker(true)} />
-      <ConfigurationSection category="ai-video" fields={fields} setField={setField as any} isApproved={isApproved} selectedBrandKitName={selectedBrandKitName} setShowBrandKitPicker={setShowBrandKitPicker} selectedWriterProfileName={selectedWriterProfileName} setShowWriterProfilePicker={setShowWriterProfilePicker} />
     </>
   );
 }
@@ -1667,11 +1509,112 @@ export function ContentEditModal({
           {/* Form panel (right, scrollable) */}
           <div className="flex-1 min-w-0 overflow-y-auto bg-[#0a0a0a]">
             <div className="flex flex-col items-start px-[24px] py-[16px] pb-[120px]">
+
+              {/* ── Generated Info ── */}
+              {(contentItem.topics?.length || contentItem.funnelStage || contentItem.draftPostContent) && (
+                <div className="w-full mb-[24px] bg-[#141414] border border-[rgba(255,255,255,0.06)] rounded-[12px] p-[16px]">
+                  <p className="font-bold text-[#fafafa] text-[13px] mb-[12px]">Generated Info</p>
+                  <div className="flex flex-wrap gap-[16px]">
+                    {/* Topics */}
+                    {contentItem.topics && contentItem.topics.length > 0 && (
+                      <div className="flex flex-col gap-[6px]">
+                        <span className="text-[#a1a1aa] text-[11px] font-medium">Topics</span>
+                        <div className="flex flex-wrap gap-[6px]">
+                          {contentItem.topics.map((t, i) => (
+                            <span
+                              key={i}
+                              className="bg-[rgba(75,86,242,0.12)] border border-[rgba(75,86,242,0.2)] text-[#4B56F2] text-[11px] font-medium px-[8px] py-[3px] rounded-[6px]"
+                            >
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Funnel Stage */}
+                    {contentItem.funnelStage && (() => {
+                      const stageMeta = FUNNEL_STAGE_META[contentItem.funnelStage!.toLowerCase()];
+                      const StageIcon = stageMeta?.icon;
+                      return (
+                        <div className="flex flex-col gap-[6px]">
+                          <span className="text-[#a1a1aa] text-[11px] font-medium">Funnel Stage</span>
+                          <div
+                            className="flex items-center gap-[5px] px-[8px] py-[3px] rounded-[6px] text-[11px] font-medium"
+                            style={{
+                              backgroundColor: `${stageMeta?.color || "#a1a1aa"}18`,
+                              color: stageMeta?.color || "#a1a1aa",
+                              border: `1px solid ${stageMeta?.color || "#a1a1aa"}30`,
+                            }}
+                          >
+                            {StageIcon && <StageIcon className="size-[14px]" />}
+                            <span>{stageMeta?.label || contentItem.funnelStage}</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {/* Content Type */}
+                    {(() => {
+                      const ctMeta = CONTENT_TYPE_META[contentItem.contentType.toLowerCase()];
+                      const CtIcon = ctMeta?.icon;
+                      if (!ctMeta) return null;
+                      return (
+                        <div className="flex flex-col gap-[6px]">
+                          <span className="text-[#a1a1aa] text-[11px] font-medium">Content Type</span>
+                          <div
+                            className="flex items-center gap-[5px] px-[8px] py-[3px] rounded-[6px] text-[11px] font-medium"
+                            style={{
+                              backgroundColor: `${ctMeta.color}18`,
+                              color: ctMeta.color,
+                              border: `1px solid ${ctMeta.color}30`,
+                            }}
+                          >
+                            {CtIcon && <CtIcon className="size-[14px]" />}
+                            <span>{ctMeta.label}</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {/* Platform */}
+                    {contentItem.platform && (() => {
+                      const platMeta = PLATFORM_META[contentItem.platform!.toLowerCase()];
+                      const PlatIcon = platMeta?.icon;
+                      return (
+                        <div className="flex flex-col gap-[6px]">
+                          <span className="text-[#a1a1aa] text-[11px] font-medium">Platform</span>
+                          <div
+                            className="flex items-center gap-[5px] px-[8px] py-[3px] rounded-[6px] text-[11px] font-medium"
+                            style={{
+                              backgroundColor: `${platMeta?.color || "#a1a1aa"}18`,
+                              color: platMeta?.color || "#a1a1aa",
+                              border: `1px solid ${platMeta?.color || "#a1a1aa"}30`,
+                            }}
+                          >
+                            {PlatIcon && <PlatIcon className="size-[14px]" />}
+                            <span>{platMeta?.label || contentItem.platform}</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+
+                  {/* Draft Post Content */}
+                  {contentItem.draftPostContent && (
+                    <div className="mt-[12px] pt-[12px] border-t border-[rgba(255,255,255,0.06)]">
+                      <span className="text-[#a1a1aa] text-[11px] font-medium block mb-[6px]">Draft Post Content</span>
+                      <p className="text-[#d4d4d8] text-[12px] leading-[18px] whitespace-pre-wrap">
+                        {contentItem.draftPostContent}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {category === "long-form" && <LongFormFields fields={fields} setField={setField} selectedBrandKitName={selectedBrandKitName} setShowBrandKitPicker={setShowBrandKitPicker} selectedWriterProfileName={selectedWriterProfileName} setShowWriterProfilePicker={setShowWriterProfilePicker} setShowResourcePicker={setShowResourcePicker} />}
               {category === "short-video" && <ShortVideoFields fields={fields} setField={setField} selectedBrandKitName={selectedBrandKitName} setShowBrandKitPicker={setShowBrandKitPicker} selectedWriterProfileName={selectedWriterProfileName} setShowWriterProfilePicker={setShowWriterProfilePicker} setShowResourcePicker={setShowResourcePicker} />}
               {category === "highlight" && <HighlightFields fields={fields} setField={setField} selectedBrandKitName={selectedBrandKitName} setShowBrandKitPicker={setShowBrandKitPicker} selectedWriterProfileName={selectedWriterProfileName} setShowWriterProfilePicker={setShowWriterProfilePicker} setShowResourcePicker={setShowResourcePicker} />}
-              {category === "quote-card" && <QuoteCardFields fields={fields} setField={setField} selectedBrandKitName={selectedBrandKitName} setShowBrandKitPicker={setShowBrandKitPicker} selectedWriterProfileName={selectedWriterProfileName} setShowWriterProfilePicker={setShowWriterProfilePicker} />}
-              {category === "ai-video" && <AIVideoFields fields={fields} setField={setField} selectedBrandKitName={selectedBrandKitName} setShowBrandKitPicker={setShowBrandKitPicker} selectedWriterProfileName={selectedWriterProfileName} setShowWriterProfilePicker={setShowWriterProfilePicker} setShowResourcePicker={setShowResourcePicker} />}
               {category === "other" && <OtherFields fields={fields} setField={setField} selectedBrandKitName={selectedBrandKitName} setShowBrandKitPicker={setShowBrandKitPicker} selectedWriterProfileName={selectedWriterProfileName} setShowWriterProfilePicker={setShowWriterProfilePicker} setShowResourcePicker={setShowResourcePicker} />}
 
               {/* ── Comments Section ── */}
