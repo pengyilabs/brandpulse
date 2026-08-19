@@ -1178,7 +1178,7 @@ if (currentStep === 2) return selectedLibraryItems.size > 0 || uploadedFile !== 
 {/* Add Resources button — opens the resource selection modal */}
                         <div>
                           <button
-                            onClick={() => { setLibraryDraft(new Set(selectedLibraryItems)); setShowLibraryModal(true); }}
+                            onClick={() => setShowLibraryModal(true)}
                             className="w-full flex items-center justify-between px-4 py-3 border-2 border-dashed border-border rounded-lg hover:border-primary/50 hover:bg-accent/30 transition-colors"
                           >
                             <div className="flex items-center gap-2 text-sm text-foreground font-medium">

@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { Search, X, Check, FileText, Video, Image as ImageIcon } from 'lucide-react';
-import { getResources, Resource } from '../../../lib/services/resources-service';
+import { Search, X, Check, FileText, Video, Image as ImageIcon, Upload, Loader2 } from 'lucide-react';
+import { getResources, uploadResource, Resource } from '../../../lib/services/resources-service';
 
 interface ResourcePickerProps {
   isOpen: boolean;
@@ -14,6 +14,8 @@ export function ResourcePicker({ isOpen, onClose, selectedIds, onSelect }: Resou
   const [resources, setResources] = useState<Resource[]>([]);
   const [search, setSearch] = useState('');
   const [localSelected, setLocalSelected] = useState<Set<string>>(new Set(selectedIds));
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -45,6 +47,22 @@ export function ResourcePicker({ isOpen, onClose, selectedIds, onSelect }: Resou
       case 'video': return Video;
       case 'image': return ImageIcon;
       default: return FileText;
+    }
+  };
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      await uploadResource(file);
+      const data = await getResources();
+      setResources(data);
+    } catch (err) {
+      console.error('Upload failed:', err);
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -99,6 +117,31 @@ export function ResourcePicker({ isOpen, onClose, selectedIds, onSelect }: Resou
               <p className="text-sm text-muted-foreground text-center py-4">No resources found</p>
             )}
           </div>
+
+          {/* Upload new resource */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            onChange={handleUpload}
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-dashed border-border rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-accent/30 transition-all disabled:opacity-50"
+          >
+            {uploading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Uploading...
+              </>
+            ) : (
+              <>
+                <Upload className="w-4 h-4" />
+                Upload New Resource
+              </>
+            )}
+          </button>
 
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
             <p className="text-sm text-muted-foreground">{localSelected.size} selected</p>
