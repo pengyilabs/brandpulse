@@ -3,20 +3,34 @@ import {
   X, Upload, Link as LinkIcon, FileText, Video, ImageIcon, LayoutGrid,
   Check, Sparkles, Music, Film, User, ChevronDown, Coins, Clock,
   Target, Layers, Hash, Feather, ArrowLeft, ChevronRight, Quote,
-  Wand2, Play, Scissors, Star, Folder, Plus, Minus, AlignLeft, Type, Zap,
+  Wand2, Play, Scissors, Star, Plus, Minus, AlignLeft, Type, Zap,
   Share2, Instagram, Facebook, Linkedin, Twitter, Youtube,
-  RefreshCw, Image, MessageCircle, Music2,
+  RefreshCw, Image, MessageCircle, Music2, FolderOpen,
 } from "lucide-react";
 import { clsx } from "clsx";
 import { WordCountRangeSelector } from "./word-count-range-selector";
+import { ResourcePicker } from "./resource-picker";
+import { type BrandKit } from "../../../lib/services/brand-kits-service";
+import { type WriterProfile } from "../../../lib/services/writer-profiles-service";
+
+// ─── Helper: build brand guidelines from a BrandKit ──────────────────────────
+
+function buildBrandGuidelines(kit: BrandKit): string {
+  const parts: string[] = [];
+  if (kit.tone_of_voice) parts.push(`Brand Voice: ${kit.tone_of_voice}`);
+  if (kit.colors && kit.colors.length > 0) parts.push(`Brand Colors: ${kit.colors.join(', ')}`);
+  if (kit.fonts && kit.fonts.length > 0) parts.push(`Brand Fonts: ${kit.fonts.join(', ')}`);
+  return parts.join('\n') || kit.tone_of_voice || '';
+}
 
 // ─── Campaign Preview Sub-component ──────────────────────────────────────────
 
-function CampaignPreviewCard({ preset }: { preset: { name: string; description: string; brandGuidelines: string; writerProfile: string; wordCountRange: [number, number] } }) {
+function CampaignPreviewCard({ preset }: { preset: { name: string; description: string | null; brandGuidelines?: string; writerProfile?: string; wordCountRange?: [number, number] } }) {
   const [instructionsExpanded, setInstructionsExpanded] = useState(false);
-  const wordCount = `${preset.wordCountRange[0]}–${preset.wordCountRange[1]} words`;
+  const wordCount = preset.wordCountRange ? `${preset.wordCountRange[0]}–${preset.wordCountRange[1]} words` : null;
   const maxChars = 120;
-  const full = preset.brandGuidelines;
+  const full = preset.brandGuidelines || '';
+  const hasGuidelines = full.length > 0;
   const isTruncatable = full.length > maxChars;
   const displayed = instructionsExpanded || !isTruncatable ? full : full.slice(0, maxChars).trimEnd() + "…";
 
@@ -25,41 +39,47 @@ function CampaignPreviewCard({ preset }: { preset: { name: string; description: 
       {/* Header: campaign name + badge */}
       <div className="flex items-center justify-between gap-2 px-4 pt-4 pb-2">
         <p className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-widest">{preset.name}</p>
-        <span className="px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 text-[10px] font-bold uppercase tracking-wider flex-shrink-0">
-          Will pre-fill
-        </span>
+        {preset.brandGuidelines && (
+          <span className="px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 text-[10px] font-bold uppercase tracking-wider flex-shrink-0">
+            Will pre-fill
+          </span>
+        )}
       </div>
 
       {/* Description — hero text */}
       <div className="px-4 pb-4">
         <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mb-1">Description</p>
-        <p className="text-lg font-bold text-foreground leading-snug">{preset.description}</p>
-        <p className="text-[10px] text-muted-foreground/50 mt-1.5 tabular-nums">{wordCount}</p>
+        <p className="text-lg font-bold text-foreground leading-snug">{preset.description || 'No description'}</p>
+        {wordCount && <p className="text-[10px] text-muted-foreground/50 mt-1.5 tabular-nums">{wordCount}</p>}
       </div>
 
-      <div className="border-t border-border/60 mx-4" />
+      {preset.writerProfile && (
+        <>
+          <div className="border-t border-border/60 mx-4" />
+          <div className="px-4 py-3">
+            <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mb-0.5">Writer Profile</p>
+            <p className="text-sm font-semibold text-foreground">{preset.writerProfile}</p>
+          </div>
+        </>
+      )}
 
-      {/* Writer profile */}
-      <div className="px-4 py-3">
-        <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mb-0.5">Writer Profile</p>
-        <p className="text-sm font-semibold text-foreground">{preset.writerProfile}</p>
-      </div>
-
-      <div className="border-t border-border/60 mx-4" />
-
-      {/* Instructions snippet with expand */}
-      <div className="px-4 py-3">
-        <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mb-1">Instructions</p>
-        <p className="text-xs text-muted-foreground leading-relaxed">{displayed}</p>
-        {isTruncatable && (
-          <button
-            onClick={() => setInstructionsExpanded(v => !v)}
-            className="mt-1 text-[10px] font-semibold text-primary/70 hover:text-primary transition-colors"
-          >
-            {instructionsExpanded ? "Show less" : "Show more"}
-          </button>
-        )}
-      </div>
+      {hasGuidelines && (
+        <>
+          <div className="border-t border-border/60 mx-4" />
+          <div className="px-4 py-3">
+            <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mb-1">Instructions</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">{displayed}</p>
+            {isTruncatable && (
+              <button
+                onClick={() => setInstructionsExpanded(v => !v)}
+                className="mt-1 text-[10px] font-semibold text-primary/70 hover:text-primary transition-colors"
+              >
+                {instructionsExpanded ? "Show less" : "Show more"}
+              </button>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -74,6 +94,10 @@ interface SmartContentCreationModalProps {
   defaultCampaign?: string;
   defaultFile?: File;
   campaigns?: { id: string; name: string; description: string | null }[];
+  brandKits?: BrandKit[];
+  writerProfiles?: WriterProfile[];
+  defaultBrandKitId?: string | null;
+  defaultWriterProfileId?: string | null;
 }
 
 type ContentTypeId = "wechat-article" | "short-video" | "social-post" | "carousel" | "quote-card" | "ai-video" | "live-clip";
@@ -236,19 +260,13 @@ const CONTENT_TYPES: ContentTypeDef[] = [
   },
 ];
 
-const WRITER_PROFILES = [
-  "Velocity Athletics Team",
-  "Brand Marketing Lead",
-  "Social Media Director",
-  "Content Strategist",
-];
-
-const WRITING_TONES = [
+// Fallback tones and levels used when no writer profiles are available
+const FALLBACK_TONES = [
   "Energetic", "Professional", "Motivational", "Bold",
   "Conversational", "Inspirational", "Authoritative", "Playful",
 ];
 
-const WRITING_LEVELS = ["Beginner", "Intermediate", "Advanced", "Expert"];
+const FALLBACK_LEVELS = ["Beginner", "Intermediate", "Advanced", "Expert"];
 
 const QUOTE_TEMPLATES = [
   "Minimal Dark",
@@ -261,22 +279,6 @@ const QUOTE_TEMPLATES = [
 
 const STEP_LABELS = ["How to Create", "Sources & Assets", "Content Type", "Review & Configure"];
 const CREDIT_BALANCE = 147;
-
-// Mock library assets
-// oneTimeUse: true → show "previously used" indicator (generated images, social graphics, quote cards)
-// oneTimeUse: false/absent → reusable by nature (brand guidelines, long-form videos, PDFs) → no indicator
-const LIBRARY_ASSETS = [
-  { id: 1,  name: "Brand Logo Pack.zip",                  type: "zip",   size: "2.4 MB",  oneTimeUse: false },
-  { id: 2,  name: "Summer Campaign Video.mp4",             type: "video", size: "124 MB",  oneTimeUse: false },
-  { id: 3,  name: "Brand Guidelines 2024.pdf",             type: "pdf",   size: "3.2 MB",  oneTimeUse: false },
-  { id: 4,  name: "Athlete Testimonials.docx",             type: "doc",   size: "156 KB",  oneTimeUse: false },
-  { id: 5,  name: "Velocity Flux Pulse Launch — Hero Graphic.png",     type: "image", size: "1.8 MB",  oneTimeUse: true,  usedCount: 4 },
-  { id: 6,  name: "Summer Drop — Quote Card #1.png",       type: "image", size: "540 KB",  oneTimeUse: true,  usedCount: 7 },
-  { id: 7,  name: "Athlete Portrait — Studio Cut.jpg",     type: "image", size: "2.2 MB",  oneTimeUse: true,  usedCount: 2 },
-  { id: 8,  name: "Community Story — Social Graphic.png",  type: "image", size: "890 KB",  oneTimeUse: true,  usedCount: 1 },
-  { id: 9,  name: "End-of-Season — Quote Card #2.png",     type: "image", size: "620 KB",  oneTimeUse: true,  usedCount: 0 },
-  { id: 10, name: "Brand Story Thumbnail.jpg",             type: "image", size: "1.1 MB",  oneTimeUse: true,  usedCount: 3 },
-];
 
 // ─── ProjectDefaultTag ────────────────────────────────────────────────────────
 
@@ -337,6 +339,7 @@ function BriefMeta({ items }: { items: Array<{ Icon: React.ElementType; text: st
 
 export function SmartContentCreationModal({
   isOpen, onClose, onComplete, contentType: initialType, defaultCampaign, defaultFile, campaigns = [],
+  brandKits = [], writerProfiles = [], defaultBrandKitId, defaultWriterProfileId,
 }: SmartContentCreationModalProps) {
   // ── Origin selection (Step 1) ──
   const [originMode, setOriginMode] = useState<"new" | "campaign">("new");
@@ -345,6 +348,27 @@ export function SmartContentCreationModal({
 // Use real campaigns from props if available, otherwise fall back to hardcoded presets
   // If we have real campaigns from the project, use those instead of showing fake presets
   const availableCampaigns = campaigns.length > 0 ? campaigns : CAMPAIGNS;
+
+  // ── Dynamic writer profile data (derived from props) ──────────────────────────
+  const writerProfileNames = writerProfiles.length > 0
+    ? writerProfiles.map(p => p.name)
+    : [];
+  const writingTones = (() => {
+    const tones = new Set<string>();
+    writerProfiles.forEach(p => { if (p.tone) tones.add(p.tone); });
+    if (tones.size === 0) {
+      FALLBACK_TONES.forEach(t => tones.add(t));
+    }
+    return Array.from(tones);
+  })();
+  const writingLevels = (() => {
+    const levels = new Set<string>();
+    writerProfiles.forEach(p => { if (p.level) levels.add(p.level); });
+    if (levels.size === 0) {
+      FALLBACK_LEVELS.forEach(l => levels.add(l));
+    }
+    return Array.from(levels);
+  })();
 
   // Steps: 1=Origin, 2=Sources & Assets, 3=Content Type, 4=Review & Configure
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
@@ -531,7 +555,7 @@ export function SmartContentCreationModal({
   const [selectedLibraryAssets, setSelectedLibraryAssets] = useState<Set<number>>(new Set());
   const [additionalFiles, setAdditionalFiles] = useState<File[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [showLibrarySource, setShowLibrarySource] = useState(false);
+  const [showResourcePicker, setShowResourcePicker] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const additionalFilesInputRef = useRef<HTMLInputElement>(null);
 
@@ -550,16 +574,6 @@ export function SmartContentCreationModal({
     if (file) setUploadedFile(file);
   }, []);
 
-  const toggleLibraryAsset = (id: number) => {
-    const newSet = new Set(selectedLibraryAssets);
-    if (newSet.has(id)) {
-      newSet.delete(id);
-    } else {
-      newSet.add(id);
-    }
-    setSelectedLibraryAssets(newSet);
-  };
-
   const applyPreset = (campaignId: string) => {
     const preset = availableCampaigns.find(c => c.id === campaignId);
     if (!preset) return;
@@ -573,28 +587,84 @@ export function SmartContentCreationModal({
       setWritingTone(p.writingTone);
       setWritingLevel(p.writingLevel);
       setWordCount(p.wordCountRange);
-      setTopic(p.topics.split(",")[0].trim());
+      setTopic((p.topics || '').split(",")[0].trim());
     } else {
-      // Real campaign — use PROJECT_DEFAULTS as fallback
-      setBrandGuidelines(PROJECT_DEFAULTS.brandGuidelines);
-      setTargetAudience(PROJECT_DEFAULTS.targetAudience);
-      setWriterProfile(PROJECT_DEFAULTS.writerProfile);
-      setWritingTone("");
-      setWritingLevel("");
-      setWordCount([1200, 1700]);
-      setTopic(preset.description || "");
+      // Real campaign — use the default brand kit and writer profile data
+      const defaultBrandKit = defaultBrandKitId
+        ? brandKits.find(k => k.id === defaultBrandKitId)
+        : brandKits[0];
+      const defaultWriterProfile = defaultWriterProfileId
+        ? writerProfiles.find(p => p.id === defaultWriterProfileId)
+        : writerProfiles[0];
+
+      if (defaultBrandKit) {
+        setBrandGuidelines(buildBrandGuidelines(defaultBrandKit));
+      } else {
+        setBrandGuidelines(PROJECT_DEFAULTS.brandGuidelines);
+      }
+      setTargetAudience(defaultWriterProfile?.audience || PROJECT_DEFAULTS.targetAudience);
+
+      if (defaultWriterProfile) {
+        setWriterProfile(defaultWriterProfile.name);
+        setWritingTone(defaultWriterProfile.tone || '');
+        setWritingLevel(defaultWriterProfile.level || '');
+        if (defaultWriterProfile.word_count) {
+          setWordCount([defaultWriterProfile.word_count, defaultWriterProfile.word_count + 500] as [number, number]);
+        } else {
+          setWordCount([1200, 1700]);
+        }
+        if (defaultWriterProfile.topics && defaultWriterProfile.topics.length > 0) {
+          setTopic(defaultWriterProfile.topics[0]);
+        } else {
+          setTopic(preset.description || "");
+        }
+      } else {
+        setWriterProfile('');
+        setWritingTone('');
+        setWritingLevel('');
+        setWordCount([1200, 1700]);
+        setTopic(preset.description || "");
+      }
     }
   };
 
   const clearPreset = () => {
-    setBrandGuidelines(PROJECT_DEFAULTS.brandGuidelines);
-    setTargetAudience(PROJECT_DEFAULTS.targetAudience);
-    setWriterProfile(PROJECT_DEFAULTS.writerProfile);
-    setWritingTone("");
-    setWritingLevel("");
-    setWordCount([1200, 1700]);
-    setTopic("");
-    setTitle("");
+    const defaultBrandKit = defaultBrandKitId
+      ? brandKits.find(k => k.id === defaultBrandKitId)
+      : brandKits[0];
+    const defaultWriterProfile = defaultWriterProfileId
+      ? writerProfiles.find(p => p.id === defaultWriterProfileId)
+      : writerProfiles[0];
+
+    if (defaultBrandKit) {
+      setBrandGuidelines(buildBrandGuidelines(defaultBrandKit));
+    } else {
+      setBrandGuidelines(PROJECT_DEFAULTS.brandGuidelines);
+    }
+    setTargetAudience(defaultWriterProfile?.audience || PROJECT_DEFAULTS.targetAudience);
+
+    if (defaultWriterProfile) {
+      setWriterProfile(defaultWriterProfile.name);
+      setWritingTone(defaultWriterProfile.tone || '');
+      setWritingLevel(defaultWriterProfile.level || '');
+      if (defaultWriterProfile.word_count) {
+        setWordCount([defaultWriterProfile.word_count, defaultWriterProfile.word_count + 500] as [number, number]);
+      } else {
+        setWordCount([1200, 1700]);
+      }
+      if (defaultWriterProfile.topics && defaultWriterProfile.topics.length > 0) {
+        setTopic(defaultWriterProfile.topics[0]);
+      } else {
+        setTopic('');
+      }
+    } else {
+      setWriterProfile(PROJECT_DEFAULTS.writerProfile);
+      setWritingTone('');
+      setWritingLevel('');
+      setWordCount([1200, 1700]);
+      setTopic('');
+    }
+    setTitle('');
   };
 
   // Reset modal state when opening
@@ -622,11 +692,43 @@ export function SmartContentCreationModal({
       "social-post": new Set(),
       "carousel": new Set(),
     });
-    clearPreset();
+    // Resolve default brand kit and writer profile from props
+    const defaultBrandKit = defaultBrandKitId
+      ? brandKits.find(k => k.id === defaultBrandKitId)
+      : brandKits[0];
+    const defaultWriterProfile = defaultWriterProfileId
+      ? writerProfiles.find(p => p.id === defaultWriterProfileId)
+      : writerProfiles[0];
+
+    if (defaultBrandKit) {
+      setBrandGuidelines(buildBrandGuidelines(defaultBrandKit));
+    } else {
+      setBrandGuidelines(PROJECT_DEFAULTS.brandGuidelines);
+    }
+    setTargetAudience(defaultWriterProfile?.audience || PROJECT_DEFAULTS.targetAudience);
+
+    if (defaultWriterProfile) {
+      setWriterProfile(defaultWriterProfile.name);
+      setWritingTone(defaultWriterProfile.tone || '');
+      setWritingLevel(defaultWriterProfile.level || '');
+      if (defaultWriterProfile.word_count) {
+        setWordCount([defaultWriterProfile.word_count, defaultWriterProfile.word_count + 500] as [number, number]);
+      }
+      if (defaultWriterProfile.topics && defaultWriterProfile.topics.length > 0) {
+        setTopic(defaultWriterProfile.topics[0]);
+      } else {
+        setTopic('');
+      }
+    } else {
+      setWriterProfile(PROJECT_DEFAULTS.writerProfile);
+      setWritingTone('');
+      setWritingLevel('');
+    }
+    setTitle('');
     setScheduleMode("immediate");
     setScheduleStart("");
     setScheduleEnd("");
-    setShowLibrarySource(false);
+    setShowResourcePicker(false);
 
     if (defaultCampaign) {
       const match = availableCampaigns.find(c => c.name === defaultCampaign);
@@ -645,7 +747,7 @@ export function SmartContentCreationModal({
 
   if (!isOpen) return null;
 
-  const writerProfileActive = writerProfile.trim().length > 0;
+  const writerProfileActive = (writerProfile || '').trim().length > 0;
   const voiceLabel = writerProfileActive ? writerProfile : writingTone;
 
   const canProceed = () => {
@@ -672,8 +774,6 @@ export function SmartContentCreationModal({
     } else if (step === 2) {
       setStep(3);
     } else if (step === 3) {
-      if (selectedType === "wechat-article") setWordCount([1200, 1700]);
-      else setWordCount([200, 300]);
       setStep(4);
     } else {
       // Step 4 — final step: create content
@@ -1037,16 +1137,11 @@ if (quantities[t.id] > 0 && t.id !== "wechat-article") {
                   <div className="flex-1 h-px bg-border" />
                 </div>
 
-                {/* Select from Library — integrated into Main Content Source */}
+                {/* Select from Library — opens ResourcePicker */}
                 <div>
                   <button
-                    onClick={() => setShowLibrarySource(v => !v)}
-                    className={clsx(
-                      "w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition-all text-left",
-                      showLibrarySource
-                        ? "border-primary/30 bg-primary/[0.03]"
-                        : "border-border hover:border-border/60 hover:bg-white/[0.01]"
-                    )}
+                    onClick={() => setShowResourcePicker(true)}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition-all text-left border-border hover:border-border/60 hover:bg-white/[0.01]"
                   >
                     <div className="w-8 h-8 rounded-lg bg-[#8B5CF6]/10 border border-[#8B5CF6]/20 flex items-center justify-center flex-shrink-0">
                       <FolderOpen className="w-4 h-4 text-[#8B5CF6]" />
@@ -1055,69 +1150,20 @@ if (quantities[t.id] > 0 && t.id !== "wechat-article") {
                       <div className="text-sm font-bold text-foreground">Select from Library</div>
                       <div className="text-xs text-muted-foreground">
                         {selectedLibraryAssets.size > 0
-                          ? `${selectedLibraryAssets.size} asset${selectedLibraryAssets.size !== 1 ? "s" : ""} selected`
+                          ? `${selectedLibraryAssets.size} resource${selectedLibraryAssets.size !== 1 ? "s" : ""} selected`
                           : "Choose existing resources from your library"}
                       </div>
                     </div>
-                    <ChevronDown className={clsx(
-                      "w-4 h-4 text-muted-foreground transition-transform duration-200",
-                      showLibrarySource && "rotate-180"
-                    )} />
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
                   </button>
-
-                  {showLibrarySource && (
-                    <div className="mt-2 rounded-xl border border-border overflow-hidden">
-                      <div className="max-h-[240px] overflow-y-auto">
-                        {LIBRARY_ASSETS.map((asset) => {
-                          const isSelected = selectedLibraryAssets.has(asset.id);
-                          const showUsed = asset.oneTimeUse && (asset.usedCount ?? 0) > 0;
-                          const AssetIcon = asset.type === "image" ? Image : Folder;
-                          return (
-                            <button
-                              key={asset.id}
-                              onClick={() => toggleLibraryAsset(asset.id)}
-                              className={clsx(
-                                "w-full flex items-center gap-3 px-4 py-3 border-b border-border last:border-b-0 transition-colors text-left",
-                                isSelected ? "bg-primary/5" : "hover:bg-white/[0.02]"
-                              )}
-                            >
-                              <div
-                                className={clsx(
-                                  "w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors",
-                                  isSelected ? "bg-primary border-primary" : "border-border"
-                                )}
-                              >
-                                {isSelected && <Check className="w-3 h-3 text-white" />}
-                              </div>
-                              <AssetIcon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-semibold text-foreground truncate">{asset.name}</p>
-                                <p className="text-xs text-muted-foreground">{asset.size}</p>
-                              </div>
-                              {showUsed && (
-                                <div className="relative flex-shrink-0 group/used">
-                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400/80 text-[9px] font-bold uppercase tracking-wide">
-                                    <RefreshCw className="w-2 h-2" />
-                                    Used
-                                  </span>
-                                  <div className="pointer-events-none absolute bottom-full right-0 mb-1.5 z-50 opacity-0 group-hover/used:opacity-100 transition-opacity duration-150">
-                                    <div className="bg-popover border border-border rounded-lg px-3 py-2 shadow-xl whitespace-nowrap">
-                                      <p className="text-xs font-semibold text-foreground">
-                                        Previously used in {asset.usedCount} content {asset.usedCount === 1 ? "item" : "items"}
-                                      </p>
-                                      <p className="text-[10px] text-muted-foreground mt-0.5">Reuse is allowed</p>
-                                    </div>
-                                    <div className="absolute right-2 top-full w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-border" />
-                                  </div>
-                                </div>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
                 </div>
+
+                <ResourcePicker
+                  isOpen={showResourcePicker}
+                  onClose={() => setShowResourcePicker(false)}
+                  selectedIds={Array.from(selectedLibraryAssets).map(String)}
+                  onSelect={(ids) => setSelectedLibraryAssets(new Set(ids.map(Number)))}
+                />
               </div>  {/* end Main Content Source */}
             </div>
           )}
@@ -1265,7 +1311,7 @@ if (quantities[t.id] > 0 && t.id !== "wechat-article") {
                   <div className="flex items-center gap-2 px-5 py-2.5">
                     <span className="w-3 h-3 rounded-full bg-primary/15 flex-shrink-0" />
                     <span className="text-[11px] text-muted-foreground/50">
-                      {brandGuidelines.trim() || "Load a brand kit to auto-fill guidelines, tone, and style"}
+                      {(brandGuidelines || '').trim() || "Load a brand kit to auto-fill guidelines, tone, and style"}
                     </span>
                   </div>
                 </div>
@@ -1312,6 +1358,30 @@ if (quantities[t.id] > 0 && t.id !== "wechat-article") {
                       placeholder="e.g., Summer collection launch and performance innovation"
                       className="w-full px-4 py-3 bg-secondary border border-border rounded-xl text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 transition-all"
                     />
+                    {/* Topic suggestions from writer profile */}
+                    {(() => {
+                      const selectedProfile = writerProfiles.find(p => p.name === writerProfile);
+                      if (!selectedProfile?.topics?.length) return null;
+                      return (
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          <span className="text-[10px] text-muted-foreground/50 self-center mr-1">Suggestions:</span>
+                          {selectedProfile.topics.map((t) => (
+                            <button
+                              key={t}
+                              onClick={() => setTopic(t)}
+                              className={clsx(
+                                "px-2.5 py-1 rounded-md text-[11px] font-medium border transition-colors",
+                                topic === t
+                                  ? "border-primary bg-primary/10 text-primary"
+                                  : "border-border bg-secondary text-muted-foreground hover:text-foreground hover:border-border/80"
+                              )}
+                            >
+                              {t}
+                            </button>
+                          ))}
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   {/* Writer Profile — for text-producing types */}
@@ -1322,12 +1392,31 @@ if (quantities[t.id] > 0 && t.id !== "wechat-article") {
                         <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                         <select
                           value={writerProfile}
-                          onChange={(e) => setWriterProfile(e.target.value)}
+                          onChange={(e) => {
+                            const name = e.target.value;
+                            setWriterProfile(name);
+                            if (name) {
+                              const profile = writerProfiles.find(p => p.name === name);
+                              if (profile) {
+                                setWritingTone(profile.tone || '');
+                                setWritingLevel(profile.level || '');
+                                if (profile.word_count) {
+                                  setWordCount([profile.word_count, profile.word_count + 500] as [number, number]);
+                                }
+                                if (profile.topics && profile.topics.length > 0) {
+                                  setTopic(profile.topics[0]);
+                                }
+                              }
+                            } else {
+                              setWritingTone('');
+                              setWritingLevel('');
+                            }
+                          }}
                           className="w-full pl-11 pr-10 py-3 bg-secondary border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 transition-all appearance-none"
                         >
                           <option value="">No writer profile — set tone manually</option>
-                          {WRITER_PROFILES.map((p) => (
-                            <option key={p} value={p}>{p}</option>
+                          {writerProfileNames.map((name) => (
+                            <option key={name} value={name}>{name}</option>
                           ))}
                         </select>
                         <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
@@ -1358,7 +1447,7 @@ if (quantities[t.id] > 0 && t.id !== "wechat-article") {
                             className="w-full pr-10 px-4 py-3 bg-secondary border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 transition-all appearance-none"
                           >
                             <option value="">Select tone...</option>
-                            {WRITING_TONES.map((t) => (
+                            {writingTones.map((t) => (
                               <option key={t} value={t}>{t}</option>
                             ))}
                           </select>
@@ -1374,7 +1463,7 @@ if (quantities[t.id] > 0 && t.id !== "wechat-article") {
                             className="w-full pr-10 px-4 py-3 bg-secondary border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 transition-all appearance-none"
                           >
                             <option value="">Select level...</option>
-                            {WRITING_LEVELS.map((l) => (
+                            {writingLevels.map((l) => (
                               <option key={l} value={l}>{l}</option>
                             ))}
                           </select>
