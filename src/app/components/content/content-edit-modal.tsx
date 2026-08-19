@@ -714,31 +714,7 @@ function ConfigurationSection({ category, fields, setField, selectedBrandKitName
           </div>
         </div>
 
-        {/* AI Image Generation */}
-        <div className="pt-[16px]">
-          <button
-            onClick={() => {
-              const prompt = buildImagePrompt({
-                platform: contentItem.platform || '',
-                topic: contentItem.topic,
-                style: fields.writingTone,
-              });
-              setImagePrompt(prompt);
-              setShowImagePrompt(true);
-            }}
-            disabled={isGeneratingImage}
-            className="w-full bg-[#1a1a1a] h-[46px] rounded-[12px] border border-[rgba(255,255,255,0.12)] flex items-center justify-center gap-[8px] hover:bg-[#262626] transition-colors disabled:opacity-50"
-          >
-            {isGeneratingImage ? (
-              <Loader2 className="size-[16px] text-[#4B56F2] animate-spin" />
-            ) : (
-              <ImageIcon className="size-[16px] text-[#4B56F2]" />
-            )}
-            <span className="text-[14px] font-medium text-[#fafafa]">
-              {isGeneratingImage ? 'Generating Image...' : 'Generate Image with AI'}
-            </span>
-          </button>
-        </div>
+        
       </div>
     </div>
   );
