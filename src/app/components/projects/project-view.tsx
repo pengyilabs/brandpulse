@@ -78,6 +78,18 @@ import {
   deleteContentItem as deleteContentItemService,
   type ContentItem as ServiceContentItem,
 } from "../../../lib/services/content-items-service";
+import {
+  getBrandKits,
+  type BrandKit,
+} from "../../../lib/services/brand-kits-service";
+import {
+  getWriterProfiles,
+  type WriterProfile,
+} from "../../../lib/services/writer-profiles-service";
+import {
+  getProject,
+  type Project,
+} from "../../../lib/services/projects-service";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -3363,6 +3375,9 @@ export function ProjectView() {
   const [itemsLoading, setItemsLoading] = useState(true);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [campaignsLoading, setCampaignsLoading] = useState(true);
+  const [brandKits, setBrandKits] = useState<BrandKit[]>([]);
+  const [writerProfiles, setWriterProfiles] = useState<WriterProfile[]>([]);
+  const [project, setProject] = useState<Project | null>(null);
   const [campaignToDelete, setCampaignToDelete] = useState<Campaign | null>(null);
   const [campaignToEdit, setCampaignToEdit] = useState<Campaign | null>(null);
   const [selectedItem, setSelectedItem] = useState<ContentItem | null>(null);
@@ -3442,6 +3457,26 @@ export function ProjectView() {
     loadContentItems();
     return () => { cancelled = true; };
   }, [projectId, campaigns]);
+
+  // Load project, brand kits, and writer profiles
+  useEffect(() => {
+    let cancelled = false;
+    async function loadData() {
+      if (!projectId) return;
+      const [proj, bk, wp] = await Promise.all([
+        getProject(projectId),
+        getBrandKits(),
+        getWriterProfiles(),
+      ]);
+      if (!cancelled) {
+        setProject(proj);
+        setBrandKits(bk);
+        setWriterProfiles(wp);
+      }
+    }
+    loadData();
+    return () => { cancelled = true; };
+  }, [projectId]);
 
   const handleFileDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -4423,7 +4458,7 @@ export function ProjectView() {
 
               const created = await createContentItemService(projectId, {
                 campaign_id: campaignId,
-                platform: group.platform || "general",
+                platform: group.platform || "wechat",
                 content_type: SERVICE_TYPE_MAP[group.typeId] || group.typeId || "social-post",
                 title,
                 description,
@@ -4446,6 +4481,10 @@ export function ProjectView() {
         contentType={selectedContentTypeForCreation}
         defaultFile={droppedFile ?? undefined}
         campaigns={campaigns}
+        brandKits={brandKits}
+        writerProfiles={writerProfiles}
+        defaultBrandKitId={project?.default_brand_kit_id ?? null}
+        defaultWriterProfileId={project?.default_writer_profile_id ?? null}
       />
 
       {/* ── Campaign launch modal ── */}

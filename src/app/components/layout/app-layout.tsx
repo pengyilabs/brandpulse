@@ -6,6 +6,9 @@ import { ProjectCreationModal } from '../projects/project-creation-modal';
 import { ContentReview } from '../content/content-review';
 import { AuditAssetProvider } from '../../data/audit-asset-store';
 import { useUIStore } from '../../stores/ui-store';
+import { getBrandKits, type BrandKit } from '../../../lib/services/brand-kits-service';
+import { getWriterProfiles, type WriterProfile } from '../../../lib/services/writer-profiles-service';
+import { useState, useEffect } from 'react';
 
 export function AppLayout() {
   const navigate = useNavigate();
@@ -20,6 +23,22 @@ export function AppLayout() {
     startReview,
     finalizeReview,
   } = useUIStore();
+
+  const [brandKits, setBrandKits] = useState<BrandKit[]>([]);
+  const [writerProfiles, setWriterProfiles] = useState<WriterProfile[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      const [bk, wp] = await Promise.all([getBrandKits(), getWriterProfiles()]);
+      if (!cancelled) {
+        setBrandKits(bk);
+        setWriterProfiles(wp);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, []);
 
   return (
     <AuditAssetProvider>
@@ -41,6 +60,8 @@ export function AppLayout() {
           onClose={closeContentModal}
           onComplete={(config: any) => startReview(config)}
           contentType={selectedContentType}
+          brandKits={brandKits}
+          writerProfiles={writerProfiles}
         />
 
         <ProjectCreationModal

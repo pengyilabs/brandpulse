@@ -38,6 +38,21 @@ export async function getProjects(): Promise<ProjectWithCounts[]> {
   }));
 }
 
+export async function getProject(id: string): Promise<Project | null> {
+  const { data, error } = await supabase
+    .from('projects')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error) {
+    console.error('Error fetching project:', error);
+    return null;
+  }
+
+  return data;
+}
+
 export async function createProject(
   name: string,
   description?: string
