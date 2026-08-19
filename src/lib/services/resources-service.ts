@@ -67,11 +67,12 @@ export async function uploadResource(
   else if (file.type.startsWith('video/')) type = 'video';
   else if (file.type === 'text/plain' || file.type === 'application/pdf') type = 'document';
 
-  // Upload file to Supabase Storage
-  const fileName = `${user.id}/${Date.now()}-${file.name}`;
+  // Sanitize filename for storage key (no spaces, no special chars)
+  const ext = file.name.lastIndexOf('.') > 0 ? file.name.slice(file.name.lastIndexOf('.')) : '';
+  const safeName = `${user.id}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}${ext}`;
   const { data: uploadData, error: uploadError } = await supabase.storage
     .from('resources')
-    .upload(fileName, file);
+    .upload(safeName, file);
 
   if (uploadError) {
     console.error('Error uploading file:', uploadError);
@@ -81,20 +82,18 @@ export async function uploadResource(
   // Get public URL
   const { data: urlData } = supabase.storage
     .from('resources')
-    .getPublicUrl(fileName);
+    .getPublicUrl(safeName);
 
   // Create resource record in database
   const { data, error } = await supabase
     .from('resources')
     .insert({
       user_id: user.id,
-      project_id: projectId,
       name: file.name,
       type,
       file_url: urlData.publicUrl,
       file_size: file.size,
-      mime_type: file.type,
-      description
+      mime_type: file.type
     })
     .select()
     .single();
@@ -102,7 +101,7 @@ export async function uploadResource(
   if (error) {
     console.error('Error creating resource record:', error);
     // Clean up uploaded file
-    await supabase.storage.from('resources').remove([fileName]);
+    await supabase.storage.from('resources').remove([safeName]);
     return null;
   }
 

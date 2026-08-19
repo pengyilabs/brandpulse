@@ -7,6 +7,8 @@ import {
 import { createProject, updateProject } from '../../../lib/services/projects-service';
 import { getWriterProfiles, createWriterProfile, WriterProfile } from '../../../lib/services/writer-profiles-service';
 import { getBrandKits, createBrandKit, BrandKit } from '../../../lib/services/brand-kits-service';
+import { ResourcePicker } from '../content/resource-picker';
+import { Resource as SupabaseResource, getResources } from '../../../lib/services/resources-service';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -42,6 +44,7 @@ interface FormData {
   topics: string[];
   // Step 6
   resources: Resource[];
+  selectedResourceIds: string[];
 }
 
 const INITIAL: FormData = {
@@ -52,7 +55,7 @@ const INITIAL: FormData = {
   brandDescription: '', referenceLinks: [''],
   longWriterProfile: '', longWritingTone: 'Professional', longWritingLevel: 'Professional', longWordCount: 2000, longNewProfileName: '',
   shortWriterProfile: '', shortWritingTone: 'Casual', shortWritingLevel: 'Conversational', shortWordCount: 200, shortNewProfileName: '',
-  topics: [], resources: [],
+  topics: [], resources: [], selectedResourceIds: [],
 };
 
 const STEPS = [
@@ -82,6 +85,7 @@ export function ProjectCreationModal({ isOpen, onClose, onComplete }: ProjectCre
   const [submitting, setSubmitting] = useState(false);
   const submittingRef = useRef(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [showResourcePicker, setShowResourcePicker] = useState(false);
 
   // Writer profiles fetched from DB
   const [writerProfiles, setWriterProfiles] = useState<WriterProfile[]>([]);
@@ -297,7 +301,77 @@ export function ProjectCreationModal({ isOpen, onClose, onComplete }: ProjectCre
                 removeTopic={removeTopic}
               />
             )}
-            {step === 6 && <Step6 data={data} update={update} fileInputRef={fileInputRef} />}
+            {step === 6 && (
+              <div className="space-y-4">
+                <InfoNote>
+                  Select existing resources or upload new ones. They&apos;ll be available when creating campaigns and content.
+                </InfoNote>
+
+                {/* Open ResourcePicker button */}
+                <button
+                  onClick={() => setShowResourcePicker(true)}
+                  className="w-full flex items-center justify-between px-4 py-3 border-2 border-dashed border-border rounded-lg hover:border-primary/50 hover:bg-accent/30 transition-colors"
+                >
+                  <div className="flex items-center gap-2 text-sm text-foreground font-medium">
+                    <Folder className="w-4 h-4 text-muted-foreground" />
+                    Browse Resources
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {data.selectedResourceIds.length > 0 ? `${data.selectedResourceIds.length} selected` : 'None selected'}
+                  </span>
+                </button>
+
+                {/* Drop zone for local uploads */}
+                <div
+                  onDragOver={e => { e.preventDefault(); }}
+                  onDrop={e => {
+                    e.preventDefault();
+                    const files = Array.from(e.dataTransfer.files);
+                    const newRes = files.map(f => ({ name: f.name, type: f.type || 'unknown' }));
+                    update({ resources: [...data.resources, ...newRes] });
+                  }}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex flex-col items-center justify-center gap-3 p-6 border-2 border-dashed rounded-xl cursor-pointer transition-all border-border hover:border-primary/40 hover:bg-secondary/30"
+                >
+                  <Upload className="w-5 h-5 text-muted-foreground" />
+                  <div className="text-center">
+                    <p className="text-sm font-medium text-foreground">Upload new files</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Images, videos, PDFs, documents</p>
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    accept="image/*,video/*,.pdf,.doc,.docx"
+                    className="hidden"
+                    onChange={e => {
+                      const files = Array.from(e.target.files ?? []);
+                      const newRes = files.map(f => ({ name: f.name, type: f.type || 'unknown' }));
+                      update({ resources: [...data.resources, ...newRes] });
+                    }}
+                  />
+                </div>
+
+                {/* Uploaded files */}
+                {data.resources.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-foreground mb-2">{data.resources.length} file{data.resources.length !== 1 ? 's' : ''} uploaded</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {data.resources.map((r, i) => (
+                        <div key={i} className="flex items-center gap-1.5 px-2.5 py-1.5 bg-secondary border border-border rounded-lg text-xs text-foreground">
+                          <Folder className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                          <span className="max-w-[160px] truncate">{r.name}</span>
+                          <button
+                            onClick={e => { e.stopPropagation(); update({ resources: data.resources.filter((_, idx) => idx !== i) }); }}
+                            className="text-muted-foreground hover:text-destructive ml-0.5 transition-colors"
+                          >×</button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Footer */}
@@ -338,6 +412,14 @@ export function ProjectCreationModal({ isOpen, onClose, onComplete }: ProjectCre
           </div>
         </div>
       </div>
+
+      {/* ResourcePicker Modal */}
+      <ResourcePicker
+        isOpen={showResourcePicker}
+        onClose={() => setShowResourcePicker(false)}
+        selectedIds={data.selectedResourceIds}
+        onSelect={(ids) => update({ selectedResourceIds: ids })}
+      />
     </div>
   );
 }
@@ -956,87 +1038,5 @@ function Step5({ topics, topicInput, setTopicInput, addTopic, addTopicSuggestion
   );
 }
 
-// ── Step 6: Resources ─────────────────────────────────────────────────────────
 
-function Step6({ data, update, fileInputRef }: {
-  data: FormData;
-  update: (p: Partial<FormData>) => void;
-  fileInputRef: { current: HTMLInputElement | null };
-}) {
-  const [dragOver, setDragOver] = useState(false);
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-    const files = Array.from(e.dataTransfer.files);
-    const newRes = files.map(f => ({ name: f.name, type: f.type || 'unknown' }));
-    update({ resources: [...data.resources, ...newRes] });
-  };
-
-  const handleFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
-    const newRes = files.map(f => ({ name: f.name, type: f.type || 'unknown' }));
-    update({ resources: [...data.resources, ...newRes] });
-  };
-
-  const removeResource = (i: number) =>
-    update({ resources: data.resources.filter((_, idx) => idx !== i) });
-
-  return (
-    <div className="space-y-5">
-      <InfoNote>
-        These resources will be available when creating campaigns and content. You can add more resources later.
-      </InfoNote>
-
-      {/* Drop Zone */}
-      <div
-        onDragOver={e => { e.preventDefault(); setDragOver(true); }}
-        onDragLeave={() => setDragOver(false)}
-        onDrop={handleDrop}
-        onClick={() => fileInputRef.current?.click()}
-        className={`flex flex-col items-center justify-center gap-3 p-10 border-2 border-dashed rounded-2xl cursor-pointer transition-all ${
-          dragOver
-            ? 'border-primary bg-primary/5'
-            : 'border-border hover:border-primary/40 hover:bg-secondary/30'
-        }`}
-      >
-        <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center">
-          <Upload className="w-5 h-5 text-muted-foreground" />
-        </div>
-        <div className="text-center">
-          <p className="text-sm font-medium text-foreground">Drop files here or click to upload</p>
-          <p className="text-sm text-muted-foreground mt-1">Images, videos, PDFs, documents, links</p>
-        </div>
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          accept="image/*,video/*,.pdf,.doc,.docx"
-          className="hidden"
-          onChange={handleFiles}
-        />
-      </div>
-
-      {/* Uploaded Files */}
-      {data.resources.length > 0 && (
-        <div>
-          <p className="text-sm font-semibold text-foreground mb-2">{data.resources.length} file{data.resources.length !== 1 ? 's' : ''} uploaded</p>
-          <div className="grid grid-cols-3 gap-2">
-            {data.resources.map((r, i) => (
-              <div key={i} className="group relative flex flex-col items-center gap-1.5 p-3 bg-secondary border border-border rounded-xl">
-                <Folder className="w-6 h-6 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground truncate w-full text-center">{r.name}</p>
-                <button
-                  onClick={() => removeResource(i)}
-                  className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 p-0.5 rounded text-muted-foreground hover:text-destructive transition-all"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}

@@ -4483,7 +4483,7 @@ export function ProjectView() {
                 for (const sched of config.scheduledItems as any[]) {
                   const serviceItem = await createContentItemService(projectId, {
                     campaign_id: created.id,
-                    platform: sched.platform || "general",
+                    platform: sched.platform || "wechat",
                     content_type: sched.typeId || "social-post",
                     title: sched.topic?.slice(0, 80) || null,
                     description: sched.topic || null,
