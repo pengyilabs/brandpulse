@@ -48,8 +48,8 @@ export function AppLayout() {
           onClose={closeProjectModal}
           onComplete={(project: any) => {
             closeProjectModal();
-            // Refresh the projects page by navigating to it
-            navigate('/projects', { replace: true });
+            // Navigate to the new project page
+            navigate(`/projects/${project.id}`, { replace: true });
           }}
         />
       </div>

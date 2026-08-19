@@ -5,10 +5,9 @@ import {
 Calendar, Target, ArrowLeft, Quote, Scissors,
   Wand2, Plus, Minus, Lightbulb, Users, ShoppingCart,
   AlertCircle, Zap, Layers, Cloud, Archive, HardDrive,
-  MessageCircle, Music2, Share2, Play, Bookmark,
+  MessageCircle, Music2, Share2, Play, Bookmark, Loader2,
 } from "lucide-react";
 import { clsx } from "clsx";
-import { createContentItem } from '../../../lib/services/content-items-service';
 import { ResourcePicker } from '../content/resource-picker';
 import { Resource, getResources } from '../../../lib/services/resources-service';
 
@@ -75,22 +74,25 @@ const CONTENT_TYPES: ContentTypeDef[] = [
 const FUNNEL_STAGES = [
   {
     id: "awareness" as FunnelStage,
-    label: "Awareness",
-    sublabel: "Top of Funnel",
+    label: "Attract",
+    sublabel: "Reach new audiences",
+    description: "Content that grabs attention and builds brand visibility. Good for cold audiences — broad appeal, entertaining or educational.",
     color: "#3B82F6",
     Icon: Lightbulb,
   },
   {
     id: "consideration" as FunnelStage,
-    label: "Consideration",
-    sublabel: "Middle of Funnel",
+    label: "Engage",
+    sublabel: "Nurture & build trust",
+    description: "Content that deepens relationships with your existing audience. Good for warm audiences — value-driven, community-building.",
     color: "#F59E0B",
     Icon: Users,
   },
   {
     id: "conversion" as FunnelStage,
-    label: "Conversion",
-    sublabel: "Bottom of Funnel",
+    label: "Convert",
+    sublabel: "Drive sales & actions",
+    description: "Content that directly encourages purchases, signups or other actions. Good for hot audiences — offers, demos, testimonials.",
     color: "#4B56F2",
     Icon: ShoppingCart,
   },
@@ -241,12 +243,14 @@ function CalendarGrid({
   startDate,
   endDate,
   scheduledItems,
-  onItemEdit
+  onItemEdit,
+  currentStep,
 }: {
   startDate: string;
   endDate: string;
   scheduledItems: ScheduledItem[];
   onItemEdit: (itemId: number, updates: { typeId?: ContentTypeId; funnelStage?: FunnelStage }) => void;
+  currentStep: number;
 }) {
   const [editingItemId, setEditingItemId] = useState<number | null>(null);
   const [popoverPosition, setPopoverPosition] = useState<{ x: number; y: number } | null>(null);
@@ -306,82 +310,158 @@ function CalendarGrid({
           ))}
         </div>
 
-        {/* Calendar grid — stretches to fill remaining height */}
-        <div className="grid grid-cols-7 flex-1" style={{ gridTemplateRows: `repeat(${numRows}, 1fr)` }}>
-        {calendarDays.map((day, idx) => {
-          if (day === null) {
-            return <div key={`empty-${idx}`} className="border-r border-b border-border bg-muted/[0.025]" />;
-          }
-
-          const dateStr = formatDate(day);
-          const dayItems = itemsByDate[dateStr] || [];
-          const inRange = isInRange(day);
-          const today = new Date();
-          const isToday = day.getDate() === today.getDate() &&
-                         day.getMonth() === today.getMonth() &&
-                         day.getFullYear() === today.getFullYear();
-
+        {/* Funnel stage summary bar */}
+        {(() => {
+          const total = scheduledItems.length;
+          if (total === 0) return null;
+          const stageCounts = FUNNEL_STAGES.map(s => ({
+            s,
+            count: scheduledItems.filter(i => i.funnelStage === s.id).length,
+          }));
           return (
-            <div
-              key={dateStr}
-              className={clsx(
-                "border-r border-b border-border p-1.5 flex flex-col min-h-0",
-                !inRange && "opacity-40",
-                isToday && "bg-primary/[0.08] ring-1 ring-inset ring-primary/30"
-              )}
-            >
-              <div className="flex justify-end mb-1 flex-shrink-0">
-                <span
-                  className={clsx(
-                    "w-6 h-6 flex items-center justify-center rounded-full font-semibold leading-none",
-                    isToday ? "bg-primary text-primary-foreground" : "text-muted-foreground"
-                  )}
-                  style={{ fontSize: 13 }}
-                >
-                  {day.getDate()}
-                </span>
-              </div>
-              <div className="flex flex-col gap-1 overflow-hidden flex-1">
-                {dayItems.slice(0, 2).map((item) => {
-                  const type = CONTENT_TYPES.find(t => t.id === item.typeId);
-                  if (!type) return null;
-                  const Icon = type.Icon;
-                  const stage = FUNNEL_STAGES.find(s => s.id === item.funnelStage);
-
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (editingItemId === item.id) {
-                          setEditingItemId(null);
-                          setPopoverPosition(null);
-                        } else {
-                          const rect = e.currentTarget.getBoundingClientRect();
-                          setPopoverPosition({ x: rect.left, y: rect.bottom + 4 });
-                          setEditingItemId(item.id);
-                        }
-                      }}
-                      className="w-full flex items-center gap-1 px-1.5 py-1 rounded truncate hover:opacity-80 transition-opacity group"
-                      style={{ backgroundColor: `${type.color}1A`, borderLeft: `2px solid ${type.color}` }}
-                    >
-                      <Icon className="w-3 h-3 flex-shrink-0" style={{ color: type.color }} />
-                      <span className="text-foreground font-medium truncate flex-1 text-left" style={{ fontSize: 13 }}>{item.topic}</span>
-                      {stage ? (
-                        <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: stage.color }} title={stage.label} />
-                      ) : (
-                        <span className="w-2 h-2 rounded-full flex-shrink-0 border border-dashed border-muted-foreground/40 opacity-0 group-hover:opacity-100 transition-opacity" title="Click to assign funnel stage" />
-                      )}
-                    </button>
-                  );
-                })}
-                {dayItems.length > 2 && (
-                  <span className="text-muted-foreground px-1.5" style={{ fontSize: 13 }}>+{dayItems.length - 2} more</span>
-                )}
-              </div>
+            <div className="flex items-center gap-3 px-3 py-2 border-b border-border bg-secondary/20 flex-shrink-0">
+              {stageCounts.map(({ s, count }) => {
+                const Icon = s.Icon;
+                return (
+                  <div key={s.id} className="flex items-center gap-1.5" style={{ fontSize: 12 }}>
+                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: s.color }} />
+                    <Icon className="w-3 h-3 flex-shrink-0" style={{ color: s.color }} />
+                    <span className="font-medium text-foreground">{s.label}</span>
+                    <span className="font-bold tabular-nums" style={{ color: s.color }}>{count}</span>
+                  </div>
+                );
+              })}
             </div>
           );
-        })}
+        })()}
+
+        {/* Calendar body — scrollable, grouped by month */}
+        <div className="flex-1 overflow-y-auto">
+          {(() => {
+            // Group days by month
+            const months: { label: string; days: (Date | null)[] }[] = [];
+            let currentMonthDays: (Date | null)[] = [];
+
+            calendarDays.forEach((day) => {
+              const month = day ? day.getMonth() : (currentMonthDays.length > 0 ? currentMonthDays[currentMonthDays.length - 1]?.getMonth?.() ?? -1 : -1);
+              if (currentMonthDays.length > 0) {
+                const firstReal = currentMonthDays.find(d => d !== null) as Date | undefined;
+                const prevMonth = firstReal ? firstReal.getMonth() : -1;
+                if (month !== prevMonth) {
+                  if (firstReal) {
+                    months.push({
+                      label: firstReal.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+                      days: currentMonthDays
+                    });
+                  }
+                  currentMonthDays = [];
+                }
+              }
+              currentMonthDays.push(day);
+            });
+            if (currentMonthDays.length > 0) {
+              const firstReal = currentMonthDays.find(d => d !== null) as Date | undefined;
+              if (firstReal) {
+                months.push({
+                  label: firstReal.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+                  days: currentMonthDays
+                });
+              }
+            }
+
+            return months.map((month, mi) => (
+              <div key={mi}>
+                {months.length > 1 && (
+                  <div className="px-3 py-2 bg-secondary/30 border-b border-border flex-shrink-0">
+                    <span className="text-sm font-bold text-foreground">{month.label}</span>
+                  </div>
+                )}
+                <div className="grid grid-cols-7">
+                  {month.days.map((day, idx) => {
+                    if (day === null) {
+                      return <div key={`empty-${mi}-${idx}`} className="border-r border-b border-border bg-muted/[0.025] min-h-[80px]" />;
+                    }
+
+                    const dateStr = formatDate(day);
+                    const dayItems = itemsByDate[dateStr] || [];
+                    const inRange = isInRange(day);
+                    const today = new Date();
+                    const isToday = day.getDate() === today.getDate() &&
+                                   day.getMonth() === today.getMonth() &&
+                                   day.getFullYear() === today.getFullYear();
+
+                    return (
+                      <div
+                        key={dateStr}
+                        className={clsx(
+                          "border-r border-b border-border p-1.5 flex flex-col min-h-[80px]",
+                          !inRange && "opacity-40",
+                          inRange && "bg-primary/5",
+                          isToday && "bg-primary/[0.08] ring-1 ring-inset ring-primary/30"
+                        )}
+                      >
+                        <div className="flex justify-end mb-1 flex-shrink-0">
+                          <span
+                            className={clsx(
+                              "w-6 h-6 flex items-center justify-center rounded-full font-semibold leading-none",
+                              isToday ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+                            )}
+                            style={{ fontSize: 13 }}
+                          >
+                            {day.getDate()}
+                          </span>
+                        </div>
+                        <div className="flex flex-col gap-1 overflow-y-auto flex-1">
+                          {dayItems.map((item) => {
+                            const type = CONTENT_TYPES.find(t => t.id === item.typeId);
+                            if (!type) return null;
+                            const Icon = type.Icon;
+                            const stage = FUNNEL_STAGES.find(s => s.id === item.funnelStage);
+
+                            return (
+                              <button
+                                key={item.id}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (editingItemId === item.id) {
+                                    setEditingItemId(null);
+                                    setPopoverPosition(null);
+                                  } else {
+                                    const rect = e.currentTarget.getBoundingClientRect();
+                                    setPopoverPosition({ x: rect.left, y: rect.bottom + 4 });
+                                    setEditingItemId(item.id);
+                                  }
+                                }}
+                                className="w-full flex items-center gap-1 px-1.5 py-1 rounded truncate hover:opacity-80 transition-opacity group flex-shrink-0"
+                                style={{
+                                  transition: 'background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease',
+                                  ...(currentStep === 4 && stage
+                                    ? { backgroundColor: `${stage.color}1A`, borderLeft: `2px solid ${stage.color}` }
+                                    : { backgroundColor: `${type.color}1A`, borderLeft: `2px solid ${type.color}` }),
+                                }}
+                              >
+                                <Icon className="w-3 h-3 flex-shrink-0" style={{ transition: 'color 0.3s ease', color: currentStep === 4 && stage ? stage.color : type.color }} />
+                                <span className="text-foreground font-medium truncate flex-1 text-left" style={{ fontSize: 13 }}>{item.topic}</span>
+                                <span
+                                  className="w-2 h-2 rounded-full flex-shrink-0"
+                                  style={
+                                    stage
+                                      ? { backgroundColor: stage.color }
+                                      : { border: '1px dashed rgba(255,255,255,0.15)' }
+                                  }
+                                  title={stage ? stage.label : 'Click to assign funnel stage'}
+                                />
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ));
+          })()}
         </div>
       </div>
 
@@ -564,16 +644,16 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
 
   // Step 3 - Content Type Mix
   const [contentTypeCounts, setContentTypeCounts] = useState<Record<ContentTypeId, number>>({
-    "wechat-article": 1,
-    "short-video": 4,
-    "social-post": 3,
+    "wechat-article": 0,
+    "short-video": 0,
+    "social-post": 0,
     "carousel": 0,
   });
   const [platformsByType, setPlatformsByType] = useState<Record<ContentTypeId, Set<SocialPlatformId>>>({
     "wechat-article": new Set(["wechat"]),
-    "short-video": new Set(["douyin", "xiaohongshu", "bilibili", "weibo", "wechat"]),
-    "social-post": new Set(["wechat", "weibo", "xiaohongshu", "douyin", "bilibili"]),
-    "carousel": new Set(["xiaohongshu", "wechat", "weibo"]),
+    "short-video": new Set(["douyin"]),
+    "social-post": new Set(["wechat"]),
+    "carousel": new Set(["xiaohongshu"]),
   });
 
   const togglePlatformForType = (typeId: ContentTypeId, platformId: SocialPlatformId) => {
@@ -610,6 +690,7 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
 
   // Summary modal
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const [creating, setCreating] = useState(false);
 
   const applyDuplicate = (campaign: PreviousCampaign) => {
     setSelectedDuplicate(campaign);
@@ -1332,50 +1413,44 @@ if (currentStep === 2) return selectedLibraryItems.size > 0 || uploadedFile !== 
                     {/* Step 4: Funnel Stage */}
                     {stepItem.id === 4 && (
                       <div className="space-y-4">
-                        <p className="text-sm text-muted-foreground">Set the distribution across funnel stages. Items are auto-assigned — you can also adjust individually in the calendar.</p>
+                        <p className="text-sm text-muted-foreground">
+                          Each content item has a purpose. Choose how many items go to each stage —
+                          this affects AI generation and is visible on the calendar.
+                        </p>
 
-                        {/* Percentage sliders */}
-                        <div className="space-y-3">
+                        {/* Stage cards: simple, no sliders */}
+                        <div className="space-y-2">
                           {FUNNEL_STAGES.map((stage) => {
                             const Icon = stage.Icon;
                             const key = stage.id as keyof typeof funnelPct;
                             const pct = funnelPct[key];
                             const count = Math.round((pct / 100) * scheduledItems.length);
                             return (
-                              <div key={stage.id} className="space-y-1.5">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <Icon className="w-3.5 h-3.5" style={{ color: stage.color }} />
-                                    <span className="text-sm font-medium text-foreground">{stage.label}</span>
-                                    <span className="text-xs text-muted-foreground">{stage.sublabel}</span>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-xs text-muted-foreground tabular-nums">{count} items</span>
-                                    <div className="flex items-center gap-1 bg-background border border-border rounded-lg overflow-hidden">
-                                      <button
-                                        onClick={() => updateFunnelPct(key, pct - 5)}
-                                        className="px-2 py-1 text-muted-foreground hover:text-foreground hover:bg-accent transition-colors text-sm"
-                                      >−</button>
-                                      <span className="text-sm font-bold tabular-nums w-10 text-center" style={{ color: stage.color }}>{pct}%</span>
-                                      <button
-                                        onClick={() => updateFunnelPct(key, pct + 5)}
-                                        className="px-2 py-1 text-muted-foreground hover:text-foreground hover:bg-accent transition-colors text-sm"
-                                      >+</button>
-                                    </div>
-                                  </div>
+                              <div key={stage.id} className="flex items-center gap-3 p-3 rounded-xl border border-border bg-secondary/20 hover:bg-secondary/30 transition-colors">
+                                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${stage.color}18`, border: `1px solid ${stage.color}30` }}>
+                                  <Icon className="w-4 h-4" style={{ color: stage.color }} />
                                 </div>
-                                <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                                  <div
-                                    className="h-full rounded-full transition-all duration-300"
-                                    style={{ width: `${pct}%`, backgroundColor: stage.color }}
-                                  />
+                                <div className="flex-1 min-w-0">
+                                  <span className="text-sm font-bold text-foreground">{stage.label}</span>
+                                  <span className="text-xs text-muted-foreground ml-1.5">{stage.sublabel}</span>
                                 </div>
+                                <div className="flex items-center gap-1.5 bg-background border border-border rounded-lg px-2 py-1">
+                                  <button
+                                    onClick={() => updateFunnelPct(key, pct - 5)}
+                                    className="text-muted-foreground hover:text-foreground transition-colors text-sm"
+                                  >−</button>
+                                  <span className="text-sm font-bold tabular-nums w-10 text-center" style={{ color: stage.color }}>{pct}%</span>
+                                  <button
+                                    onClick={() => updateFunnelPct(key, pct + 5)}
+                                    className="text-muted-foreground hover:text-foreground transition-colors text-sm"
+                                  >+</button>
+                                </div>
+                                <span className="text-xs text-muted-foreground tabular-nums w-12 text-right">{count} items</span>
                               </div>
                             );
                           })}
                         </div>
 
-                        {/* Apply button */}
                         <button
                           onClick={() => applyFunnelPercentages(funnelPct, scheduledItems)}
                           className="w-full py-2 rounded-lg border border-primary/30 text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
@@ -1650,13 +1725,14 @@ if (currentStep === 2) return selectedLibraryItems.size > 0 || uploadedFile !== 
           })()}
         </div>
 
-        <div className="flex-1 overflow-hidden px-6 pb-6">
+        <div className="flex-1 overflow-y-auto px-6 pb-6">
           {effectiveDates.start && effectiveDates.end ? (
             <CalendarGrid
               startDate={effectiveDates.start}
               endDate={effectiveDates.end}
               scheduledItems={scheduledItems}
               onItemEdit={handleItemEdit}
+              currentStep={currentStep}
             />
           ) : (
             <div className="flex items-center justify-center h-full text-center">
@@ -1798,35 +1874,39 @@ if (currentStep === 2) return selectedLibraryItems.size > 0 || uploadedFile !== 
                 <div className="flex-1" />
                 <button
                   onClick={async () => {
+                    setCreating(true);
                     setShowReviewModal(false);
-                    onComplete({
-                      campaignName, startDate, endDate, uploadedFile, sourceUrl,
-                      contentTypeCounts,
-                      platformsByType: Object.fromEntries(
-                        Object.entries(platformsByType).map(([k, v]) => [k, Array.from(v)])
-                      ),
-                      funnelAssignments, funnelPct,
-                      selectedTopics: Array.from(selectedTopics),
-                      customTopics,
-                      totalItems, totalCredits,
-                      scheduledItems,
-                    });
-                    // Create content items for each scheduled item
-                    for (const item of scheduledItems) {
-                      await createContentItem(projectId, {
-                        platform: item.platform || '',
-                        content_type: item.typeId,
-                        scheduled_at: item.date,
-                        campaign_id: null,
-                        title: item.topic,
+                    try {
+                      await onComplete({
+                        campaignName, startDate, endDate, uploadedFile, sourceUrl,
+                        contentTypeCounts,
+                        platformsByType: Object.fromEntries(
+                          Object.entries(platformsByType).map(([k, v]) => [k, Array.from(v)])
+                        ),
+                        funnelAssignments, funnelPct,
+                        selectedTopics: Array.from(selectedTopics),
+                        customTopics,
+                        totalItems, totalCredits,
+                        scheduledItems,
                       });
+                    } finally {
+                      setCreating(false);
                     }
-                    onNavigateToCalendar?.();
                   }}
-                  className="flex items-center gap-2 px-6 py-2.5 bg-[#4B56F2] hover:bg-[#4B56F2]/90 text-white rounded-xl font-bold text-sm transition-colors"
+                  disabled={creating}
+                  className="flex items-center gap-2 px-6 py-2.5 bg-[#4B56F2] hover:bg-[#4B56F2]/90 text-white rounded-xl font-bold text-sm transition-colors disabled:opacity-50"
                 >
-                  <Flag className="w-4 h-4" />
-                  Create Campaign
+                  {creating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <Flag className="w-4 h-4" />
+                      Create Campaign
+                    </>
+                  )}
                 </button>
               </div>
             </div>
