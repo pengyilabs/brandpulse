@@ -9,6 +9,8 @@ Calendar, Target, ArrowLeft, Quote, Scissors,
 } from "lucide-react";
 import { clsx } from "clsx";
 import { createContentItem } from '../../../lib/services/content-items-service';
+import { ResourcePicker } from '../content/resource-picker';
+import { Resource, getResources } from '../../../lib/services/resources-service';
 
 // Social platforms
 type SocialPlatformId = "wechat" | "xiaohongshu" | "douyin" | "weibo" | "bilibili";
@@ -92,15 +94,6 @@ const FUNNEL_STAGES = [
     color: "#4B56F2",
     Icon: ShoppingCart,
   },
-];
-
-const PROJECT_LIBRARY = [
-  { id: "brand-logo", name: "Brand Logo Pack.zip", size: "2.4 MB", type: "zip" },
-  { id: "summer-video", name: "Summer Campaign Video.mp4", size: "124 MB", type: "mp4" },
-  { id: "product-photo", name: "Product Photography.pdf", size: "8.1 MB", type: "pdf" },
-  { id: "brand-guide", name: "Brand Guidelines 2026.pdf", size: "3.2 MB", type: "pdf" },
-  { id: "athlete-footage", name: "Athlete Footage Raw.mp4", size: "890 MB", type: "mp4" },
-  { id: "campaign-brief", name: "Campaign Brief Q3.docx", size: "540 KB", type: "docx" },
 ];
 
 const DRIVE_FILES = [
@@ -548,12 +541,20 @@ export function CampaignCreationFullView({ isOpen, onClose, onComplete, initialD
   const [sourceUrl, setSourceUrl] = useState("");
   const [selectedLibraryItems, setSelectedLibraryItems] = useState<Set<string>>(new Set());
   const [showLibraryModal, setShowLibraryModal] = useState(false);
-  const [libraryDraft, setLibraryDraft] = useState<Set<string>>(new Set());
-  // Mock resources for the selection modal
-  const [resources] = useState<{ id: string; name: string; size: string; type: string }[]>(
-    PROJECT_LIBRARY.map(item => ({ ...item }))
-  );
-  const resourceFileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedResources, setSelectedResources] = useState<Resource[]>([]);
+
+  // Load selected resource details when selection changes
+  useEffect(() => {
+    async function loadSelected() {
+      if (selectedLibraryItems.size === 0) {
+        setSelectedResources([]);
+        return;
+      }
+      const all = await getResources();
+      setSelectedResources(all.filter(r => selectedLibraryItems.has(r.id)));
+    }
+    loadSelected();
+  }, [selectedLibraryItems]);
   // Library tabs
   const [librarySource, setLibrarySource] = useState<LibrarySource>("library");
   const [selectedDriveFiles, setSelectedDriveFiles] = useState<Set<string>>(new Set());
@@ -1193,7 +1194,7 @@ if (currentStep === 2) return selectedLibraryItems.size > 0 || uploadedFile !== 
                         {/* Selected items chips */}
                         {selectedLibraryItems.size > 0 && (
                           <div className="flex flex-wrap gap-1.5">
-                            {PROJECT_LIBRARY.filter(i => selectedLibraryItems.has(i.id)).map(item => (
+                            {selectedResources.map(item => (
                               <div key={item.id} className="flex items-center gap-1 px-2 py-1 bg-background border border-border rounded-lg text-xs text-foreground">
                                 <FileText className="w-3 h-3 text-muted-foreground flex-shrink-0" />
                                 <span className="max-w-[130px] truncate">{item.name}</span>
@@ -1833,149 +1834,13 @@ if (currentStep === 2) return selectedLibraryItems.size > 0 || uploadedFile !== 
         );
       })()}
 
-      {/* Add Resources Modal — simplified resource selection dialog */}
-      {showLibraryModal && (
-        <div
-          className="fixed inset-0 z-[60] flex items-center justify-center p-4"
-          onClick={() => setShowLibraryModal(false)}
-        >
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
-          <div
-            className="relative bg-card border border-border rounded-2xl shadow-2xl w-full max-w-[600px] max-h-[90vh] flex flex-col overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="px-8 py-6 flex-shrink-0 flex items-start justify-between border-b border-border">
-              <div>
-                <h2 className="text-2xl font-bold text-foreground leading-tight">Select Resources</h2>
-                <p className="text-sm text-muted-foreground mt-1.5">Choose from your existing resources or upload new ones</p>
-              </div>
-              <button
-                onClick={() => setShowLibraryModal(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Body */}
-            <div className="flex-1 overflow-y-auto px-8 py-6">
-              {resources.length === 0 ? (
-                /* Empty state */
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <div className="w-16 h-16 rounded-full bg-secondary/60 flex items-center justify-center mb-4">
-                    <FileText className="w-8 h-8 text-muted-foreground" />
-                  </div>
-                  <p className="text-sm font-semibold text-foreground mb-2">No resources yet</p>
-                  <p className="text-xs text-muted-foreground mb-6">Upload your first resource to get started.</p>
-                  <input
-                    ref={resourceFileInputRef}
-                    type="file"
-                    className="hidden"
-                    onChange={(e) => {
-                      if (e.target.files?.[0]) {
-                        const file = e.target.files[0];
-                        const newId = `resource-${Date.now()}`;
-                        // Add to resources (mock)
-                        setShowLibraryModal(false);
-                      }
-                    }}
-                  />
-                  <button
-                    onClick={() => resourceFileInputRef.current?.click()}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-colors"
-                  >
-                    <Upload className="w-4 h-4" />
-                    Upload Resource
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-2 gap-3">
-                    {resources.map((item) => {
-                      const isSelected = libraryDraft.has(item.id);
-                      return (
-                        <button
-                          key={item.id}
-                          onClick={() => {
-                            const next = new Set(libraryDraft);
-                            if (next.has(item.id)) next.delete(item.id);
-                            else next.add(item.id);
-                            setLibraryDraft(next);
-                          }}
-                          className={clsx(
-                            "flex items-center gap-3 border rounded-xl p-4 transition-all cursor-pointer text-left w-full",
-                            isSelected
-                              ? "border-primary bg-primary/[0.08] ring-1 ring-primary/30"
-                              : "border-border bg-secondary/30 hover:border-primary/40 hover:bg-secondary/50"
-                          )}
-                        >
-                          <div className={clsx(
-                            "flex items-center justify-center w-5 h-5 rounded border flex-shrink-0 transition-all",
-                            isSelected ? "bg-primary border-primary" : "bg-transparent border-muted-foreground/40"
-                          )}>
-                            {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
-                          </div>
-                          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-background border border-border flex-shrink-0">
-                            <FileText className="w-5 h-5 text-muted-foreground" />
-                          </div>
-                          <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-                            <p className="text-sm font-semibold text-foreground truncate">{item.name}</p>
-                            <p className="text-xs text-muted-foreground">{item.size}</p>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Upload New button */}
-                  <input
-                    ref={resourceFileInputRef}
-                    type="file"
-                    className="hidden"
-                    onChange={(e) => {
-                      if (e.target.files?.[0]) {
-                        const file = e.target.files[0];
-                        const newId = `resource-${Date.now()}`;
-                        const newResource = { id: newId, name: file.name, size: `${(file.size / 1024).toFixed(0)} KB`, type: file.name.split('.').pop() || 'file' };
-                        // Note: in a real app this would upload to storage
-                        setShowLibraryModal(false);
-                      }
-                    }}
-                  />
-                  <button
-                    onClick={() => resourceFileInputRef.current?.click()}
-                    className="w-full mt-4 flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-border rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-accent/30 transition-all"
-                  >
-                    <Upload className="w-4 h-4" />
-                    Upload New
-                  </button>
-                </>
-              )}
-            </div>
-
-            {/* Footer */}
-            <div className="flex-shrink-0 flex items-center justify-between border-t border-border bg-secondary/40 px-8 py-5">
-              <button
-                onClick={() => { setShowLibraryModal(false); }}
-                className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => { setSelectedLibraryItems(new Set(libraryDraft)); setShowLibraryModal(false); }}
-                className={clsx(
-                  "inline-flex items-center justify-center rounded-lg px-6 py-2.5 text-sm font-bold text-primary-foreground transition-opacity",
-                  libraryDraft.size === 0 ? "bg-primary/40 cursor-not-allowed" : "bg-primary shadow-lg hover:opacity-90 cursor-pointer"
-                )}
-                disabled={libraryDraft.size === 0}
-              >
-                {libraryDraft.size > 0 ? `Confirm (${libraryDraft.size})` : 'Select Resources'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Add Resources Modal — uses real ResourcePicker from Supabase */}
+      <ResourcePicker
+        isOpen={showLibraryModal}
+        onClose={() => setShowLibraryModal(false)}
+        selectedIds={Array.from(selectedLibraryItems)}
+        onSelect={(ids) => setSelectedLibraryItems(new Set(ids))}
+      />
 
     </div>
   );
